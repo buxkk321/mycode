@@ -74,7 +74,16 @@ function value_add_prefix($arr,$prefix,$index=array()){
 	}
 	return $arr;
 }
-
+/**
+ * 数组任意位置插入新单元
+ * @param array $arr
+ * @param int $offset
+ * @param mixed $data
+ * @return multitype:
+ */
+function array_insert(&$arr,$offset,$data){
+	$arr=array_merge(array_slice($arr, 0,$offset+1),(array)$data,$arr);
+}
 /**
  * 获取注释中的文本
  * @param string $str
