@@ -107,3 +107,13 @@ function getDocComment($str, $tag = ''){
 		return '';
 	}
 }
+
+/**
+ * 编译任意数据成php代码
+ * @param mixed $data
+ */
+function php_encode($data){
+	$str='<?php 
+	return '.var_export($data,true).';';
+	return $str;
+}
