@@ -31,7 +31,7 @@ class CurdApi {
 					for($i=0;$i<count($vv)-1;$i++){
 						$index.='["'.$vv[$i].'"]';
 					}
-					$index.='='.end($vv).';';
+					$index.='=end($vv);';
 					eval($index);
 				}
 				break;
