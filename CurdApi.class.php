@@ -9,16 +9,36 @@ class CurdApi {
 	protected static $_upload_error;
 	protected static $_def_cfg='./Data/config.php';
 	protected static $_def_cfg_unit=array('title'=>'','name'=>'','type'=>'','value'=>'','child'=>array());
-	/**
+/**
 	 * 把配置数据写到php文件中
 	 * @param array $data
 	 * @param string $filepath
-	 * @param bool $replace
-	 * @return number
+	 * @param int $replace 替换模式
+	 * 0:不替换 直接追加
+	 * 1:替换掉指定键名的单元
+	 * 2:全部替换
+	 * @return bool
 	 */
-	public static function setConfig($data,$filepath=null,$replace=false){
+	public static function setConfig($data,$filepath=null,$replace=1){
 		$cfg=include $filepath?:self::$_def_cfg;
-		$cfg=$replace?$data:array_merge_recursive($cfg,$data);
+		switch ($replace){
+			case 0:
+				$cfg=array_merge_recursive($cfg,$data);
+				break;
+			case 1:
+				foreach($data as $vv){
+					$index='$cfg';
+					for($i=0;$i<count($vv)-1;$i++){
+						$index.='["'.$vv[$i].'"]';
+					}
+					$index.='='.end($vv).';';
+					eval($index);
+				}
+				break;
+			case 2:
+				$cfg=$data;
+				break;
+		}
 		$cfg='<?php
 	return '.var_export($cfg,true).';';
 		$re=file_put_contents($filepath,$cfg);
