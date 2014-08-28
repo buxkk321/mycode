@@ -9,13 +9,20 @@ class CurdApi {
 	protected static $_upload_error;
 	protected static $_def_cfg='./Data/config.php';
 	protected static $_def_cfg_unit=array('title'=>'','name'=>'','type'=>'','value'=>'','child'=>array());
-	public function setConfig($newcfg,$filepath=null,$replace=false){
-		$cfgdata=include $filepath?:self::$_def_cfg;
-		if(IS_POST){
-			
-		}else{
-			return $cfgdata;
-		}
+	/**
+	 * 把配置数据写到php文件中
+	 * @param array $data
+	 * @param string $filepath
+	 * @param bool $replace
+	 * @return number
+	 */
+	public static function setConfig($data,$filepath=null,$replace=false){
+		$cfg=include $filepath?:self::$_def_cfg;
+		$cfg=$replace?$data:array_merge_recursive($cfg,$data);
+		$cfg='<?php
+	return '.var_export($cfg,true).';';
+		$re=file_put_contents($filepath,$cfg);
+		return $re;
 	}
 	/**
 	 * 以比较原始的方式获得数据列表
