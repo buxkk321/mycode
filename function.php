@@ -37,15 +37,6 @@ function array_batch($keys,$arr,$key_pre=''){
 	$data=array();
 	is_string($keys) && $keys=explode(',', $keys);
 	switch (true){
-		case (is_callable($arr)):
-			$num=func_num_args();
-			if($num>3){
-				$args=array_slice(func_get_args(), 3);
-				$data=call_user_func_array($arr, array_merge(array($keys,$key_pre),$args));
-			}else{
-				$data=$arr($keys,$key_pre);
-			}
-			break;
 		case (is_array($arr)):
 			if($key_pre===false){
 				$key_pre='';
@@ -59,6 +50,15 @@ function array_batch($keys,$arr,$key_pre=''){
 				}else{
 					$tag==true && $data[$key_pre.$vv]='';
 				}
+			}
+			break;
+		case (is_callable($arr)):
+			$num=func_num_args();
+			if($num>3){
+				$args=array_slice(func_get_args(), 3);
+				$data=call_user_func_array($arr, array_merge(array($keys,$key_pre),$args));
+			}else{
+				$data=$arr($keys,$key_pre);
 			}
 			break;
 	}
