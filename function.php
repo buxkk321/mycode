@@ -117,3 +117,20 @@ function php_encode($data){
 	return '.var_export($data,true).';';
 	return $str;
 }
+
+/**
+ * 根据经纬度求距离
+ * @param int $latitudeFrom 经度1
+ * @param int $longitudeFrom 纬度1
+ * @param int $latitudeTo 经度2
+ * @param int $longitudeTo 纬度2
+ * @return number
+ */
+function getDist($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo){
+	$t=abs($longitudeFrom-$longitudeTo);
+	$lonDelta=deg2rad($t<180?$t:360-$t);
+	$latFrom = deg2rad(90-$latitudeFrom);
+	$latTo = deg2rad(90-$latitudeTo);
+	$angle=cos($latFrom)*cos($latTo)+cos($lonDelta)*sin($latFrom)*sin($latTo);
+	return $angle*6371000;
+}
