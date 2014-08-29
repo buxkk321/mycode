@@ -56,28 +56,51 @@ function init_input_file(img_dialog){
 	});
 
 }
-function btn_start_count(btn,tag,timer,time){
-	if(tag){
-		clearInterval(timer);
-		if(typeof(time)=='undefined'){time=3;}
-		if(btn.tagName.toLowerCase()=='input'){
-			
+/**
+ * 单个btn倒计时
+ * @param btn jquery对象
+ * @param time int 计时时间
+ * @param func function 开始计时时执行的自定义函数
+ */
+function btn_start_count(btn,time,func){
+	if(!btn.data('counting')){
+        btn.data('counting',true).attr('disable','disable');
+        clearInterval(btn.data('timer'));
+        if(typeof(func)=='function'){func();}
+        if(typeof(time)=='undefined'){time=3;}
+        var t=time;
+		if(btn.is('input')){
+            var org_text=btn.val();
+            btn.val(org_text +'('+t+')').data(
+                'timer',
+                setInterval(function(){
+                    if(t<=0){
+                        clearInterval(btn.data('timer'));
+                        btn.val(org_text).removeAttr('disabled').data('counting',false);
+                        t=time;
+                        return false;
+                    }else{
+                        btn.val(function() {
+                            return org_text+'('+(--t)+')';
+                        });
+                    }
+                },1000)
+            );
 		}else{
-			var text_span=btn.children('span');
-			text_span.text("("+time+")");
-			timer=setInterval(function(){
-				if(time<=0){
-					clearInterval(timer);
-					text_span.text('');
-					gcd_btns.removeAttr('disabled');
-					time=5;
-					return false;
-				}else{
-					text_span.text("("+(--time)+")");
-				}
-			},1000);
+            var text_span=btn.data(
+                'timer',
+                setInterval(function(){
+                    if(t<=0){
+                        clearInterval(btn.data('timer'));
+                        text_span.text('');
+                        btn.removeAttr('disabled').data('counting',false);
+                        t=time;
+                        return false;
+                    }else{
+                        text_span.text("("+(--t)+")");
+                    }
+			    },1000)
+            ).children('span').text("("+t+")");
 		}
-		
-		
 	}
 }
