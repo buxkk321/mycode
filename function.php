@@ -20,34 +20,36 @@ function count_lack($now,$all,$target){
 }
 /**
  * 数组批量取值
- * @param unknown_type $keys
- * @param unknown_type $key_pre
- * @param unknown_type $arr
+ * @param mixed $keys 指定的键名
+ * @param mixed $arr 搜索的数组,或者回调函数
+ * @param mixed $key_pre 返回数组的键名前缀
  * @return multitype:NULL string mixed unknown
  */
-function array_batch($keys,$key_pre='',$arr='I'){
+function array_batch($keys,$arr,$key_pre=''){
 	$data=array();
 	is_string($keys) && $keys=explode(',', $keys);
 	switch (true){
-		case (is_string($arr)):
+		case (is_callable($arr)):
 			$num=func_num_args();
 			if($num>3){
 				$args=array_slice(func_get_args(), 3);
-				foreach($keys as $vv){
-					$data[$vv]=call_user_func_array($arr, array_merge(array($key_pre.$vv),$args));
-				}
+				$data=call_user_func_array($arr, array_merge(array($keys,$key_pre),$args));
 			}else{
-				foreach($keys as $vv){
-					$data[$key_pre.$vv]=$arr($vv);
-				}
+				$data=$arr($keys,$key_pre);
 			}
 			break;
 		case (is_array($arr)):
+			if($key_pre===false){
+				$key_pre='';
+				$tag=false;
+			}else{
+				$tag=true;
+			}
 			foreach($keys as $vv){
 				if(isset($arr[$vv])){
 					$data[$key_pre.$vv]=$arr[$vv];
 				}else{
-					$data[$key_pre.$vv]='';
+					$tag==true && $data[$key_pre.$vv]='';
 				}
 			}
 			break;
