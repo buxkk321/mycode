@@ -1,4 +1,12 @@
 /**
+ * 使用异或运算交换两个变量的值
+ */
+function flipvar(&$var1,&$var2){
+	$var1=$var1^$var2;
+	$var2=$var1^$var2;
+	$var1=$var1^$var2;
+}
+/**
  * uniqid加强版
  */
 function uniqid_ex($key=''){
