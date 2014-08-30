@@ -26,8 +26,13 @@ function set_select_tree_ajax(current_box,next_box,ajax_url){
         });
     });
 }
-function init_input_file(img_dialog){
-    if(img_dialog!==false){
+/**
+ * 所有上传图片的input旁边加上预览图片框
+ * @param img_dialog 点击预览图时的动作,输入非bool值则不进行任何操作
+ * @param loaded_callback 当图片加载完毕后的回调函数
+ */
+function init_input_img(img_dialog,loaded_callback){
+    if(img_dialog===true){
         if(typeof(img_dialog)=='undefined'){
             img_dialog=$(window.top.document.getElementById('view_org'));
         }
@@ -37,21 +42,31 @@ function init_input_file(img_dialog){
                 img_dialog.css({"top":($(window.top).height()-img_dialog.height())/2,"left":($(window.top).width()-img_dialog.width())/2});
             });
         });
+    }else if(img_dialog===false){
+        $('img.prev').parent().each(function(){
+            var aaa=$(this);
+            aaa.delegate('.prev','click',function(){
+                img.show().children('img').attr('src',$(this).attr('src'));
+                img.css({"top":($(window.top).height()-img.height())/2,"left":($(window.top).width()-img.width())/2});
+            });
+        });
     }
 	$(':file').each(function(){
-		var ifile=this;
+		var ifile=$(this);
 		$("<input type='button' value='浏览…' class='choose_file' />").click(function(){
-			$(ifile).click();
-		}).insertBefore($(this));
+            ifile.click();
+		}).insertBefore(ifile);
 		$("<input type='button' class='cancel_upload' value='取消' />").hide().click(function(){
-			$(this).hide().siblings(':file').nextAll('img').remove();
-		}).insertAfter($(this));
-		$(this).change(function(){
-			$(this).nextAll('img').remove();
-			$.each(this.files,function(i,v){
-                $('<img class="prev"/>').attr("src",window.URL.createObjectURL(v)).insertAfter($(ifile));
+			$(this).hide();
+            ifile.nextAll('img').remove();
+		}).insertAfter(ifile);
+        ifile.change(function(){
+            ifile.nextAll('img').remove();
+			$.each(ifile[0].files,function(i,v){
+                $('<img class="prev"/>').attr("src",window.URL.createObjectURL(v)).insertAfter(ifile);
 			});
-			$(this).siblings('.cancel_upload').show();
+            ifile.siblings('.cancel_upload').show();
+			if(typeof(loaded_callback)=='function'){loaded_callback(ifile);}
 		});
 	});
 
