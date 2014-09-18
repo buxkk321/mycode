@@ -2,6 +2,11 @@
  * Created by Administrator on 14-9-16.
  */
 (function( $ ){
+    /**
+     * 图片轮播工具
+     * @param options
+     * @returns {fn}
+     */
     $.fn.slideBox = function(options) {
         var jq=this;
         var settings={

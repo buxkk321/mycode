@@ -2,11 +2,14 @@
  * Created by Administrator on 14-9-16.
  */
 (function( $ ){
-    $.fn.itextinput=function(options){
-
+    /**
+     * 文本输入框默认值效果
+     * @param options
+     * @returns {*|each|Array|each|each|each}
+     */
+    $.fn.itextinput=function(){
         return this.each(function() {
             var obj=$(this);
-
             obj.data({'default_text':obj.val(),'isset':false}).focus(function(){
                 if(!obj.data('isset')){
                     obj.val('');
@@ -20,6 +23,10 @@
             });
         });
     };
+    /**
+     * 密码输入框的默认值效果
+     * @returns {*|each|Array|each|each|each}
+     */
     $.fn.ipassword = function(){
 //        var settings={
 //
@@ -45,6 +52,11 @@
             );
         });
     };
+    /**
+     * ajax请求的删除按钮
+     * @param options
+     * @returns {*|click|click|click|click|click}
+     */
     $.fn.idelbtn=function(options){
         var settings={
             'container':'',
@@ -53,13 +65,17 @@
             'confirm':true,
             'decide':function(re){
                 if(re['status']==1){
-                    settings['success'](re);
+                    return true;
                 }else{
-                    settings['error'](re);
+                    return false;
                 }
             },
-            'success':function(re){},
-            'error':function(re){}
+            'success':function(re){
+                self.location.href=re['url'];
+            },
+            'error':function(re){
+                alert('删除失败:'+re['msg']);
+            }
         };
 
         if ( options ) {
@@ -73,12 +89,13 @@
                 $.ajax({
                     url : settings['url'],
                     type :settings['type'],
-                    data:settings['box'].serialize(),
+                    data:settings['container'].serialize(),
+                    dataType:'json',
                     success : function(re) {
                         if(settings['decide'](re)){
-                            settings['success']();
+                            settings['success'](re);
                         }else{
-                            settings['error']();
+                            settings['error'](re);
                         };
                     }
                 });
