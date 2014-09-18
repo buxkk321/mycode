@@ -79,30 +79,55 @@ function ajax_return($data,$type='JSON') {
 	}
 }
 /**
- * 获取指定类的方法列表
- * @param mixed $str
- * @return multitype:
+ * json格式成功应答
+ * @param unknown $sucinfo
+ * @param string $func 
  */
-function getMethods($str){
-	$class  = new  \ReflectionClass ($str);
-	return $class -> getMethods ();
+function success_response($sucinfo,$func=null){
+	$response=array(
+			'status'=>1,
+			'msg'=>$sucinfo['msg']?:'成功',
+			'success_response'=>$sucinfo['result']
+	);
+	
+	is_callable($func) && $func($response);
+	
+	ajax_return($response);
+	
 }
 /**
- * 获取指定类的属性列表
- * @param mixed $str
- * @return multitype:
+ * 错误应答
+ * @param mixed $errinfo 错误信息,如果是数组,格式应为array("code" => int,"msg" => string)
  */
-function getProperties($str,$filter=\ReflectionProperty::IS_PUBLIC){
-	$class  = new  \ReflectionClass ($str);
-	$p=$class -> getProperties($filter);
-	if(is_object($str)){
-		foreach ($p as $kk=>&$vv){
-			$name=$vv->name;
-			@$vv->value=$str->$name;
+function error_response($errinfo=26){
+	if(is_int($errinfo)){
+		switch ($errinfo){
+			case 22:
+				$msg='参数错误';
+				break;
+			case 26:
+				$msg='error';
+				break;
+			default:
+				$msg='未知错误';
 		}
+		$response = array (
+				'status'=>0,
+				"error_response" => array (
+						"code" => $errinfo,
+						"msg" => $msg,
+				)
+		);
+	}elseif(is_array($errinfo)){
+		$response=array(
+				"status"=>0,
+				"error_response" => $errinfo
+		);
 	}
-	return $p;
+	ajax_return($response);
 }
+
+
 
 /**
  * 浏览器友好的变量输出
@@ -182,26 +207,6 @@ function msubstr($str, $start=0, $length, $charset="utf-8", $suffix=true) {
 
 /**************自定义的**************/
 /**
- * 文本文件内容初始化
- * @param string $path 文件路径
- * @param string $str 初始内容
- * @param bool $over 是否强制初始化 默认false,即文件不存在才初始化
- */
-function file_init($path,$str,$over=false){
-	if($over===false){
-		if(!file_exists($path)){
-			goto action_1;
-		}
-	}else{
-		goto action_1;
-	}
-	return;
-	action_1:
-	$handle = fopen($path,'w');
-	fwrite($handle,$str);
-	fclose($handle);
-}
-/**
  * 把配置数据写到php文件中
  * @param string $filepath	文件路径
  * @param array $data	待写入的数据,若为false,则不读取数据直接return
@@ -211,7 +216,7 @@ function file_init($path,$str,$over=false){
  * 2:全部替换
  * @return bool
  */
-function setConfig($filepath,$data=array(),$replace=1){
+function set_config($filepath,$data=array(),$replace=1){
 	if(!file_exists($filepath)){
 		$handle = fopen($filepath,'w');
 		fwrite($handle,'<?php
@@ -381,7 +386,6 @@ function value_add_prefix($arr,$prefix,$index=array()){
 		}
 		
 	}
-	
 	return $arr;
 }
 /**
@@ -406,6 +410,31 @@ function getDocComment($str, $tag = ''){
 	}else{
 		return '';
 	}
+}
+/**
+ * 获取指定类的方法列表
+ * @param mixed $str
+ * @return multitype:
+ */
+function getMethods($str){
+	$class  = new  \ReflectionClass ($str);
+	return $class -> getMethods ();
+}
+/**
+ * 获取指定类的属性列表
+ * @param mixed $str
+ * @return multitype:
+ */
+function getProperties($str,$filter=\ReflectionProperty::IS_PUBLIC){
+	$class  = new  \ReflectionClass ($str);
+	$p=$class -> getProperties($filter);
+	if(is_object($str)){
+		foreach ($p as $kk=>&$vv){
+			$name=$vv->name;
+			@$vv->value=$str->$name;
+		}
+	}
+	return $p;
 }
 /**
  * 数组任意位置插入新单元
