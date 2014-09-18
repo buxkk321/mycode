@@ -1,0 +1,100 @@
+{%extends 'Base/basic.phtml'%}
+
+{%block style%}
+	{{stylesheetLink('Public/Admin/css/manage_box.css',true)}}
+{%endblock%}
+
+{%block script%}
+	<script type="text/javascript" src="<?php echo __PUBLIC__; ?>/Admin/js/common.js"></script>
+	<script type="text/javascript">
+	var gcd_btns,gcd_btns_timer_id,g_sec_title;
+	function check_del_submit(form_obj){
+		if(window.top.confirm('确定要删除吗?')){
+			if(form_obj.find(':checkbox').not('.check_all').size()>0){
+				form_obj.submit();
+			}else{
+				alert('请选择目标');
+				return false;
+			}
+		}else{
+			return false;
+		}
+	}
+	function gcd_start_count(){
+		var time=3,text_span=gcd_btns.children('span');
+		text_span.text("("+time+")");
+		clearInterval(gcd_btns_timer_id);
+		gcd_btns_timer_id=setInterval(function(){
+			if(time<=0){
+				clearInterval(gcd_btns_timer_id);
+				text_span.text('');
+				gcd_btns.removeAttr('disabled');
+				time=5;
+				return false;
+			}else{
+				text_span.text("("+(--time)+")");
+			}
+		},1000);
+	}
+	function get_selected_data(selected_jqobjs){
+		var arr=[];
+		selected_jqobjs.each(function(){
+			arr.push($(this).val());
+		});
+		return arr;
+	}
+	$(function($){
+		var title=$(window.top.document.getElementsByTagName('title')[0]);
+		g_sec_title=$('title').text();
+		title.text(title.text().split("_")[0]+'_'+g_sec_title);
+		gcd_btns=$('.gcd_btn');
+		gcd_btns.on('click',function(){
+			gcd_btns.attr('disabled','disabled');
+		});
+		$('img.prev').parent().delegate('.prev','click',function(e){
+			var img=$(window.top.document.getElementById('view_org'));
+			img.show().children('img').attr('src',$(this).attr('src'));
+			img.css({"top":($(window.top).height()-img.height())/2,"left":($(window.top).width()-img.width())/2});
+		});
+		$('.cancel').click(function(){
+			window.history.go(-1);
+		});
+		$('.count_btn').each(function(){
+			var time=5,timerid,tempobj=$(this),
+			text_span=tempobj.click(function(){
+				tempobj.attr('disabled','disabled');
+				text_span.text("("+time+")");
+				timerid=setInterval(function(){
+						if(time<=0){
+							clearInterval(timerid);
+							text_span.text('');
+							tempobj.removeAttr('disabled');
+							time=5;
+							return false;
+						}else{
+							text_span.text("("+(--time)+")");
+						}
+				},1000);
+			}).children('span');
+		});
+		$('.pop_btn').click(function(){
+			$(window.top.document.getElementById('cover_box')).show();
+		});
+		$(':checkbox').click(function (){
+			$(this).blur();
+			$(this).focus();
+		});
+		var checkbox_group=$('.table1 :checkbox:not(.check_all)');
+		$('.check_all').change(function(){
+			if($(this).is(':checked')){
+				checkbox_group.prop('checked','checked');
+			}else{
+				checkbox_group.removeProp('checked');
+			}
+		});
+		$('.select_all').click(function(){
+			$('.check_all').click();
+		});
+	});
+	</script>
+{%endblock%}

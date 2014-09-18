@@ -1,0 +1,86 @@
+{%extends 'Base/manage_box.phtml'%}
+{%block body%}
+<div class="g_frame_main clear">
+{{linkTo(btn['add'])}}
+	<div  class='search_box btnbox'>
+	<?php echo Tag::form(array('Admin/Business/item_list','method'=>'post','id'=>'form_1'));?>
+			{%if select['od'] is defined%}
+			  	排序:
+				<select name='od'>
+					{%for ke,vo in select['od']%}
+						<option value='{{ke}}'>{{vo}}</option>
+					{%endfor%}
+				</select>
+				<select name='sc'>
+					<option value='asc'>升序</option>
+					<option value='desc'>降序</option>
+				</select>
+			{%endif%}
+			{%if select['ex'] is defined%}
+				{%for ke,vo in select['ex']%}
+					<select name='{{ke}}'>
+						{%for key,voo in vo%}
+							<option value='{{key}}'>{{voo}}</option>
+						{%endfor%}
+					</select>
+				{%endfor%}
+			{%endif%}
+			搜索:
+			{%if select['sh'] is defined%}
+				<select name='sh'>
+					{%for ke,vo in select['sh']%}
+						<option value='{{ke}}'>{{vo}}</option>
+					{%endfor%}
+				</select>
+			{%endif%}
+			<input type='text' name='kw' />
+			<input type='submit' value='确定' />
+		</form>
+	</div>
+    <form id='form_2' >
+		<table border="0" cellpadding="0" cellspacing="0" class="table1" >
+	    	<tr class='first'>
+	    		<th style='width:20px'><input type='checkbox' class='check_all'></th>
+	    		{%for value in grids%}
+	    			<th>{{value}}</th>
+	    		{%endfor%}
+				<th colspan='2' class='controll'>操作</th>
+			</tr>
+			{%for vo in list%}
+				<tr>
+					<td>
+						<input type="checkbox" name='{{pk}}[]'  value="{{vo[pk]}}" />
+					</td>
+					{%for key,voo in grids%}
+						<td>{{vo[key]}}</td>
+	    			{%endfor%}
+					<td>
+						{{vo['btn_edit']}}
+					</td>
+				</tr>
+			{% else %}
+				<tr>
+					<td colspan="{{grids|length+2}}" class="text_center" >目前还没有内容
+					</td>
+				</tr>
+			{%endfor%}
+	    </table>
+    </form>
+    <div class='button_box'>
+		<span class='select_all'>全选/取消</span>
+		<input type='button' id="idelete" class="{{btn['del']['class']}}"  value="{{btn['del']['text']}}" />
+	</div>
+	{$pagefoot}
+</div>
+<div id='test_text'></div>
+<script type="text/javascript">
+$(function($){
+	$('img.pop_link').click(function(){
+	});
+	$('#idelete').idelbtn({
+		'container':$('#form_2'),
+		'url':'{{btn["del"]["url"]}}'
+	});
+});
+</script>
+{%endblock%}

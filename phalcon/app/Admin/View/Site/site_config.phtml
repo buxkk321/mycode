@@ -1,0 +1,117 @@
+{% extends 'Base/manage_box.phtml' %}
+{% block body %}
+<link href="__PUBLIC__/static/jquery-ui-1.11.0.custom/jquery-ui.min.css" rel="stylesheet">
+<div class="g_frame_main clear">
+	<form id='form_1' action="{{url('Admin/Site/site_config')}}" target='view_frame' method="post" enctype='multipart/form-data'>
+    {%for kkk,vo in data%}
+    	<fieldset>
+			<legend class='heading'>{{vo['title']}}</legend>
+			<table cellpadding='0' cellspacing='0' name="{{kkk}}">
+				{%if vo['child'] is empty%}
+					<tr><td>暂无配置</td><td><input type="button" class="i_add yahei  f16" value="新增配置项" /></td></tr>
+				{%else%}
+					{%for key,voo in vo['child']%}
+						<tr>
+                            <td>{{voo['title']}}:</td>
+                            <td>
+                                <span name="config[{{kkk}}][{{key}}]" class="data_view">{{voo['value']}}</span>
+                                <input type="text" class="dis_none"/>
+                            </td>
+                        </tr>
+					{%endfor%}
+                    <tr>
+                        <td><input type="button" class="i_add yahei  f16" value="新增配置项" /></td>
+                        <td><input type="button" class="i_edit yahei  f16" value="编辑" /><input type="button" class="i_cancel yahei  f16 dis_none" value="取消" /></td>
+                    </tr>
+				{%endif%}
+			</table>
+		</fieldset>
+    {%endfor%}
+        <input type="submit" class="submit yahei  f16" value="提交" style="display: block" />
+	</form>
+	<div id='bottom_msg'></div>
+</div>
+{%endblock%}
+{%block hidden%}
+    <table cellpadding='0' cellspacing='0' class='new_cfg' title='新增配置项'>
+        <tr>
+            <th>配置项名称(英文)：</th>
+            <td>
+                <input type="text" name="name"/>
+            </td>
+        </tr>
+        <tr>
+            <th>自定义标题：</th>
+            <td>
+                <input type="text" name="title"/>
+            </td>
+        </tr>
+        <tr>
+            <th>配置值：</th>
+            <td>
+                <input type="text" name="value"/>
+                <input type="hidden" name="parent" value="">
+            </td>
+        </tr>
+    </table>
+    <div id="tdiv" title="">
+    </div>
+{%endblock%}
+{%block script%}
+{{super()}}
+<script src="<?php echo __PUBLIC__;?>/static/jquery-ui-1.11.0.custom/jquery-ui.min.js"></script>
+<script type="text/javascript">
+    $(function($){
+        var td=$("#tdiv");
+        $(window.top.document.getElementById('breadcrumb')).children('.sec').text('>>'+g_sec_title);
+        $('.i_add').click(function(){
+            var table=$('#hidden_box .new_cfg').clone(),
+                    inputs=table.find('input'),
+                    idx1=$(this).parents('table').attr('name');
+            table.find('input[name="parent"]').val(idx1);
+            td.html(table).dialog({ title: table.attr('title') }).dialog("open");
+        });
+        $('.i_edit').click(function(){
+            $(this).hide().next().show().parents('table').find('.data_view').hide().each(function(){
+                var tis=$(this),name=tis.attr('name'),value=tis.text();
+                tis.next().attr('name',name).val(value).show();
+            });
+        });
+        $('.i_cancel').click(function(){
+            $(this).hide().prev().show().parents('table').find('.data_view').show().next().hide();
+        });
+        td.dialog({
+            draggable: true,   //true 可拖动 flase不可拖动
+            modal:false ,       //true带有遮罩;false 没有遮照
+            autoOpen:false,        //false 不会自动打开 ;true 会自动打开
+            height:"auto",     //值可以为“auto”,或者为具体像素，比如：400
+            width:"auto",
+            maxHeight:400,     //可以调整的最大高度
+            maxWidth:400,     //可以调整的最大高度
+            resizable:true,    //可调整大小的
+            // show:3000,           //number||string("slow")
+            //hide:3000,           //number||string("slow")
+            buttons:{
+                '确定':function(){
+                    $.ajax({
+                        url:'{:U("ajax_add_cfg","","")}',
+                        type:'post',
+                        data:td.find("input,select").serialize(),
+                        success:function(re){
+                            if(re==0){
+                                alert('添加失败');
+                                td.dialog("close");
+                            }else{
+                                self.location.href="{:U()}";
+                            }
+                        }
+                    });
+                },
+                '取消':function(){
+                    $(this).dialog("close");
+                }
+            }
+        });
+    });
+    </script>
+{% endblock %}

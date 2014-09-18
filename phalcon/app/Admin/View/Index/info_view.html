@@ -1,0 +1,166 @@
+<extend name="Base/manage_box"/>
+<block name='style'>
+<style type='text/css'>
+.choose_file,.data_input{
+	display:none;
+}
+.data_view{
+	white-space: normal;
+}
+fieldset{
+	display:inline-block;
+	max-width:48%;
+}
+</style>
+</block>
+<block name='body'>
+<div class="g_frame_main clear">
+	<form id='form_1' action="{:U('updateinfo')}" target='view_frame' method="post" enctype='multipart/form-data'>
+		<fieldset>
+			<table cellpadding='0' cellspacing='0'>
+				<tr>
+					<th>公司名称</th>
+					<td>
+			        	<input type="text"  name="title" class='data_input' value="{$result.title}"/>
+			        </td>
+		        </tr>
+		        <tr>
+					<th>地址</th>
+					<td colspan="2">
+						<input type="text"  name="addr" class='data_input' value="{$result.addr}"/>
+			        </td>
+		        </tr>
+		        <tr>
+					<th>地图快照</th>
+					<td>
+						<img src='__ROOT__/Uploads/{$result["addr_img"]}'  class='prev'/>
+						<input type="file" name="addr_img" />
+			        </td>
+		        </tr>
+		        <tr>
+					<th >网址</th>
+					<td colspan="2">
+						<input type="text"  name="site" class='data_input' value="{$result.site}"/>
+			        </td>
+		        </tr>
+		        <tr>
+					<th>二维码</th>
+					<td>
+						<img src='__ROOT__/Uploads/{$result["tdcode"]}'  class='prev'/>
+						<input type="file" name="tdcode" />
+			        </td>
+		        </tr>
+		        <tr>
+					<th>座机电话</th>
+					<td>
+						<input type="text"  name="tel" class='data_input' value="{$result.tel}"/>
+			        </td>
+		        </tr>
+		        <tr>
+					<th>手机电话</th>
+					<td>
+						<input type="text"  name="mob" class='data_input' value="{$result.mob}"/>
+			        </td>
+		        </tr>
+		        <tr>
+					<th>传真</th>
+					<td>
+						<input type="text"  name="fax" class='data_input' value="{$result.fax}"/>
+			        </td>
+		        </tr>
+		        <tr>
+					<th>版权信息</th>
+					<td>
+						<input type="text"  name="copyright" class='data_input' value="{$result.copyright}"/>
+			        </td>
+		        </tr>
+		        <tr>
+					<th>新浪企业微博</th>
+					<td colspan="2">
+						<input type="text"  name="sina_weibo" class='data_input' value="{$result.sina_weibo}"/>
+			        </td>
+		        </tr>
+		        <tr>
+					<th>联系qq</th>
+					<td>
+						<input type="text"  name="qq" class='data_input' value="{$result.qq}"/>
+			        </td>
+		        </tr>
+		        <tr>
+			        <th>主要业务1</th>
+			        <td>
+				        <select name='main_busi_1_id' class='data_input'>
+							<volist name='busi_list' id='vo'>
+								<option value="{$key}" {$key==$result['main_busi_1_id']?'selected="selected"':''}>{$vo}</option>
+							</volist>
+						</select> 
+					</td>
+					<td>
+						自定义标题:
+						<input type="text"  name="main_busi_1_title" class='data_input' value="{$result.main_busi_1_title}"/>
+					</td>
+				</tr>
+				<tr>
+			        <th>主要业务2</th>
+			        <td> 
+				        <select name='main_busi_2_id' class='data_input'>
+							<volist name='busi_list' id='vo'>
+								<option value="{$key}" {$key==$result['main_busi_2_id']?'selected="selected"':''}>{$vo}</option>
+							</volist>
+						</select> 
+					</td>
+					<td>
+						自定义标题:
+						<input type="text"  name="main_busi_2_title" class='data_input' value="{$result.main_busi_2_title}"/>
+					</td>
+				</tr>
+				<tr>
+					<td></td>
+					<td>
+						<input type="button" class="submit yahei  f16 start_edit" value="编辑" />
+						<input type="submit" class="submit yahei  f16 dis_none"  value="确定" />
+						<input type="button" class="submit yahei  f16 dis_none cancel_edit" value="取消" />
+					</td>
+				</tr>
+			</table>
+		</fieldset>
+	</form>
+</div>
+</block>
+<block name='script'>
+<script type="text/javascript">
+//数据初始化
+$(function($){
+	$('.data_input').each(function(){
+		var temp=$(this);
+		switch(true){
+        	case temp.is('input') :
+        		temp.data('default',temp.val());
+        		break;
+        	case temp.is('textarea') :
+        		temp.data('default',temp.text());
+        		break;
+        	case temp.is('select') :
+        		temp.data('default',temp.find(':selected').text());
+        		break;
+        }
+		temp.before($('<span class="data_view"></span>').text(temp.data('default')));
+	});
+	
+	$('.start_edit').click(function(){
+		var container=$(this).addClass('dis_none').siblings().removeClass('dis_none').parents('fieldset');
+		container.find('.data_input,.choose_file').show();
+		container.find('.data_view').hide();
+	});
+	$('.cancel_edit').click(function(){
+		var container=$(this).siblings('.start_edit').removeClass('dis_none').siblings().addClass('dis_none').parents('fieldset');
+		container.find(':file').nextAll('img').remove();
+		container.find('.data_input,.choose_file').hide();
+		container.find('.data_view').show();
+	});
+	$('.content_edit').click(function(){
+		self.location.href="{:U('content_edit')}";
+	});
+});
+</script>
+</block>

@@ -1,0 +1,85 @@
+<extend name="Base/layout01"/>
+<block name='style'>
+    <link href="__PUBLIC__/static/jquery-ui-1.11.0.custom/jquery-ui.min.css" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" href="__PUBLIC__/Admin/css/index.css" />
+</block>
+<block name='body'>
+	<div class="g_header clear">
+		<h1 class="logo"><a href=""><img src="__PUBLIC__/Admin/image/logo.png" width="195" height="80" alt="logo" /></a></h1>
+		<h2 class="f28 nomal">微云官网后台管理系统</h2>
+		<a href='__APP__/Admin/Index/logout/' style='color:#FFF;display:block;float:right;margin:10px 20px'>[退出]</a>
+	</div>
+	<div class="g_left">
+		<div class="g_left_menu clear">
+	    	<ul>
+	    		<li>
+					<a href="javascript:void(0)" class="f14 menu_head l1">首页管理</a>
+					<dl style='display: block'>
+						<dd>
+							<a href="{:U('Rolling/item_list')}" target="view_frame" class="f14 l2">滚动焦点图</a>
+						</dd>
+						<dd>
+							<a href="{:U('Link/item_list')}" class="f14 l2" target="view_frame">友情链接</a>
+						</dd>
+						<dd>
+							<a href="{:U('Company/info_view')}" class="f14 l2 on" target="view_frame">公司信息</a>
+						</dd>
+						
+					</dl>
+				</li>
+				<li>
+					<a href="javascript:void(0)" class="f14 menu_head l1">内容管理</a>
+					<dl>
+						<dd>
+							<a href="{:U('Article/index')}" class="f14 l2" target="view_frame">文章分类</a>
+						</dd>
+						<dd>
+							<a href="{:U('News/item_list')}" class="f14 l2" target="view_frame">新闻</a>
+						</dd>
+						<dd>
+							<a href="{:U('Article/yytg')}" class="f14 l2" target="view_frame">运营推广</a>
+						</dd>
+						<dd>
+							<a href="{:U('Quest/item_list')}" class="f14 l2" target="view_frame">在线问答</a>
+						</dd>
+					</dl>
+				</li>
+	        	<li><a href="__APP__/Admin/Business/item_list/" class="f14 l1" target="view_frame">业务管理</a></li>
+	            <li><a href="__APP__/Admin/Case/item_list/" class="f14 l1" target="view_frame">案例管理</a></li>
+	            <li><a href="__APP__/Admin/Site/site_config/" class="f14 l1" target="view_frame">网站配置</a></li>
+	        </ul>
+	    </div>
+	</div>
+	<div class="g_right">
+		<div class="nav  f16" id='breadcrumb'>
+			<span class='fir'>首页管理</span>
+			<span class='sec'>&gt;&gt; 公司信息</span>
+			<span class='thi'></span>
+		</div>
+		<div id='view_box'>
+	    	<iframe src="{:U('Company/info_view')}" frameborder="0" name="view_frame"  id="view_frame" scrolling="auto"></iframe>
+		</div>
+	</div>
+	<div id='cover_box' class='alpha60'>
+		<div class='outter'>
+			<div id='pop_box'>
+				<iframe  src="__APP__/Admin/Index/error_page/"  frameborder="0" name="pop_frame" id="pop_frame" scrolling="auto">
+					<p>Your browser does not support iframes.</p>
+				</iframe>
+			</div>
+			<div class='button_box'>
+				<button id='ok'>确定</button><button id='cancel'>取消</button>
+			</div>
+		</div>
+	</div>
+    <iframe  src=""  frameborder="0" name="dialog_frame" id='dialog_frame' scrolling="auto">
+        <p>Your browser does not support iframes.</p>
+    </iframe>
+	<div id='view_org' class='drag_move clear'>
+		<div class='close_x'></div>
+		<img src=''  />
+	</div>
+</block>
+<block name="script">
+<script type="text/javascript" src="__PUBLIC__/Admin/js/index.js"></script>
+</block>

@@ -1,0 +1,21 @@
+<?php use Phalcon\Tag; ?>
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	{%block meta%}{%endblock%}
+	{%block title%}<?php echo $this->tag->getTitle(); ?>{%endblock%}
+	{{javascriptInclude('Public/static/jquery-1.11.0.min.js',true)}}
+	{{javascriptInclude('Public/static/jq_admin.js',true)}}
+	{{javascriptInclude('Public/static/jq_common.js',true)}}
+	{{stylesheetLink('Public/Common/css/theme.css',true)}}
+	{%block style%}{%endblock%}
+</head>
+<body>
+<div id="hidden_box">
+	{%block hidden%}{%endblock%}
+</div>
+	{%block body%}{%endblock%}
+	{%block script%}{%endblock%}
+</body>
+</html>

@@ -1,0 +1,73 @@
+{%extends 'Base/basic.phtml'%}
+{%block style%}
+	<link href="<?php echo __PUBLIC__; ?>/static/jquery-ui-1.11.0.custom/jquery-ui.min.css" rel="stylesheet">
+	<link href="<?php echo __PUBLIC__; ?>/Admin/css/index.css" rel="stylesheet">
+{%endblock%}
+{%block body%}
+	<div class="g_header clear">
+		<h1 class="logo"><a href=""><img src="<?php echo __PUBLIC__;?>/Admin/image/logo.png" width="195" height="80" alt="logo" /></a></h1>
+		<h2 class="f28 nomal">微云官网后台管理系统</h2>
+		<?php echo Tag::linkTo(array('Admin/Index/logout','[退出]','class'=>'logout'));?>
+	</div>
+	<div class="g_left">
+		<div class="g_left_menu clear">
+	    	<ul>
+	    		<li>
+					<a href="javascript:void(0)" class="f14 menu_head l1">首页管理</a>
+					<dl style='display: block'>
+						<dd>
+							<?php echo Tag::linkTo(array('Admin/Rolling/item_list','滚动焦点图','class'=>'f14 l2','target'=>'view_frame'));?>
+						</dd>
+						<dd>
+							<?php echo Tag::linkTo(array('Admin/Link/item_list','友情链接','class'=>'f14 l2','target'=>'view_frame'));?>
+						</dd>
+						<dd>
+							<?php echo Tag::linkTo(array('Admin/Site/company_info','公司信息','class'=>'f14 l2 on','target'=>'view_frame'));?>
+						</dd>
+					</dl>
+				</li>
+				<li>
+					<?php echo Tag::linkTo(array('Admin/Article/index','文章管理','class'=>'f14 l1','target'=>'view_frame'));?>
+				</li>
+	        	<li>
+	        		<?php echo Tag::linkTo(array('Admin/Business/item_list','业务管理','class'=>'f14 l1','target'=>'view_frame'));?>
+	        	</li>
+	            <li>
+	            	<?php echo Tag::linkTo(array('Admin/Site/site_config','网站配置','class'=>'f14 l1','target'=>'view_frame'));?>
+	            </li>
+	        </ul>
+	    </div>
+	</div>
+	<div class="g_right">
+		<div class="nav  f16" id='breadcrumb'>
+			<span class='fir'>后台首页</span>
+		</div>
+		<div id='view_box'>
+	    	<iframe src="<?php echo $this->url->get('Admin/Site/company_info'); ?>" frameborder="0" name="view_frame"  id="view_frame" scrolling="auto"></iframe>
+		</div>
+	</div>
+	<div id='cover_box' class='alpha60'>
+		<div class='outter'>
+			<div id='pop_box'>
+				<iframe  src="<?php echo $this->url->get('Admin/Index/error_page'); ?>"  frameborder="0" name="pop_frame" id="pop_frame" scrolling="auto">
+					<p>Your browser does not support iframes.</p>
+				</iframe>
+			</div>
+			<div class='button_box'>
+				<button id='ok'>确定</button><button id='cancel'>取消</button>
+			</div>
+		</div>
+	</div>
+    <iframe  src=""  frameborder="0" name="dialog_frame" id='dialog_frame' scrolling="auto">
+        <p>Your browser does not support iframes.</p>
+    </iframe>
+	<div id='view_org' class='drag_move clear'>
+		<div class='close_x'></div>
+		<img src=''  />
+	</div>
+	<div class="hidden_box">
+	</div>
+{% endblock %}
+{% block script %}
+	<script type="text/javascript" src="<?php echo __PUBLIC__;?>/Admin/js/index.js"></script>
+{% endblock %}

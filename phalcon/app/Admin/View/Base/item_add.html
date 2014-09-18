@@ -1,0 +1,64 @@
+{%extends 'Base/manage_box.phtml'%}
+{%block body%}
+<div class="g_frame_main">
+	<form id='form_1' action="{:U()}" target='view_frame' method="post" enctype='multipart/form-data'>
+		<fieldset>
+			<legend class='heading'>基本信息</legend>
+			<table cellpadding='0' cellspacing='0'>
+				<volist name='grids' id='vo'>
+					<tr>
+						<th>{$vo['Comment']}</th>
+						<td>
+							<switch name='vo.domType'>
+								<case value='editor'>
+									<script id="inputContent" type="text/plain" name='{$key}'></script>
+									<assign name="use_editor" value="1" />
+								</case>
+								<case value='select'>
+									<select name='{$key}'>
+										<foreach name="vo['dataList']" item='voo'>
+											<option value='{$key}' >{$voo}</option>
+										</foreach>
+									</select>
+								</case>
+                                <case value='file'>
+                                    <input type="file" name="{$key}" />
+                                </case>
+								<default/>
+									<input type="text" name="{$key}" ><span class='reg_mes'></span>
+							</switch>
+				        </td>
+			        </tr>
+				</volist>
+		        <tr>
+					<td></td>
+					<td><input type="submit" class="submit yahei  f16" value="确定" />
+						<input type="button" class="cancel yahei  f16" value="返回" />
+					</td>
+				</tr>
+			</table>
+		</fieldset>
+	</form>
+	<div id='bottom_msg'></div>
+</div>
+</block>
+<block name='script'>
+<eq name="use_editor" value='1'>
+	<script type="text/javascript" src="__PUBLIC__/static/ueditor1_4_2-utf8-php/ueditor.config.js"></script>
+	<script type="text/javascript" src="__PUBLIC__/static/ueditor1_4_2-utf8-php/ueditor.all.min.js"></script>
+	<script type="text/javascript" src="__PUBLIC__/static/ueditor1_4_2-utf8-php/lang/zh-cn/zh-cn.js"></script>
+</eq>
+
+<script type="text/javascript">
+$(function($){
+	$(window.top.document.getElementById('breadcrumb')).children('.sec').text('>>'+g_sec_title);
+	<eq name="use_editor" value="1">
+	UE.getEditor('inputContent',{
+		initialFrameWidth:$(window).width()-150,
+		initialFrameHeight:300,
+		scaleEnabled:true
+	});
+	</eq>
+});
+</script>
+</block>

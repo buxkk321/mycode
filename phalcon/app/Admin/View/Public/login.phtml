@@ -1,0 +1,104 @@
+{% extends 'Base/basic.phtml' %}
+
+{% block style %}
+	{{ stylesheet_link('Public/Admin/css/login.css') }}
+{% endblock %}
+
+{% block body %}
+
+	<div class="login_top">
+		<div class="login_box">
+			<img src="<?php echo __PUBLIC__;?>/Admin/image/login_title.png" width="478" height="57" alt="微云外包项目版本发布管理系统" />
+		</div>   
+	</div>
+	
+	<div class="login_main_box">
+		<div class="login_main">
+			<div class="login_logo "><img src="<?php echo __PUBLIC__;?>/Admin/image/login_logn.png" width="305" height="100" alt="微云" /></div>
+			<div class="login_form">
+<?php echo Tag::form("Admin/Public/login"); ?>
+				<table style="text-align:center">
+	                    <tr>
+	                        <td>账号/手机：</td>
+	                        <td><input type="text" class="text" name='username'  /></td>
+	                    
+	                    </tr>
+	                    
+	                    <tr>
+	                        <td>密  码：</td>
+	                        <td><input type="text" class="text password_text" value="请填写密码" /></td>
+	                    
+	                    </tr>
+	                    <tr>
+	                  		<td></td>
+	                        <td id='msg_box' class='f_red'>&nbsp;</td>
+	                    </tr>
+	                    <tr>
+	                        <td></td>
+	                        <td><input type="button" class="submit yahei f14" value="登 录" /></td>
+	                    
+	                    </tr>
+				</table>
+				</form>
+			</div>
+		</div>
+	</div>
+{% endblock %}
+{% block script %}
+<script type="text/javascript">
+$(function(){
+	var un='账号/手机',
+	obj_un=$('input[name="username"]').val(un),
+	obj_pw=$('<input type="password" name="password" class="text dis_none" />'),
+	obj_pwt=$('input.password_text');
+	obj_un.data('ischange',0).focus(function(){
+		if($(this).data('ischange')==0){
+			$(this).val('');
+		}
+	}).blur(function(){
+		if($(this).val()===''){
+			$(this).data('ischange',0).val(un);
+		}else{
+			$(this).data('ischange',1);
+		}
+	});
+	obj_pw.blur(function(){
+		if($(this).val()==''){
+			$(this).hide();
+			obj_pwt.show();
+		}
+	});
+	obj_pwt.focus(function(){
+        $(this).hide();
+        obj_pw.show().focus();
+	}).after(obj_pw);
+
+	$('.login_main_box').keypress(function(event){
+        if (event.which == 13) {
+            $('input.submit').focus().click();
+        }
+    });
+	$('input.submit').click(function(){
+		var jq=$(this).attr('disabled','disabled'),
+		post={
+				'username':$('input[name="username"]').val(),
+				'password':obj_pw.val()
+			};
+		$.ajax({
+			type:'post',
+			url:'<?php echo __ROOT__;?>/Admin/Public/login',
+			data:post,
+			dataType:'json',
+			success:function(re){
+				if(re['status']==0){
+					$('#msg_box').html(re['msg']);
+				}else{
+                    window.location.href='<?php echo __ROOT__;?>/Admin/Index/index';
+                }
+				jq.removeAttr("disabled");
+			}
+		});
+	}).removeAttr('disabled');
+});
+</script>
+{% endblock %}

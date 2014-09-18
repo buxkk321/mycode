@@ -1,0 +1,96 @@
+<extend name="Base/layout01"/>
+<block name='style'>
+<link rel="stylesheet" type="text/css" href="__PUBLIC__/Admin/css/login.css" />
+</block>
+<block name='body'>
+<div class="login_top">
+	<div class="login_box">
+		<img src="__PUBLIC__/Admin/image/login_title.png" width="478" height="57" alt="微云外包项目版本发布管理系统" />
+	</div>   
+</div>
+
+<div class="login_main_box">
+	<div class="login_main">
+		<div class="login_logo "><img src="__PUBLIC__/Admin/image/login_logn.png" width="305" height="100" alt="微云" /></div>
+		<div class="login_form">
+			<table style="text-align:c">
+                    <tr>
+                        <td>账号/手机：</td>
+                        <td><input type="text" class="text" name='username'  /></td>
+                    
+                    </tr>
+                    
+                    <tr>
+                        <td>密  码：</td>
+                        <td><input type="text" class="text password_text" value="请填写密码" /></td>
+                    
+                    </tr>
+                    <tr>
+                  		<td></td>
+                        <td id='msg_box' class='f_red'>&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td><input type="button" class="submit yahei f14" value="登 录" /></td>
+                    
+                    </tr>
+			</table>
+		</div>
+	</div>
+</div>
+</block>
+<block name='script'>
+<script type="text/javascript">
+$(function(){
+	var un='账号/手机',
+	obj_un=$('input[name="username"]').val(un),
+	obj_pw=$('<input type="password" name="password" class="text dis_none" />'),
+	obj_pwt=$('input.password_text');
+	obj_un.data('ischange',0).focus(function(){
+		if($(this).data('ischange')==0){
+			$(this).val('');
+		}
+	}).blur(function(){
+		if($(this).val()===''){
+			$(this).data('ischange',0).val(un);
+		}else{
+			$(this).data('ischange',1);
+		}
+	});
+	obj_pw.blur(function(){
+		if($(this).val()==''){
+			$(this).hide();
+			obj_pwt.show().data('ischange',0);
+		}else{
+			obj_pwt.data('ischange',1);
+		}
+	});
+	obj_pwt.data('ischange',0).focus(function(){
+		if($(this).data('ischange')==0){
+			$(this).hide();
+			obj_pw.show().focus();
+		}
+	}).after(obj_pw);
+	
+	$('input.submit').click(function(){
+		var post={
+				'username':$('input[name="username"]').val(),
+				'password':obj_pw.val()
+				};
+		$.ajax({
+			type:'post',
+			url:'__APP__/Admin/Main/dologin/',
+			data:post,
+			success:function(re){
+				if(re==0){
+					$('#msg_box').html("登录失败,用户名或密码错误");
+				}else{
+					window.location.href="__APP__/Admin/";
+				}
+				
+			}
+		});
+	});
+});
+</script>
+</block>
