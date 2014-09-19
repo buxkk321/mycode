@@ -35,9 +35,7 @@ class SiteController extends MainController {
 	    						'child'=>array()
     							)
     						);
-	function initialize(){
-		
-	}
+
 	function company_info() {
 		setConfig($this->company_info,false);
 		$imagefiles=array('addr_img','tdcode');

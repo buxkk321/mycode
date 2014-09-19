@@ -35,6 +35,10 @@ try{
 					'Home'  => array(
 							'className' => 'Modules\Home\Module',
 							'path'      => './app/Home/Module.php',
+					),
+					'Port'  => array(
+							'className' => 'Modules\Port\Module',
+							'path'      => './app/Port/Module.php',
 					)
 			)
 	);
