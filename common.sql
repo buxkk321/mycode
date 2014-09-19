@@ -81,7 +81,8 @@ CREATE TABLE IF NOT EXISTS `maopu`.`maopu_category` (
   `meta_title` VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'SEO的网页标题',
   `meta_keywords` VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'SEO的关键字',
   `meta_description` VARCHAR(150) NOT NULL DEFAULT '' COMMENT 'SEO的描述',
-  PRIMARY KEY (`id`))
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `name_UNIQUE` (`name` ASC))
 ENGINE = MyISAM
 COMMENT = '分类表';
 
@@ -109,6 +110,18 @@ CREATE TABLE IF NOT EXISTS `maopu`.`maopu_tag` (
   PRIMARY KEY (`id`))
 ENGINE = MyISAM
 COMMENT = 'tag表';
+
+
+-- -----------------------------------------------------
+-- Table `maopu`.`maopu_mylist`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `maopu`.`maopu_mylist` (
+  `id` INT NOT NULL,
+  `uid` INT NOT NULL DEFAULT 0 COMMENT '用户id',
+  `doc_id` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '文档id',
+  PRIMARY KEY (`id`))
+ENGINE = MyISAM
+COMMENT = '用户收藏信息表';
 
 
 SET SQL_MODE=@OLD_SQL_MODE;
