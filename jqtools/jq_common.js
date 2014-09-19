@@ -42,45 +42,51 @@
             $.extend( settings, options );
         }
         return this.each(function(){
-            var btn=$(this).data('counting',false);
-            if(!btn.data('counting')){
-                btn.data('counting',true).attr('disable','disable');
-                clearInterval(btn.data('timer'));
-                settings['beforeAction']();
-                var t=settings['time'];
-                if(btn.is('input')){
-                    var org_text=btn.val();
-                    btn.val(org_text +'('+t+')').data(
-                        'timer',
-                        setInterval(function(){
+            var btn=$(this).data('counting',false).click(function(){
+                if(!btn.data('counting')){
+                    var t=settings['time'],org_text,do_count,do_reset,btn_init;
+                    if(btn.is('input')){
+                        btn_init=function(){
+                            org_text=btn.val();
+                            btn.val(org_text +'('+t+')');
+                        };
+                        do_count=function(){
+                            btn.val(org_text+'('+(--t)+')');
+                        };
+                        do_reset=function(){
+                            btn.val(org_text);
+                        };
+                    }else{
+                        btn_init=function(){
+                            org_text=$('<span>('+t+')</span>');
+                            btn.append(org_text);
+                        };
+                        do_count=function(){
+                            org_text.text("("+(--t)+")");
+                        };
+                        do_reset=function(){
+                            org_text.remove();
+                        };
+                    }
+
+                    btn.data('counting',true).attr('disable','disable');
+                    clearInterval(btn.data('timer'));
+                    settings['beforeAction']();
+                    btn_init();
+                    btn.data('timer',setInterval(function(){
                             if(t<=0){
                                 clearInterval(btn.data('timer'));
-                                btn.val(org_text).removeAttr('disabled').data('counting',false);
-                                t=settings['time'];
-                                return false;
-                            }else{
-                                btn.val(org_text+'('+(--t)+')');
-                            }
-                        },settings['speed'])
-                    );
-                }else{
-                    var text_span=$('<span>('+t+')</span>');
-                    btn.append(text_span).data(
-                        'timer',
-                        setInterval(function(){
-                            if(t<=0){
-                                clearInterval(btn.data('timer'));
-                                text_span.remove();
+                                do_reset();
                                 btn.removeAttr('disabled').data('counting',false);
                                 t=settings['time'];
                                 return false;
                             }else{
-                                text_span.text("("+(--t)+")");
+                                do_count();
                             }
                         },settings['speed'])
                     );
                 }
-            }
+            });
         });
     };
     /**
@@ -88,7 +94,7 @@
      * @returns {*|each|Array|each|each|each}
      */
 	$.fn.ifile=function(){
-    	
+
     	return this.each(function(){
     		var ifile=$(this).hide(),
     		btn_cancel=$("<input type='button' class='cancel_upload' value='取消' />").click(function(){
