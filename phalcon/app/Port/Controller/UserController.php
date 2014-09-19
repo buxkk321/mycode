@@ -1,52 +1,101 @@
 <?php
 namespace Modules\Port\Controller;
+use Modules\Port\Model\User,
+\Phalcon\Validation\Validator;
 /*用户模块*/
 class UserController extends MainController {
-	
-	//登陆
-	protected function login(){
-		$username= $_REQUEST['username'];
-		$password= $_REQUEST['password'];
-		if(!$username || !$password) error_response();
-		$data['username'] = $username;
-		$data['password'] = think_ucenter_md5($password, UC_AUTH_KEY);
-		$data['status'] = 1;
-		$res = M('ucenter_member')->field("id")->where($data)->find();
-		$uid = $res['id'];
-		if(!$res){
-			error_response(array ("code" => 26,"msg" => "用户名或密码错误"));
+	/**
+	 * @Tag:注册
+	 */
+	function register(){
+		$User=new User();
+		switch ((int)$_REQUEST['type']){
+			case 1:
+				$col='username';
+				break;
+			case 2:
+				$col='mobile';
+				break;
+			case 3:
+				$col='email';
+				break;
+			default:
+				error_response(22);
+				break;
+		}
+		$re = $User->create($_REQUEST,array($col,'password'));
+		if($re===false){
+			$errinfo['code']=1;
+			$errinfo['msg']=$User->getMsgString();
+			error_response($errinfo);
 		}else{
-			$sql= "SELECT a.username,a.id as uid,b.type,b.school_id FROM ".PRE."ucenter_member a LEFT JOIN ".PRE."member b on a.id = b.uid WHERE a.id = $uid ";
-			$info = M()->query($sql);
-			$info[0]['class_id'] = M('teacher_class')->where("uid = $uid")->select();
-			// 			p($info);
-			if($info[0]['type'] == 1){
-				//园长登陆后 获取学校所有class_id
-				$classes = M('class')->field("id as class_id,name as class_name")->where("school_id=".$info[0]['school_id'])->select();
-				if(!empty($classes)){
-					foreach($classes as $k=>$v){
-						$info[0]['class_id'][$k]['class_id'] = $v['class_id'];
-						$info[0]['class_id'][$k]['class_name'] = $v['class_name'];
-					}
-						
-				}else{
-					$info[0]['class_id'] =  array();
-				}
-			}else{
-				if($info[0]['class_id']){
-					foreach($info[0]['class_id'] as $k=>$v){
-						$info[0]['class_id'][$k]['class_name'] = (string)current(M('class')->field('name')->where('id ='.$v['class_id'])->find());
-					}
-				}else{
-					$info[0]['class_id'] = array();
-				}
-			}
-				
-			$info[0]['school_id'] = $this->getSchoolId($info[0]['uid'],$info[0]['type']);
-			//  		p($info);
-			$sucinfo['msg']="登陆成功";
-			$sucinfo['result']=$info[0];
+			$data[$col]=$_REQUEST[$col];
+			$data['id']='';
+			$sucinfo['msg']='注册成功';
+			$sucinfo['result']=$data;
 			success_response($sucinfo);
+		}
+	}
+	/**
+	 * $Tag:登陆
+	 */
+	function login(){
+		$va = new \Phalcon\Validation();
+		switch ((int)$_REQUEST['type']){
+			case 1:
+				$col='username';
+				$va->add($col, new Validator\Regex(array(
+					'pattern' => '/^(?=\C{5,20}$)[\p{Han}\w]+$/u',
+					'message' => '用户名格式不正确'
+				)));
+				break;
+			case 2:
+				$col='mobile';
+				$va->add($col, new Validator\Regex(array(
+					'pattern' => '/^1[3-8]\d{9,}$/',
+					'message' => '手机号格式不正确'
+				)));
+				break;
+			case 3:
+				$col='email';
+				$va->add($col, new Validator\Email(array(
+				   'message' => '邮箱格式不正确'
+				)));
+				break;
+			default:
+				error_response(22);
+				break;
+		}
+		$va->add('password', new Validator\Regex(array(
+			'pattern' => '/^[^\s]{1,}$/',
+			'message' => '密码中不能有空格'
+		)));
+		$messages = $va->validate($_REQUEST);
+		if (count($messages)) {
+			$errinfo['msg']='';
+			foreach ($messages as $message) {
+				$errinfo['msg'].=$message.',';
+			}
+			$errinfo['code']=1;
+			error_response($errinfo);
+		}else{
+			$conditions = $col.' = :a: AND password = :password:';
+			$field=array('id'=>true,'username'=>true,'nickname'=>true,'avatar'=>true,'mobile'=>true);
+			$parameters = array(
+					'a' => @$_REQUEST[$col],
+					'password' => @$_REQUEST['password']
+			);
+			$re = User::findFirst(array($conditions,'fields'=>$field,'bind' => $parameters));
+			if($re===false || $re==null){
+				$errinfo['msg']='登录失败,用户名或密码错误';
+				$errinfo['code']=20;
+				error_response($errinfo);
+			}else{
+				$sucinfo['msg']='登录成功';
+				$sucinfo['result']=$re->toArray();
+				$sucinfo['result']['avatar']!=null && $sucinfo['result']['avatar']=__APP__.$sucinfo['result']['avatar'];
+				success_response($sucinfo);
+			}
 		}
 	}
 	

@@ -26,6 +26,9 @@ class Module implements \Phalcon\Mvc\ModuleDefinitionInterface{
 		$di->set('dispatcher', function() {
 			$dispatcher = new \Phalcon\Mvc\Dispatcher();
 			$dispatcher->setDefaultNamespace('Modules\Port\Controller');
+			$dispatcher->setDefaultController('Index');
+			$dispatcher->setDefaultAction('index');
+			
 			$dispatcher->setActionSuffix('');
 			return $dispatcher;
 		},true);
@@ -46,6 +49,7 @@ class Module implements \Phalcon\Mvc\ModuleDefinitionInterface{
 		//Registering the view component
 		$di->set('view', function() {
 			$view = new \Phalcon\Mvc\View();
+			$view->disable();
 			return $view;
 		});
 			

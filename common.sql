@@ -36,8 +36,10 @@ CREATE TABLE IF NOT EXISTS `maopu`.`maopu_ucenter_member` (
   `last_login_ip` VARCHAR(25) NOT NULL DEFAULT '' COMMENT '最后登录ip',
   `update_time` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '最后更新时间',
   `status` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '状态',
+  `type` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '用户类型',
   `nickname` VARCHAR(45) NOT NULL DEFAULT '' COMMENT '昵称',
-  `face` VARCHAR(145) NOT NULL DEFAULT '' COMMENT '头像',
+  `avatar` VARCHAR(145) NOT NULL DEFAULT '' COMMENT '头像',
+  `score` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '积分',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `username_UNIQUE` (`username` ASC))
 ENGINE = MyISAM
@@ -45,16 +47,18 @@ COMMENT = '用户中心';
 
 
 -- -----------------------------------------------------
--- Table `maopu`.`maopu_article`
+-- Table `maopu`.`maopu_document`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `maopu`.`maopu_article` (
+CREATE TABLE IF NOT EXISTS `maopu`.`maopu_document` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `tag` VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'tag标签列表',
   `title` VARCHAR(145) NOT NULL DEFAULT '' COMMENT '文章标题',
   `cover` VARCHAR(145) NOT NULL DEFAULT '' COMMENT '封面图',
   `cid` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '文章分类',
   `uid` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '创建者id',
   `view` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '点击量',
   `comment` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '评论数',
+  `markup` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '收藏数',
   `create_time` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '创建时间',
   `update_time` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '更新时间',
   `status` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '状态',
@@ -80,6 +84,31 @@ CREATE TABLE IF NOT EXISTS `maopu`.`maopu_category` (
   PRIMARY KEY (`id`))
 ENGINE = MyISAM
 COMMENT = '分类表';
+
+
+-- -----------------------------------------------------
+-- Table `maopu`.`maopu_document_article`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `maopu`.`maopu_document_article` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `content` TEXT NULL COMMENT '文章内容',
+  `parse` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '内容解析方式',
+  PRIMARY KEY (`id`))
+ENGINE = MyISAM
+COMMENT = '文章统一信息表';
+
+
+-- -----------------------------------------------------
+-- Table `maopu`.`maopu_tag`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `maopu`.`maopu_tag` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(45) NOT NULL DEFAULT '' COMMENT 'tag唯一标志',
+  `lang` CHAR(26) NOT NULL DEFAULT 'en' COMMENT '使用的语言',
+  `count` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '统计字段',
+  PRIMARY KEY (`id`))
+ENGINE = MyISAM
+COMMENT = 'tag表';
 
 
 SET SQL_MODE=@OLD_SQL_MODE;
