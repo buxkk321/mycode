@@ -67,7 +67,7 @@ class PublicController extends \Phalcon\Mvc\Controller {
 					$data['status'] =   1;
 				}
 			}
-			ajaxReturn($data);
+			ajax_return($data);
 		}else{
 			
 			$this->view->setVar('title_text', '后台登录');
