@@ -36,7 +36,8 @@ CREATE TABLE IF NOT EXISTS `maopu`.`maopu_ucenter_member` (
   `last_login_ip` VARCHAR(25) NOT NULL DEFAULT '' COMMENT '最后登录ip',
   `update_time` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '最后更新时间',
   `status` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '状态',
-  `nickname` VARCHAR(145) NOT NULL DEFAULT '' COMMENT '昵称',
+  `nickname` VARCHAR(45) NOT NULL DEFAULT '' COMMENT '昵称',
+  `face` VARCHAR(145) NOT NULL DEFAULT '' COMMENT '头像',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `username_UNIQUE` (`username` ASC))
 ENGINE = MyISAM
