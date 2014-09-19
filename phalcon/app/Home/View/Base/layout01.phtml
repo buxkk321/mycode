@@ -1,0 +1,28 @@
+<?php use Phalcon\Tag; ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	{%block meta%}{%endblock%}
+	{%block title%}<?php echo $this->tag->getTitle(); ?>{%endblock%}
+	{{javascriptInclude('Public/static/jquery-1.11.0.min.js',true)}}
+	{{javascriptInclude('Public/static/jq_home.js',true)}}
+	{{javascriptInclude('Public/static/jq_common.js',true)}}
+	{{stylesheetLink('Public/Common/css/theme.css',true)}}
+	{{stylesheetLink('Public/Home/css/common.css',true)}}
+	{%block style%}{%endblock%}
+	<link type="/image/x-icon" href="<?php echo __PUBLIC__;?>/Common/images/1.ico" rel="shortcut icon" />
+	<link rel="stylesheet" type="text/css" href="<?php 
+		echo __PUBLIC__.'/Home/css/'.$pagetype.'.css';
+	?>"/>
+</head>
+<body>
+	<div id="hidden_box">
+		{%block hidden%}{%endblock%}
+	</div>
+	{%include 'Index/header.phtml'%} 
+	{%block body%}{%endblock%}
+	{%include 'Index/footer.phtml'%}
+	{%block script%}{%endblock%}
+</body>
+</html>
