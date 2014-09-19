@@ -13,7 +13,6 @@ class Module implements \Phalcon\Mvc\ModuleDefinitionInterface{
 				array(
 						'Modules\Admin\Controller' => './app/Admin/Controller/',
 						'Modules\Admin\Model'      => './app/Admin/Model/',
-						'Modules\Admin\Plugin'      => './app/Admin/Plugin/',
 				)
 		)->register();
 	}
