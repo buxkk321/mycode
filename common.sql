@@ -2,13 +2,11 @@ SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
 
-CREATE SCHEMA IF NOT EXISTS `maopu` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ;
-USE `maopu` ;
 
 -- -----------------------------------------------------
--- Table `maopu`.`maopu_manager`
+-- Table `wyof`.`tp_manager`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `maopu`.`maopu_manager` (
+CREATE TABLE IF NOT EXISTS `wyof`.`tp_manager` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `username` VARCHAR(55) NOT NULL DEFAULT '' COMMENT '用户名',
   `password` VARCHAR(55) NOT NULL DEFAULT '' COMMENT '密码',
@@ -22,9 +20,9 @@ COMMENT = '管理员表';
 
 
 -- -----------------------------------------------------
--- Table `maopu`.`maopu_ucenter_member`
+-- Table `wyof`.`tp_ucenter_member`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `maopu`.`maopu_ucenter_member` (
+CREATE TABLE IF NOT EXISTS `wyof`.`tp_ucenter_member` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `username` CHAR(20) NOT NULL DEFAULT '' COMMENT '用户名',
   `password` CHAR(32) NOT NULL DEFAULT '' COMMENT '密码',
@@ -47,9 +45,9 @@ COMMENT = '用户中心';
 
 
 -- -----------------------------------------------------
--- Table `maopu`.`maopu_document`
+-- Table `wyof`.`tp_article`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `maopu`.`maopu_document` (
+CREATE TABLE IF NOT EXISTS `wyof`.`tp_article` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `tag` VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'tag标签列表',
   `title` VARCHAR(145) NOT NULL DEFAULT '' COMMENT '文章标题',
@@ -69,9 +67,9 @@ COMMENT = '文章统一信息表';
 
 
 -- -----------------------------------------------------
--- Table `maopu`.`maopu_category`
+-- Table `wyof`.`tp_article_category`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `maopu`.`maopu_category` (
+CREATE TABLE IF NOT EXISTS `wyof`.`tp_article_category` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(65) NOT NULL DEFAULT '' COMMENT '唯一英文标识',
   `title` VARCHAR(145) NOT NULL DEFAULT '' COMMENT '标题',
@@ -88,9 +86,9 @@ COMMENT = '分类表';
 
 
 -- -----------------------------------------------------
--- Table `maopu`.`maopu_document_article`
+-- Table `wyof`.`tp_article_text`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `maopu`.`maopu_document_article` (
+CREATE TABLE IF NOT EXISTS `wyof`.`tp_article_text` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `content` TEXT NULL COMMENT '文章内容',
   `parse` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '内容解析方式',
@@ -100,9 +98,9 @@ COMMENT = '文章统一信息表';
 
 
 -- -----------------------------------------------------
--- Table `maopu`.`maopu_tag`
+-- Table `wyof`.`tp_tag`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `maopu`.`maopu_tag` (
+CREATE TABLE IF NOT EXISTS `wyof`.`tp_tag` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NOT NULL DEFAULT '' COMMENT 'tag唯一标志',
   `lang` CHAR(26) NOT NULL DEFAULT 'en' COMMENT '使用的语言',
@@ -113,15 +111,39 @@ COMMENT = 'tag表';
 
 
 -- -----------------------------------------------------
--- Table `maopu`.`maopu_mylist`
+-- Table `wyof`.`tp_mylist`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `maopu`.`maopu_mylist` (
+CREATE TABLE IF NOT EXISTS `wyof`.`tp_mylist` (
   `id` INT NOT NULL,
   `uid` INT NOT NULL DEFAULT 0 COMMENT '用户id',
   `doc_id` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '文档id',
   PRIMARY KEY (`id`))
 ENGINE = MyISAM
 COMMENT = '用户收藏信息表';
+
+
+-- -----------------------------------------------------
+-- Table `wyof`.`tp_menu`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `wyof`.`tp_menu` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `title` VARCHAR(45) NOT NULL DEFAULT '' COMMENT '标题',
+  `tip` VARCHAR(145) NOT NULL DEFAULT '' COMMENT '提示信息',
+  `url` VARCHAR(145) NOT NULL DEFAULT '' COMMENT '跳转地址',
+  `type` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '菜单类型',
+  `pid` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '父菜单id',
+  `sort` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '同级排序',
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB
+COMMENT = '后台菜单信息表';
+
+
+-- -----------------------------------------------------
+-- Table `wyof`.`table1`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `wyof`.`table1` (
+)
+ENGINE = InnoDB;
 
 
 SET SQL_MODE=@OLD_SQL_MODE;
