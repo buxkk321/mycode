@@ -1,0 +1,246 @@
+{%extends 'Base/manage_box.phtml'%}
+{%block body%}
+<style type="text/css">
+	#graph{
+		min-width:500px;
+		width:100%;
+		overflow: hidden;
+	}
+	#graph>svg{
+		width:100%;
+		height:100%;
+		margin:'0';
+		padding:0;
+		border:solid 1px #eee;
+	}
+    #graph g.main_rect{
+        fill:#aac6e3;
+    }
+    #graph g.node{
+    	cursor: pointer;
+    }
+    #graph .title {
+        display: inline-block;
+        width: 20px;
+        height: 75px;   /* Gets overriden by D3-assigned height below */
+        margin: 0;
+        fill:#00aaaa;
+    }
+</style>
+<div id="graph" >
+
+</div>
+<div class="g_frame_main clear">
+	
+    <div class='button_box'>
+		<input type='button' id="isave" class="" value="提交" />
+	</div>
+	{$pagefoot}
+</div>
+<div id='test_text'></div>
+{%endblock%}
+{%block script%}
+{{super()}}
+<script type="text/javascript" src="<?php echo __PUBLIC__;?>/static/d3.min.js"></script>
+<script type="text/javascript">
+	
+	var data_input=<?php echo json_encode($data);?>;/*这里写服务器端的输出数据,json格式*/
+
+	var graph={
+			'links':[],
+			'lines':{},
+			'data_index':{},
+			'svg_outer':{},/*最外层的svg*/
+			'top_group':{},/*最外层的g元素*/
+			'main_group':{},/*中间分组*/
+			'main_rect':{}/*作为画布的矩形*/
+		},
+    config={
+		    },
+    maxid=0
+    select_multiple=false;/*全选开关*/
+    
+    var width = $('#graph').width(),
+    height = Math.max(600,width*0.618 ),/*高度大于600*/
+    click_fix=[0,0];/*鼠标点击元素时的相对x,y偏移量*/
+
+    // mouse event vars
+    var selected_node = {},
+        selected_link = null,
+        mousedown_link = null,
+        mouseover = null,
+        mousedown_node = 0,
+        mouseup_node = null;
+    
+    function rescale() {
+        if(selected_node==null && selected_link==null){
+        	graph.main_group.attr("transform","translate("+d3.event.translate+") scale("+d3.event.scale+")");
+        }
+    }
+    function addrect(current){
+    	
+		coordin=d3.mouse(current);
+		//data_input.push({'id':maxid+1,'pid':0,'title':''});
+		console.log(coordin);
+    }
+	//function mousedown() {
+		//if (!mousedown_node && !mousedown_link) {
+	//	   // allow panning if nothing is selected
+	//	   main_group.call(d3.behavior.zoom().on("zoom"), rescale);
+	//	   return;
+	//	}
+	//}
+	
+	/**
+	 * 初始化数据列表
+	 */
+	function map_init(){
+		var center=[width/2,height/2];
+		console.log(data_input);
+		for(var key in data_input){/*数据初始化整理*/
+	        graph.data_index[data_input[key]['id']]=key;/*生成数据id到数据数组连续索引的映射数组*/
+	        if(data_input[key]['pid']>0){
+		        graph.links.push([data_input[key]['pid'],data_input[key]['id']]);
+		    }else{
+		    	data_input[key]['x']=width/2-40;
+		    	data_input[key]['y']=height/2-10;
+			}
+	        maxid=data_input[key]['id']>maxid?data_input[key]['id']:maxid;
+	        
+	        data_input[key]['x']=(data_input[key]['x']==0 || typeof(data_input[key]['x'])=='undefined')?Math.random()*(width-80):parseFloat(data_input[key]['x']);
+	        data_input[key]['y']=(data_input[key]['y']==0 || typeof(data_input[key]['y'])=='undefined')?Math.random()*(height-20):parseFloat(data_input[key]['y']);
+			
+	    }
+
+		graph.svg_outer=d3.select('#graph')
+	    	.style('height',width*0.618+'px')
+	    	.append('svg')/*最外层svg*/
+		    	.attr("width", width)
+		    	.attr("height", height);
+	    
+		graph.top_group=graph.svg_outer
+	 		.append('g')/*最上层分组*/
+	    		.call(d3.behavior.zoom().scaleExtent([0.1,10]).on("zoom", rescale))
+	    		.on('dblclick.zoom',function(){
+	    			d3.event.preventDefault();
+	    			if(mouseover==null){
+	    				addrect(this);
+	    			}
+		    	});
+	        	
+		graph.main_group=graph.top_group.append('g').attr('id','main_group');/*中间分组*/
+	    
+		graph.main_rect=graph.main_group.append('g').attr('class','main_rect')/*画布所在组*/
+			.append("rect")/*创建画布rect元素*/
+		    	.attr({'width': width,'height': height,'class':'main'});
+        
+	    graph.lines = graph.main_group.append('g').attr('class','link');/*线段分组*/
+	    
+	    graph.lines.selectAll('line').data(graph.links).enter()
+		    .append('line')/*开始画线*/
+		    	.attr({
+			    	'class':function(d){
+				    	return 'pid_'+d[0]+' id_'+d[1];
+				    },'stroke-width':"1",
+			    	'stroke':'black',
+			    	'x1':function(d){
+			    		return data_input[graph.data_index[d[0]]]['x']+40;
+			    	},'y1':function(d){
+			    		return data_input[graph.data_index[d[0]]]['y']+10;
+				    },'x2':function(d){
+				    	return data_input[graph.data_index[d[1]]]['x']+40;
+					},'y2':function(d){
+						return data_input[graph.data_index[d[1]]]['y']+10;
+					}
+				});
+
+	    var drag1 = d3.behavior.drag()/*拖动处理函数*/
+	    .on('dragstart',function(d){
+	    	mousedown_node=d.id;/*记下鼠标按下时所在的元素*/
+	    	click_fix=d3.mouse(this);/*记录鼠标点击时的相对坐标*/
+	    	graph.top_group.call(d3.behavior.zoom().on("zoom", null));/*停止拖动画布的功能*/
+	    	if(!select_multiple){/*如果没有开启多选开关，则除了当前元素外的所有rect初始化*/
+	    		var temp={};
+	    		temp[d.id]=selected_node[d.id];
+	    		selected_node=temp;
+	    		$(this).siblings('.node').children('rect').attr({'stroke-width':1,'stroke':'black'});
+	    	}
+	    	
+		}).on("drag", function(d){
+			
+			mousedown_node && d3.select(this).select('rect').attr({'stroke-width':4,'stroke':'#9598FF'});/*选中的视觉效果*/
+			
+    		selected_node[d.id]=1;/*根据当前节点的id记录选中的元素*/
+    		mousedown_node=0;/*鼠标按下记录清空*/
+    		
+			d.x =d3.event.x-parseFloat(click_fix[0]);
+		    d.y =d3.event.y-parseFloat(click_fix[1]);
+		    d3.select(this).attr('transform','translate(' + d.x + ',' + d.y + ')');
+		    
+		    graph.lines.selectAll('line.pid_'+d.id).attr({'x1':d.x+40,'y1':d.y+10});
+		    if(typeof(d.pid)!='undefined'){
+		    	graph.lines.selectAll('line.id_'+d.id).attr({'x2':d.x+40,'y2':d.y+10});
+			}
+		    
+		}).on('dragend',function(d){
+			
+			/*如果当前的元素未选中(id在选中组中没有记录)或此时鼠标按下记录与当前元素id不相符,则选中当前元素,反之则取消当前元素的选中记录*/
+	    	selected_node[d.id]=!selected_node[d.id] || mousedown_node!=d.id;
+	    	
+	    	if(selected_node[d.id]){
+	    		d3.select(this).select('rect').attr({'stroke-width':4,'stroke':'#9598FF'});/*选中的视觉效果*/
+			}else{
+				d3.select(this).select('rect').attr({'stroke-width':1,'stroke':'black'});/*取消选中的视觉效果*/
+			}
+			
+			click_fix=[0,0];
+			graph.top_group.call(d3.behavior.zoom().on("zoom", rescale));
+		});
+		
+	    var nodes=graph.main_group.selectAll('g.node')
+	    	.data(data_input).enter()
+	    	.append('g')/*节点元素分组*/
+	    		.attr({'class':function(d){
+					return 'node node_'+d.id;
+	           	},"transform":function(d) {
+	              	 return 'translate(' + d.x + ',' + d.y + ')';
+	            }}).call(drag1);
+        
+	    var nodes_rect=nodes
+			.append('rect')/*给所有节点分组添加一个矩形*/
+	            .attr({'width':80,'height':20,'cursor':'pointer','fill':'#aac6e3','stroke':'black'});
+    	
+		var nodes_text=nodes
+	    	.append("text")/*给所有节点分组添加一个文本域*/
+	            .attr({'x':'0',"y":"1.15em",'pointer-events':'none'})
+	            .text(function(d) { return d['title']; });
+        
+		
+	}
+	
+	$(function($){
+		map_init();
+		$('#isave').click(function(){
+			var jq=$(this).attr('disabled','disabled'),
+			post={
+					'data':data_input
+				};
+			$.ajax({
+				type:'post',
+				url:'<?php echo __ROOT__;?>/Admin/Site/save_menu',
+				data:post,
+				dataType:'json',
+				success:function(re){
+					if(re['status']==0){
+						alert(re['msg']);
+					}else{
+						alert('修改成功');
+	                    self.location.href='<?php echo __ROOT__;?>/Admin/Site/menu_list';
+	                }
+					jq.removeAttr("disabled");
+				}
+			});
+		});
+	});
+</script>
+{%endblock%}

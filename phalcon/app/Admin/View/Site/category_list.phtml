@@ -1,0 +1,277 @@
+{%extends 'Base/manage_box.phtml'%}
+{%block body%}
+<style type="text/css">
+	
+
+body {
+  font: 13px sans-serif;
+  position: relative;
+}
+#graph{
+	min-width:500px;
+	width:100%;
+	overflow: hidden;
+}
+#graph>svg{
+	margin:'0';
+	padding:0;
+	pointer-events:"all";
+}
+.node {
+  fill: #000;
+  cursor: crosshair;
+}
+
+.node_selected {
+  fill: #ff7f0e;
+  stroke: #ff7f0e;
+}
+
+.drag_line {
+  stroke: #999;
+  stroke-width: 5;
+  pointer-events: none;
+}
+
+.drag_line_hidden {
+  stroke: #999;
+  stroke-width: 0;
+  pointer-events: none;
+}
+
+.link {
+  stroke: #999;
+  stroke-width: 5;
+  cursor: crosshair;
+}
+
+.link_selected {
+  stroke: #ff7f0e;
+}
+
+
+</style>
+  <div id="graph">
+  </div>
+{%endblock%}
+{%block script%}
+{{super()}}
+<script type="text/javascript" src="<?php echo __PUBLIC__;?>/static/d3.min.js"></script>
+<script type="text/javascript">
+	
+	var data_input=<?php echo json_encode($data);?>;/*这里写服务器端的输出数据,json格式*/
+	var graph={'links':[],'data_index':{}},
+    selected={},
+    config={},
+    svg_outer,/*最外层的svg*/
+    main_group,/*最外层的g元素*/
+    main_rect;/*作为画布的矩形*/
+
+	
+	var width = $('#graph').width(),
+    height = Math.max(600,width*0.618 ),
+    fill = d3.scale.category20();
+    
+// mouse event vars
+var selected_node = null,
+    selected_link = null,
+    mousedown_link = null,
+    mousedown_node = null,
+    mouseup_node = null;
+
+
+
+
+
+// // line displayed when dragging new nodes
+// var drag_line = main_group.append("line")
+//     .attr("class", "drag_line")
+//     .attr("x1", 0)
+//     .attr("y1", 0)
+//     .attr("x2", 0)
+//     .attr("y2", 0);
+
+// get layout properties
+// var 
+//     node = main_group.selectAll(".node"),
+//     link = main_group.selectAll(".link");
+
+// add keyboard callback
+// d3.select("#graph")
+//     .on("keydown", keydown);
+
+
+// focus on svg
+// main_group.node().focus();
+
+// function mousedown() {
+//   if (!mousedown_node && !mousedown_link) {
+//     // allow panning if nothing is selected
+//     main_group.call(d3.behavior.zoom().on("zoom"), rescale);
+//     return;
+//   }
+// }
+
+// function mousemove() {
+//   if (!mousedown_node) return;
+
+//   // update drag line
+//   drag_line
+//       .attr("x1", mousedown_node.x)
+//       .attr("y1", mousedown_node.y)
+//       .attr("x2", d3.svg.mouse(this)[0])
+//       .attr("y2", d3.svg.mouse(this)[1]);
+
+// }
+
+// function mouseup() {
+//   if (mousedown_node) {
+//     // hide drag line
+//     drag_line
+//       .attr("class", "drag_line_hidden")
+
+//     if (!mouseup_node) {
+//       // add node
+//       var point = d3.mouse(this),
+//         node = {x: point[0], y: point[1]},
+//         n = nodes.push(node);
+
+//       // select new node
+//       selected_node = node;
+//       selected_link = null;
+      
+//       // add link to mousedown node
+//       links.push({source: mousedown_node, target: node});
+//     }
+
+//   }
+//   // clear mouse event vars
+//   resetMouseVars();
+// }
+
+function resetMouseVars() {
+  mousedown_node = null;
+  mouseup_node = null;
+  mousedown_link = null;
+}
+
+function tick() {
+  link.attr("x1", function(d) { return d.source.x; })
+      .attr("y1", function(d) { return d.source.y; })
+      .attr("x2", function(d) { return d.target.x; })
+      .attr("y2", function(d) { return d.target.y; });
+
+  node.attr("cx", function(d) { return d.x; })
+      .attr("cy", function(d) { return d.y; });
+}
+
+// rescale g
+function rescale() {
+  trans=d3.event.translate;
+  scale=d3.event.scale;
+
+  main_group.attr("transform",
+      "translate(" + trans + ")"
+      + " scale(" + scale + ")");
+}
+
+
+// function spliceLinksForNode(node) {
+//   toSplice = links.filter(
+//     function(l) { 
+//       return (l.source === node) || (l.target === node); });
+//   toSplice.map(
+//     function(l) {
+//       links.splice(links.indexOf(l), 1); });
+// }
+
+// function keydown() {
+//   if (!selected_node && !selected_link) return;
+//   switch (d3.event.keyCode) {
+//     case 8: // backspace
+//     case 46: { // delete
+//       if (selected_node) {
+//         nodes.splice(nodes.indexOf(selected_node), 1);
+//         spliceLinksForNode(selected_node);
+//       }
+//       else if (selected_link) {
+//         links.splice(links.indexOf(selected_link), 1);
+//       }
+//       selected_link = null;
+//       selected_node = null;
+//       redraw();
+//       break;
+//     }
+//   }
+// }
+/**
+ * 初始化数据列表
+ */
+function map_init(){
+	for(var key in data_input){
+        graph.data_index[data_input[key]['id']]=key;
+        graph.links.push(data_input[key]['pid']+','+data_input[key]['id']);
+    }
+//     var drag1 = d3.behavior.drag()
+//             .on("drag", function(e){
+//                 d3.select(this).attr("transform","translate(" + d3.event.translate + ")");
+//             });
+	// init svg
+	main_group = svg_outer
+	  .append('g')
+	    .call(d3.behavior.zoom().scaleExtent([0.1,10]).on("zoom", rescale))
+	    .on("dblclick.zoom", null)
+	  .append('g')
+	  	.attr('class','main_rect');
+// 	    .on("mousemove", mousemove)
+// 	    .on("mousedown", mousedown)
+// 	    .on("mouseup", mouseup);
+	
+	main_group.append('rect')
+	    .attr('width', width)
+	    .attr('height', height)
+	    .attr('fill', '#ffee00');
+    
+	 svg_outer=d3.select('#graph')
+	 	.style('height',width*0.618+'px')
+	 	.append('svg')
+		    	.attr("width", width)
+		    	.attr("height", height);/*最外层svg*/
+	 
+	 main_group=svg_outer
+		.append('g')/**/
+	 		.call(d3.behavior.zoom().scaleExtent([0.1,10]).on("zoom", rescale))
+	     	.on("dblclick.zoom", null);/*最外层g分组*/
+		
+	 main_rect=main_group
+	 	.append('g')
+	 		.attr('class','main_rect')
+	 	.append("rect")/*创建画布rect元素*/
+	         .attr("width", width)
+	         .attr("height", height);
+	 
+	 var nodes=main_group
+	 	.selectAll('g.node')
+	 	.data(data_input).enter()
+	 	.append('g')/*节点元素分组*/
+	 		.attr('class','node')
+	         .attr("transform", function(d, i) {
+	             return "translate(" + i * 81 + ",0)";
+	         });
+
+	 var x = d3.scale.linear()
+	         .domain([0, data_input])
+	         .range([0, 500]);
+
+	 var nodes_rect=nodes
+	 	.append('rect')/*给所有节点分组添加一个矩形*/
+	         .attr('width',80)
+	         .attr('height',20);
+//	          .call(d3.behavior.drag().origin(function(d) { return d; }).on("drag",dragrect));
+	 var nodes_text=nodes
+	 	.append("text")/*给所有节点分组添加一个文本域*/
+	         .attr("dy", ".35em")
+	         .text(function(d) { return d['title']; });
+}
+</script>
+{%endblock%}
