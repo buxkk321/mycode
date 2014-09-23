@@ -3,6 +3,40 @@
  */
 (function( $ ){
     /**
+     * 滚动菜单
+     * @param options
+     * @returns {*|each|Array|each|each|each}
+     */
+    $.fn.slide_menu=function(options){
+        var settings={
+            'direct':1,/*TODO:上下方向或左右方向的滚动*/
+            'container':{},/*当前组菜单所在容器,jq对象*/
+            'show_speed':400,/*显示速度*/
+            'hide_speed':200,/*隐藏速度*/
+            'default_open':null/*默认打开的元素*/
+        };
+
+        if ( options ) {
+            $.extend( settings, options );
+        }
+
+        this.each(function(){
+            var menu=$(this).data('is_open',false).click(function(){
+                if(!menu.data('is_open')){
+                    menu.next().stop(true).slideDown(settings.show_speed);
+                }else{
+                    menu.next().stop(true).slideUp(settings.hide_speed);
+                }
+                settings.container.find('a').removeClass('on');
+                menu.data('is_open',!menu.data('is_open')).addClass('on');
+            });
+        });
+        if(typeof(settings.default_open)=='number'){
+            this.eq(settings.default_open).click();
+        }
+        return this;
+    };
+    /**
      * 面包屑工具
      * @param options
      * @returns {fn}
@@ -11,7 +45,7 @@
     	var ibread=this,
     	settings={
     		'tree':[],
-    		'box':function(){},
+    		'container':function(){},
     		'delimiter':' >> '
     	};
         if ( options ) {
@@ -44,7 +78,7 @@
         return this.each(function(){
             var btn=$(this).data('counting',false).click(function(){
                 if(!btn.data('counting')){
-                    var t=settings['time'],org_text,do_count,do_reset,btn_init;
+                    var t=settings.time,org_text,do_count,do_reset,btn_init;
                     if(btn.is('input')){
                         btn_init=function(){
                             org_text=btn.val();
@@ -71,19 +105,19 @@
 
                     btn.data('counting',true).attr('disable','disable');
                     clearInterval(btn.data('timer'));
-                    settings['beforeAction']();
+                    settings.beforeAction();
                     btn_init();
                     btn.data('timer',setInterval(function(){
                             if(t<=0){
                                 clearInterval(btn.data('timer'));
                                 do_reset();
                                 btn.removeAttr('disabled').data('counting',false);
-                                t=settings['time'];
+                                t=settings.time;
                                 return false;
                             }else{
                                 do_count();
                             }
-                        },settings['speed'])
+                        },settings.speed)
                     );
                 }
             });
