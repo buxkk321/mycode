@@ -130,15 +130,16 @@ COMMENT = '用户收藏信息表';
 -- Table `common`.`tp_menu`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `common`.`tp_menu` (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '数据编号',
   `title` VARCHAR(45) NOT NULL DEFAULT '' COMMENT '标题',
   `tip` VARCHAR(145) NOT NULL DEFAULT '' COMMENT '提示信息',
   `url` VARCHAR(145) NOT NULL DEFAULT '' COMMENT '跳转地址',
+  `group` CHAR(45) NOT NULL DEFAULT '' COMMENT '菜单分组',
   `type` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '菜单类型(0:基本超链接,1:带超链接的目录菜单,2:不带超链接的目录菜单,3:中心主题)',
   `pid` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '父菜单id',
   `sort` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '同级排序',
-  `x` FLOAT UNSIGNED NOT NULL DEFAULT 0,
-  `y` FLOAT UNSIGNED NOT NULL DEFAULT 0,
+  `x` FLOAT UNSIGNED NOT NULL DEFAULT 0 COMMENT '相对画布中心的x偏移',
+  `y` FLOAT UNSIGNED NOT NULL DEFAULT 0 COMMENT '相对画布中心的y偏移',
   PRIMARY KEY (`id`))
 ENGINE = MyISAM
 COMMENT = '后台菜单信息表';
