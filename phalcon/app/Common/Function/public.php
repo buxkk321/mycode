@@ -126,8 +126,31 @@ function error_response($errinfo=26){
 	}
 	ajax_return($response);
 }
-
-
+/**
+ * 获取指定类的方法列表
+ * @param mixed $str
+ * @return multitype:
+ */
+function getMethods($str){
+	$class  = new  \ReflectionClass ($str);
+	return $class -> getMethods ();
+}
+/**
+ * 获取指定类的属性列表
+ * @param mixed $str
+ * @return multitype:
+ */
+function getProperties($str,$filter=\ReflectionProperty::IS_PUBLIC){
+	$class  = new  \ReflectionClass ($str);
+	$p=$class -> getProperties($filter);
+	if(is_object($str)){
+		foreach ($p as $kk=>&$vv){
+			$name=$vv->name;
+			@$vv->value=$str->$name;
+		}
+	}
+	return $p;
+}
 
 /**
  * 浏览器友好的变量输出
@@ -205,7 +228,7 @@ function msubstr($str, $start=0, $length, $charset="utf-8", $suffix=true) {
 }
 
 
-/**************自定义的**************/
+
 /**
  * 把配置数据写到php文件中
  * @param string $filepath	文件路径
@@ -216,7 +239,7 @@ function msubstr($str, $start=0, $length, $charset="utf-8", $suffix=true) {
  * 2:全部替换
  * @return bool
  */
-function set_config($filepath,$data=array(),$replace=1){
+function set_config_php($filepath,$data=array(),$replace=1){
 	if(!file_exists($filepath)){
 		$handle = fopen($filepath,'w');
 		fwrite($handle,'<?php
@@ -297,7 +320,52 @@ function count_lack($now,$all,$target){
 	$t++;
 	return $re;
 }
+/**
+ * 将输入数组重排成以唯一id或标识作为键名的数组
+ * @param array $data 输入数据
+ * @param string $uk 存放标识值的单元键名,默认为'id'
+ */
+function set_id_index(&$data,$uk='id'){
+	$temp=array();
+	foreach($data as $v){
+		$temp[$v[$uk]]=$v;
+	}
+	$data=$temp;
+	unset($temp,$v);
+}
+/** TODO
+ * 查询结果集整理成无限极分类树
+ * @param array $data 输入结果集
+ * @param bool $issetindex 输入结果集是否已将唯一id或唯一标识符作为键名 
+ * @param unknown_type $child_group_name
+ * @return number
+ */
+function set_tree($data,$issetindex=false,$child_group_name='_child'){
+	static $tree = array();
+	if(!$issetindex){
+		set_unique_index($data);
+	}
 
+	foreach($data as $k=>$v){
+		$tag=0;
+		foreach($data as $kk=>$vv){
+			if($vv['pid']==$v['id']){
+				$data[$k][$child_group_name][$vv['id']]=$vv;
+			}
+		}
+		if($tag==0){
+			unset($data[$k]);
+		}
+
+
+		if($v['pid']>0 && isset($data[$v['pid']])){
+			$data[$v['pid']][$child_group_name][$v['id']]=$v;
+			set_tree($data[$v['pid']][$child_group_name],true);
+		}else{
+			$data[$k]['_child']=array();
+		}
+	}
+}
 /**
  * 判断是否为null
  */
@@ -321,7 +389,7 @@ function check_file($filename){
 * 数组批量取值
 * @param mixed $keys 指定的键名
 * @param mixed $arr 搜索的数组,或者回调函数
-* @param mixed $key_pre 返回数组的键名前缀
+* @param mixed $key_pre 返回数组的键名前缀或指定转换的数据类型
 * @return multitype:NULL string mixed unknown
 */
 function array_batch($keys,$arr,$key_pre=''){
@@ -330,29 +398,34 @@ function array_batch($keys,$arr,$key_pre=''){
 	switch (true){
 		case (is_array($arr)):
 			$tag=true;
-// 			$def='';
-// 			switch(true){
-// 				case ($key_pre===false):
-// 					$key_pre='';
-// 					$tag=false;
-// 					break;
-// 				case ($key_pre=='(int)'):
-// 					$key_pre='';
-// 					$def=0;
-// 					break;
-// 				default:
-// 					break;
-// 			}
-			if($key_pre===false){
-				$key_pre='';
-				$tag=false;
-			}
-			foreach($keys as $vv){
-				if(isset($arr[$vv])){
-					$data[$key_pre.$vv]=$arr[$vv];
-				}else{
-					$tag && $data[$key_pre.$vv]='';
-				}
+			$def='';
+			switch(true){
+				case ($key_pre===false):
+					$key_pre='';
+					$tag=false;
+					foreach($keys as $vv){
+						if(isset($arr[$vv])){
+							$data[$key_pre.$vv]=$arr[$vv];
+						}else{
+							$tag && $data[$key_pre.$vv]='';
+						}
+					}
+					break;
+				case ($key_pre=='(int)'):
+					foreach($keys as $vv){
+							$data[$vv]=(int)$arr[$vv];
+					}
+					break;
+				case ($key_pre=='(float)'):
+					foreach($keys as $vv){
+						$data[$vv]=(float)$arr[$vv];
+					}
+					break;
+				default:
+					foreach($keys as $vv){
+							$data[$key_pre.$vv]=$arr[$vv].'';
+					}
+					break;
 			}
 			break;
 		case (is_callable($arr)):
@@ -386,6 +459,7 @@ function value_add_prefix($arr,$prefix,$index=array()){
 		}
 		
 	}
+	
 	return $arr;
 }
 /**
@@ -410,31 +484,6 @@ function getDocComment($str, $tag = ''){
 	}else{
 		return '';
 	}
-}
-/**
- * 获取指定类的方法列表
- * @param mixed $str
- * @return multitype:
- */
-function getMethods($str){
-	$class  = new  \ReflectionClass ($str);
-	return $class -> getMethods ();
-}
-/**
- * 获取指定类的属性列表
- * @param mixed $str
- * @return multitype:
- */
-function getProperties($str,$filter=\ReflectionProperty::IS_PUBLIC){
-	$class  = new  \ReflectionClass ($str);
-	$p=$class -> getProperties($filter);
-	if(is_object($str)){
-		foreach ($p as $kk=>&$vv){
-			$name=$vv->name;
-			@$vv->value=$str->$name;
-		}
-	}
-	return $p;
 }
 /**
  * 数组任意位置插入新单元
