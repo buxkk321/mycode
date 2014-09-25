@@ -73,16 +73,17 @@ COMMENT = '文章统一信息表';
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `common`.`tp_article_category` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '数据id',
+  `pid` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '父类id',
+  `sort` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '排序(同级有效)',
+  `deep` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '层级深度',
   `name` VARCHAR(65) NOT NULL DEFAULT '' COMMENT '唯一英文标识',
   `title` VARCHAR(145) NOT NULL DEFAULT '' COMMENT '标题',
   `icon` VARCHAR(145) NOT NULL DEFAULT '' COMMENT '分类图标',
-  `pid` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '父类id',
-  `sort` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '排序(同级有效)',
   `meta_title` VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'SEO的网页标题',
   `meta_keywords` VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'SEO的关键字',
   `meta_description` VARCHAR(150) NOT NULL DEFAULT '' COMMENT 'SEO的描述',
-  `x` INT UNSIGNED NOT NULL DEFAULT 0,
-  `y` INT UNSIGNED NOT NULL DEFAULT 0,
+  `x` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'x',
+  `y` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'y',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`name` ASC))
 ENGINE = MyISAM
@@ -131,14 +132,14 @@ COMMENT = '用户收藏信息表';
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `common`.`tp_menu` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '数据id',
+  `pid` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '父菜单id',
+  `sort` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '同级排序',
+  `deep` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '层级深度',
   `title` VARCHAR(45) NOT NULL DEFAULT '' COMMENT '标题',
   `tip` VARCHAR(145) NOT NULL DEFAULT '' COMMENT '提示信息',
   `url` VARCHAR(145) NOT NULL DEFAULT '' COMMENT '跳转地址',
   `group` CHAR(45) NOT NULL DEFAULT '' COMMENT '菜单分组标识符',
-  `type` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '菜单类型(0:基本超链接,1:带超链接的目录菜单,2:不带超链接的目录菜单,3:菜单分组)',
-  `pid` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '父菜单id',
-  `sort` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '同级排序',
-  `deep` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '层级深度',
+  `type` TINYINT UNSIGNED NOT NULL DEFAULT 1 COMMENT '菜单类型(0:非菜单按钮,1:菜单超链接,2:带超链接的目录菜单,3:不带超链接的目录菜单,4:菜单分组)',
   `x` FLOAT UNSIGNED NOT NULL DEFAULT 0 COMMENT '相对画布中心的x偏移',
   `y` FLOAT UNSIGNED NOT NULL DEFAULT 0 COMMENT '相对画布中心的y偏移',
   PRIMARY KEY (`id`))
