@@ -25,7 +25,7 @@ COMMENT = '管理员表';
 -- Table `common`.`tp_ucenter_member`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `common`.`tp_ucenter_member` (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '数据id',
   `username` CHAR(20) NOT NULL DEFAULT '' COMMENT '用户名',
   `password` CHAR(32) NOT NULL DEFAULT '' COMMENT '密码',
   `email` VARCHAR(40) NOT NULL DEFAULT '' COMMENT '邮箱',
@@ -50,7 +50,7 @@ COMMENT = '用户中心';
 -- Table `common`.`tp_article`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `common`.`tp_article` (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '数据id',
   `tag` VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'tag标签列表',
   `title` VARCHAR(145) NOT NULL DEFAULT '' COMMENT '文章标题',
   `cover` VARCHAR(145) NOT NULL DEFAULT '' COMMENT '封面图',
@@ -72,7 +72,7 @@ COMMENT = '文章统一信息表';
 -- Table `common`.`tp_article_category`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `common`.`tp_article_category` (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '数据id',
   `name` VARCHAR(65) NOT NULL DEFAULT '' COMMENT '唯一英文标识',
   `title` VARCHAR(145) NOT NULL DEFAULT '' COMMENT '标题',
   `icon` VARCHAR(145) NOT NULL DEFAULT '' COMMENT '分类图标',
@@ -93,7 +93,7 @@ COMMENT = '分类表';
 -- Table `common`.`tp_article_text`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `common`.`tp_article_text` (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '数据id',
   `content` TEXT NULL COMMENT '文章内容',
   `parse` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '内容解析方式',
   PRIMARY KEY (`id`))
@@ -105,7 +105,7 @@ COMMENT = '文章详情表';
 -- Table `common`.`tp_tag`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `common`.`tp_tag` (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '数据id',
   `name` VARCHAR(45) NOT NULL DEFAULT '' COMMENT 'tag唯一标志',
   `lang` CHAR(26) NOT NULL DEFAULT 'en' COMMENT '使用的语言',
   `count` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '统计字段',
@@ -130,14 +130,15 @@ COMMENT = '用户收藏信息表';
 -- Table `common`.`tp_menu`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `common`.`tp_menu` (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '数据编号',
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '数据id',
   `title` VARCHAR(45) NOT NULL DEFAULT '' COMMENT '标题',
   `tip` VARCHAR(145) NOT NULL DEFAULT '' COMMENT '提示信息',
   `url` VARCHAR(145) NOT NULL DEFAULT '' COMMENT '跳转地址',
-  `group` CHAR(45) NOT NULL DEFAULT '' COMMENT '菜单分组',
-  `type` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '菜单类型(0:基本超链接,1:带超链接的目录菜单,2:不带超链接的目录菜单,3:中心主题)',
+  `group` CHAR(45) NOT NULL DEFAULT '' COMMENT '菜单分组标识符',
+  `type` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '菜单类型(0:基本超链接,1:带超链接的目录菜单,2:不带超链接的目录菜单,3:菜单分组)',
   `pid` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '父菜单id',
   `sort` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '同级排序',
+  `deep` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '层级深度',
   `x` FLOAT UNSIGNED NOT NULL DEFAULT 0 COMMENT '相对画布中心的x偏移',
   `y` FLOAT UNSIGNED NOT NULL DEFAULT 0 COMMENT '相对画布中心的y偏移',
   PRIMARY KEY (`id`))
