@@ -1,9 +1,17 @@
 DELIMITER $$
 
-drop trigger if exists `tp_menu_set_deep_after_insert`$$
-CREATE TRIGGER `tp_menu_set_deep_after_insert` AFTER INSERT ON `tp_menu` FOR EACH ROW
+drop trigger if exists `menu_set_deep_before_insert`$$
+CREATE TRIGGER `menu_set_deep_before_insert` BEFORE INSERT ON `tp_menu` FOR EACH ROW
 begin
 if new.pid is not null then  
-	update tp_menu t1,tp_menu t2 set t1.deep=t2.deep+1 where t1.id=new.id and t2.id=new.pid; 
+	SET new.deep=(SELECT deep FROM tp_menu WHERE id=NEW.pid)+1; 
+end if;
+end$$
+
+drop trigger if exists `menu_set_deep_before_update`$$
+CREATE TRIGGER `menu_set_deep_before_update` BEFORE UPDATE ON `tp_menu` FOR EACH ROW
+begin
+if new.pid!=old.pid and new.pid is not null then  
+	SET new.deep=(SELECT deep FROM tp_menu WHERE id=NEW.pid)+1; 
 end if;
 end$$
