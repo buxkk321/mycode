@@ -139,7 +139,7 @@ CREATE TABLE IF NOT EXISTS `common`.`tp_menu` (
   `tip` VARCHAR(145) NOT NULL DEFAULT '' COMMENT '提示信息',
   `url` VARCHAR(145) NOT NULL DEFAULT '' COMMENT '跳转地址',
   `group` CHAR(45) NOT NULL DEFAULT '' COMMENT '菜单分组标识符',
-  `type` TINYINT UNSIGNED NOT NULL DEFAULT 1 COMMENT '菜单类型(0:非菜单按钮,1:菜单超链接,2:带超链接的目录菜单,3:不带超链接的目录菜单,4:菜单分组)',
+  `type` TINYINT UNSIGNED NOT NULL DEFAULT 1 COMMENT '菜单类型(0:没有视图的按钮,1:有视图的按钮,2:目录菜单,3:菜单分组)',
   `x` FLOAT UNSIGNED NOT NULL DEFAULT 0 COMMENT '相对画布中心的x偏移',
   `y` FLOAT UNSIGNED NOT NULL DEFAULT 0 COMMENT '相对画布中心的y偏移',
   PRIMARY KEY (`id`))
