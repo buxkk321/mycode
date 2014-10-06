@@ -16,6 +16,22 @@ if new.pid!=old.pid and new.pid is not null then
 end if;
 end$$
 
+drop trigger if exists `category_set_deep_before_insert`$$
+CREATE TRIGGER `category_set_deep_before_insert` BEFORE INSERT ON `tp_category` FOR EACH ROW
+begin
+if new.pid is not null then  
+	SET new.deep=(SELECT deep FROM tp_category WHERE id=NEW.pid)+1; 
+end if;
+end$$
+
+drop trigger if exists `category_set_deep_before_update`$$
+CREATE TRIGGER `category_set_deep_before_update` BEFORE UPDATE ON `tp_category` FOR EACH ROW
+begin
+if new.pid!=old.pid and new.pid is not null then  
+	SET new.deep=(SELECT deep FROM tp_category WHERE id=NEW.pid)+1; 
+end if;
+end$$
+
 drop trigger if exists article_delete$$
 create trigger article_delete BEFORE delete on tp_article for each row   
 begin
