@@ -177,16 +177,6 @@ class db_query{
 		if($current && is_array($re)) $re=current($re);
 		return $re;
 	}
-	public static function getTotalRows($table,$sql_main,$count_col='*'){
-		return self::query("select count($count_col) from $table $sql_main",true);
-	}
-	public static function getConfig($str,$varname='query'){
-		if($str==null){
-			$query=base64_encode(json_encode($condition));
-		}else{
-			$condition=json_decode(base64_decode($query),true);
-		}
-	}
 	/**
 	 * 获取戴分页的数据列表
 	 * @param string $table 查询数据表
@@ -211,12 +201,13 @@ class db_query{
 		$sql=self::parseCondition($config['condition']);
 		
 		//最终的查询
-		
 		$result['_list']=self::query("select $field from $table {$sql[0]} {$sql[1]}");
-		
-		$config['condition']['page'][1]>0 && $result['_total_rows']=self::getTotalRows($table,$sql[0],$config['count_col']);
+		$result['_total_rows']=self::getTotalRows($table,$sql[0],$config['count_col']);
 		
 		return $result;
+	}
+	public static function getTotalRows($table,$sql_main,$count_col='*'){
+		return self::query("select count($count_col) from $table $sql_main",true);
 	}
 	/**
 	 * 生成分页
@@ -234,7 +225,6 @@ class db_query{
 	 *  ['_page']:分页html代码
 	 */
 	public static function buildPage(&$result=array(),$config=array()){
-		$re=array();
 		$default=array(
 				'base_url'=>'',
 				'page_now'=>1,
