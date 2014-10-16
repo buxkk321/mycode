@@ -5,7 +5,8 @@ namespace Common\My;
  * @author Administrator
  */
 class db_query{
-	public static $db;
+	private static $db;
+	private static $db_type;
 	private static $operates = array('AND'=>1,'OR'=>2,'XOR'=>3);
 	/**
 	 * 
@@ -150,20 +151,12 @@ class db_query{
 		return array($sql_main,$sql_right);
 	}
 	
-	public static function start($db,$db_type='tp'){
-		switch (strtolower($db_type)){
-			case 'tp':
-				$re=self::$db->query($sql);
-				break;
-			case 'phalcon';
-			$re=self::$db->fetchAll($sql,\Phalcon\Db::FETCH_ASSOC);
-			break;
-			default:/*默认是原生pdo*/
-				$re=self::$db->query($sql,\PDO::FETCH_ASSOC);
-		}
+	public static function init($db,$db_type='tp',$cache_type='file'){
+		self::$db=$db;
+		self::$db_type=$db_type;
 		return self;
 	}
-	protected static function query($sql,$db,$db_type='tp',$current=false){
+	protected static function query($sql,$current=false){
 		switch (strtolower(self::$db_type)){
 			case 'tp':
 				$re=self::$db->query($sql);
@@ -182,7 +175,6 @@ class db_query{
 	 * @param string $table 查询数据表
 	 * @param mixed $field 查询字段
 	 * @param array $condition 在url中传递的各种查询条件和用户配置值,格式说明:
-
 	 * @param int $current 当前页码
 	 * @param string $count_col 统计总记录数时使用的col_name,默认为'*'
 	 * @return array 返回值说明:
@@ -270,4 +262,48 @@ class db_query{
 
 	}
 
+	public static function getColumns($tn,$refresh){
+		$cacheKey = $tn.'.cache';
+		if (!$this->adminCache->exists($cacheKey) || $refresh) {
+			$cols_info=self::query('SHOW FULL COLUMNS FROM '.$tn);
+			$this->adminCache->save($cacheKey, $cols_info);
+		}else{
+			$cols_info=$this->adminCache->get($cacheKey);
+		}
+		return $cols_info;
+	}
+	/**
+	 * 生成列表表头或表单
+	 * @param unknown_type $input
+	 * @param unknown_type $cols
+	 * @param unknown_type $except
+	 * @param unknown_type $key_prefix
+	 * @return multitype:
+	 */
+	public static function getGrids($input,$cols=array(),$except=false,$key_prefix=''){
+		$re=array();
+		is_string($cols) && $cols=explode(',', $cols);
+	
+		if(is_string($input)){
+			$cols_info=self::getColumns($input);
+		}else{
+			$cols_info=$input;
+		}
+	
+		if(empty($cols)){
+			foreach ($cols_info as $kk=>$vv){
+				$vv=array_change_key_case($vv);
+				$re[$key_prefix.$vv['field']]['title']=$vv['comment'];
+			}
+		}else{
+			$cols=array_flip($cols);
+			foreach($cols_info as $vv){
+				$vv=array_change_key_case($vv);
+				isset($cols[$vv['field']])!=$except && $re[$key_prefix.$vv['field']]['title']=$vv['comment'];
+			}
+		}
+		unset($vv);
+	
+		return $re;
+	}
 }
