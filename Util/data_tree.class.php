@@ -1,23 +1,26 @@
 <?php
 namespace Common\My;
-class data_tree {
-	public static $default=array(
+class data_tree{
+	private static $default=array(
 			'pk'=>'id',
 			'parent'=>'pid',
 			'child'=>'_child'
 			);
+	public static function set_config($config=array()){
+		self::$default=(array)$config+self::$default;
+	}
 	/**
 	 * 将输入数组重排成以唯一id或标识作为键名的数组
 	 * @param array $data 输入数据
-	 * @param int $return_index 可以设置是否返回建立的临时索引,数值说明:
+	 * @param int $plan 处理方式,数值说明:
 	 *  0:只排序不返回索引
 	 *  1:只返回索引不排序
 	 *  2:排序并返回索引
 	 * @param string $uk 标识值单元的键名,默认为'id'
 	 */
-	public static function set_id_index(&$data,$return_index=0,$uk='id'){
+	public static function set_index(&$data,$plan=0,$uk='id'){
 		$temp=array();
-		switch ($return_index){
+		switch ($plan){
 			case 0:
 				foreach($data as $k=>$v){
 					$temp[$v[$uk]]=$v;
@@ -54,15 +57,14 @@ class data_tree {
 	public static function count_parent($data,$data_index=array(),$start=1,$end=0){
 		$re=0;
 		$start<$end && flipvar($start,$end);
-		$p=self::$default['pid'];
 		if(empty($data_index)){
 			while($start>$end){
-				$start=$data[$start][$p];
+				$start=$data[$start][self::$default['pid']];
 				$re++;
 			}
 		}else{
 			while($start>$end){
-				$start=$data[$data_index[$start]][$p];
+				$start=$data[$data_index[$start]][self::$default['pid']];
 				$re++;
 			}
 		}
@@ -161,5 +163,15 @@ class data_tree {
 		// 		}
 	
 		return $tree;
+	}
+	private static function html_tree(){
+		
+	}
+	public static function output_tree($data,$config=array()){
+		$default=array(
+				
+				);
+		'<dl><dt></dt><dd></dd></dl>';
+		
 	}
 }

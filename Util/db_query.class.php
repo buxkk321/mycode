@@ -182,7 +182,7 @@ class db_query{
 				'visible_page'=>7,
 				'total_rows'=>0,
 				'%prev%'=>'上一页',
-				'%next%'=>'下一页'
+				'%next%'=>'下一页',
 		);
 		$config=(array)$config+$default;
 	
@@ -216,7 +216,7 @@ class db_query{
 		($total_page>1) && $result['_page'].='<a href="'.$config['base_url'].$total_page.'" class="end">'.$total_page.'</a>';
 		$result['_page'].='<a href="'.$config['base_url'].($page+1).'" class="next">'.$config['%next%'].'</a>';
 		$result['_page'].='<span class="jump">到第<input type="text" class="target_page" />页</span>';
-		$result['_page'].='<a href="'.$config['base_url'].'" class="jump_ok"><input type="button" class="ok" value="确定"/></a>';
+		$result['_page'].='<a href="'.$config['base_url'].'" class="jump_ok">确定</a>';
 	
 	}
 	/**
@@ -254,13 +254,13 @@ class db_query{
 		return $re;
 	}
 	
-	public static function init($db,$db_type='tp',$cache_type='file'){
+	public static function setdb($db,$db_type='tp',$cache_type='file'){
 		self::$db=$db;
 		self::$db_type=$db_type;
 		return self;
 	}
 	
-/******************以下方法需要在初始化后调用******************/
+/******************以下方法需要在setdb后调用******************/
 	
 	protected static function query($sql,$current=false){
 		switch (strtolower(self::$db_type)){
@@ -293,20 +293,21 @@ class db_query{
 				'field'=>'*',
 				'count_col'=>'*',
 				'sql_main'=>'',
-				'sql_right'=>''
-				);
+				'sql_right'=>'',
+				'page'=>true
+			);
 		$config=(array)$config+$default;
 		$table=is_string($config['table'])?$config['table']:'';
 		$field=is_array($config['field'])?implode(',',$config['field']):$config['field'];
 		
 		//最终的查询
 		$result['_list']=self::query("select $field from $table {$config['sql_main']} {$config['sql_right']}");
-		$result['_total_rows']=self::getTotalRows($table,$config['sql_main'],$config['count_col']);
+		$config['page'] && $result['_total_rows']=self::getTotalRows($table,$config['sql_main'],$config['count_col']);
 		
 		return $result;
 	}
 	public static function getTotalRows($table,$sql_main,$count_col='*'){
-		return self::query("select count($count_col) from $table $sql_main",true);
+		return current(self::query("select count($count_col) ttr from $table $sql_main",true));
 	}
 
 	public static function getColumns($tn,$refresh){
