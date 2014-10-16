@@ -119,98 +119,56 @@ class db_query{
 	}
 	/**
 	 * 解析各种查询条件
-	 * @param array $condition 条件说明
+	 * @param $page 当前页数
+	 * @param $query 在url中传递的查询条件编码后的字符串
+	 * @param array $condition 查询条件,格式说明:
 	 *  ['join']
 	 *  ['where']
 	 *  ['group']
 	 *  ['having']
 	 *  ['order']
-	 *  ['page']:分页选项,格式为array(当前页码,每页显示条数)
+	 *  ['page_size']:每页显示条数
 	 * @return array 返回值说明
-	 *   [0]:从join到having之间的sql
-	 *   [1]:order和limit部分sql
+	 * 
+	 * 
 	 */
-	public static function parseCondition(&$condition=array()){
+	public static function parseCondition($page_now,&$query,&$condition=array()){
+		$re=array('sql_main'=>'','sql_right'=>'');
+		//设置查询参数
+		if($query==null){
+			$query=base64_encode(json_encode($condition));
+		}else{
+			$condition=json_decode(base64_decode($query),true);
+		}
 		//拼中间部分的sql语句
-		isset($condition['join']) && $sql_main.=$condition['join'].' ';
-		isset($condition['where']) && $sql_main.=self::parseWhere($condition['where']).' ';
+		isset($condition['join']) && $re['sql_main'].=$condition['join'].' ';
+		isset($condition['where']) && $re['sql_main'].=self::parseWhere($condition['where']).' ';
 		if(isset($condition['group'])){
-			$sql_main.='group by '.$condition['group'].' ' ;
-			isset($condition['having']) && $sql_main.='having '.$condition['having'].' ';
+			$re['sql_main'].='group by '.$condition['group'].' ' ;
+			isset($condition['having']) && $re['sql_main'].='having '.$condition['having'].' ';
 		}
 		//order条件
-		isset($condition['order']) && $sql_right.=$condition['order'].' ';
+		isset($condition['order']) && $re['sql_right'].=$condition['order'].' ';
 		//limit条件
-		$condition['page'][0]<1 && $condition['page'][0]=1;
-		!isset($condition['page'][1]) && $condition['page'][1]=7;
-		if($condition['page'][1]>0){
-			@$offset=((int)$condition['page'][0]-1)*((int)$condition['page'][1]);
-			$sql_right.="limit $offset,{$condition['page'][1]}";
+		$page_now<1 && $page_now=1;//当前页码
+		!isset($condition['page_size']) && $condition['page_size']=7;
+		if($condition['page_size']>0){
+			@$offset=((int)$page_now-1)*((int)$condition['page_size']);
+			$re['sql_right'].="limit $offset,{$condition['page_size']}";
 		}
 		
-		return array($sql_main,$sql_right);
-	}
-	
-	public static function init($db,$db_type='tp',$cache_type='file'){
-		self::$db=$db;
-		self::$db_type=$db_type;
-		return self;
-	}
-	protected static function query($sql,$current=false){
-		switch (strtolower(self::$db_type)){
-			case 'tp':
-				$re=self::$db->query($sql);
-				break;
-			case 'phalcon';
-				$re=self::$db->fetchAll($sql,\Phalcon\Db::FETCH_ASSOC);
-			break;
-			default:/*默认是原生pdo*/
-				$re=self::$db->query($sql,\PDO::FETCH_ASSOC);
-		}
-		if($current && is_array($re)) $re=current($re);
 		return $re;
-	}
-	/**
-	 * 获取戴分页的数据列表
-	 * @param string $table 查询数据表
-	 * @param mixed $field 查询字段
-	 * @param array $condition 在url中传递的各种查询条件和用户配置值,格式说明:
-	 * @param int $current 当前页码
-	 * @param string $count_col 统计总记录数时使用的col_name,默认为'*'
-	 * @return array 返回值说明:
-	 *  ['_list']:数据列表
-	 *  ['_total_rows']:总记录数
-	 */
-	public static function getList(&$result=array(),$config=array()){
-		$default=array(
-				'table'=>'',
-				'field'=>'',
-				'condition'=>array(),
-				'count_col'=>'*');
-		$config=(array)$config+$default;
-		$table=is_string($config['table'])?$config['table']:'';
-		$field=is_array($config['field'])?implode(',',$config['field']):$config['field'];
-		$sql=self::parseCondition($config['condition']);
-		
-		//最终的查询
-		$result['_list']=self::query("select $field from $table {$sql[0]} {$sql[1]}");
-		$result['_total_rows']=self::getTotalRows($table,$sql[0],$config['count_col']);
-		
-		return $result;
-	}
-	public static function getTotalRows($table,$sql_main,$count_col='*'){
-		return self::query("select count($count_col) from $table $sql_main",true);
 	}
 	/**
 	 * 生成分页
 	 * @param array $config 配置说明:
-	    'base_url':除了页数外的其余部分url
-		'page_now':当前页数
-		'page_size':每页显示条数
-		'visible_page':可见页数
-		'total_rows':总记录数
-		'%prev%':上一页按钮的文本值
-		'%next%':下一页按钮的文本值
+	 'base_url':除了页数外的其余部分url
+	 'page_now':当前页数
+	 'page_size':每页显示条数
+	 'visible_page':可见页数
+	 'total_rows':总记录数
+	 '%prev%':上一页按钮的文本值
+	 '%next%':下一页按钮的文本值
 	 * @return array 返回值说明
 	 * 	['_total_page']:总页数
 	 *  ['_current']:当前页数
@@ -225,9 +183,9 @@ class db_query{
 				'total_rows'=>0,
 				'%prev%'=>'上一页',
 				'%next%'=>'下一页'
-				);
+		);
 		$config=(array)$config+$default;
-		
+	
 		$total_page=$config['page_size']>1?ceil($config['total_rows'] / $config['page_size']):1;
 		$total_page<1 && $total_page=1;
 		$result['_total_page']=$total_page;
@@ -259,18 +217,7 @@ class db_query{
 		$result['_page'].='<a href="'.$config['base_url'].($page+1).'" class="next">'.$config['%next%'].'</a>';
 		$result['_page'].='<span class="jump">到第<input type="text" class="target_page" />页</span>';
 		$result['_page'].='<a href="'.$config['base_url'].'" class="jump_ok"><input type="button" class="ok" value="确定"/></a>';
-
-	}
-
-	public static function getColumns($tn,$refresh){
-		$cacheKey = $tn.'.cache';
-		if (!$this->adminCache->exists($cacheKey) || $refresh) {
-			$cols_info=self::query('SHOW FULL COLUMNS FROM '.$tn);
-			$this->adminCache->save($cacheKey, $cols_info);
-		}else{
-			$cols_info=$this->adminCache->get($cacheKey);
-		}
-		return $cols_info;
+	
 	}
 	/**
 	 * 生成列表表头或表单
@@ -306,4 +253,71 @@ class db_query{
 	
 		return $re;
 	}
+	
+	public static function init($db,$db_type='tp',$cache_type='file'){
+		self::$db=$db;
+		self::$db_type=$db_type;
+		return self;
+	}
+	
+/******************以下方法需要在初始化后调用******************/
+	
+	protected static function query($sql,$current=false){
+		switch (strtolower(self::$db_type)){
+			case 'tp':
+				$re=self::$db->query($sql);
+				break;
+			case 'phalcon';
+				$re=self::$db->fetchAll($sql,\Phalcon\Db::FETCH_ASSOC);
+			break;
+			default:/*默认是原生pdo*/
+				$re=self::$db->query($sql,\PDO::FETCH_ASSOC);
+		}
+		if($current && is_array($re)) $re=current($re);
+		return $re;
+	}
+	/**
+	 * 获取戴分页的数据列表
+	 * @param string $table 查询数据表
+	 * @param mixed $field 查询字段
+	 * @param array $condition 在url中传递的各种查询条件和用户配置值,格式说明:
+	 * @param int $current 当前页码
+	 * @param string $count_col 统计总记录数时使用的col_name,默认为'*'
+	 * @return array 返回值说明:
+	 *  ['_list']:数据列表
+	 *  ['_total_rows']:总记录数
+	 */
+	public static function getList(&$result=array(),$config=array()){
+		$default=array(
+				'table'=>'',
+				'field'=>'*',
+				'count_col'=>'*',
+				'sql_main'=>'',
+				'sql_right'=>''
+				);
+		$config=(array)$config+$default;
+		$table=is_string($config['table'])?$config['table']:'';
+		$field=is_array($config['field'])?implode(',',$config['field']):$config['field'];
+		
+		//最终的查询
+		$result['_list']=self::query("select $field from $table {$config['sql_main']} {$config['sql_right']}");
+		$result['_total_rows']=self::getTotalRows($table,$config['sql_main'],$config['count_col']);
+		
+		return $result;
+	}
+	public static function getTotalRows($table,$sql_main,$count_col='*'){
+		return self::query("select count($count_col) from $table $sql_main",true);
+	}
+
+	public static function getColumns($tn,$refresh){
+		$cacheKey = $tn.'.cache';
+		if (!$this->adminCache->exists($cacheKey) || $refresh) {
+			$cols_info=self::query('SHOW FULL COLUMNS FROM '.$tn);
+			$this->adminCache->save($cacheKey, $cols_info);
+		}else{
+			$cols_info=$this->adminCache->get($cacheKey);
+		}
+		return $cols_info;
+	}
+	
 }
