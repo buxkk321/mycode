@@ -1,40 +1,40 @@
 <?php
 namespace Common\My;
 /**
- * 文件读写
+ * 缓存
  * @author Administrator
  */
-class file{
+class cache{
+	private static $cache_type='file';
 	private static $root='./Data/';
-	public static function r($key,$test=1){
+	public static $test=1;
+	public static function exists($key){
+		return file_exists(self::$root.$key);
+	}
+	public static function get($key){
 		$date=file_get_contents(self::$root.$key);
-		switch ($test){
+		switch (self::$test){
 			case 1:
 				$data   =   unserialize($date);
 				break;
 			case 2:
 				$data   =   json_decode($date,true);
 				break;
-			default:
-				eval('$data='.$date.';');
-				break;
 		}
 		return $data;
 	}	
-	public static function w($key,$value,$test=1){
-		switch ($test){
+	public static function save($key,$value){
+		switch (self::$test){
 			case 1:
 				$data   =   serialize($value);
 				break;
 			case 2:
 				$data   =   json_encode($value);
 				break;
-			default:
-				$data   =   var_export($value);
-				break;
 		}
 		$handle = fopen(self::$root.$key,'w');
 		fwrite($handle,$data);
 		fclose($handle);
 	}
+
 }

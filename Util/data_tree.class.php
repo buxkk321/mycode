@@ -56,15 +56,17 @@ class data_tree{
 	 */
 	public static function count_parent($data,$data_index=array(),$start=1,$end=0){
 		$re=0;
-		$start<$end && flipvar($start,$end);
+		$parent=self::$default['parent'];
 		if(empty($data_index)){
-			while($start>$end){
-				$start=$data[$start][self::$default['pid']];
+			$start=$data[$start][$parent];
+			while(isset($data[$start]) && $start!=$end){
+				$start=$data[$start][$parent];
 				$re++;
 			}
 		}else{
-			while($start>$end){
-				$start=$data[$data_index[$start]][self::$default['pid']];
+			$start=$data[$data_index[$start]][$parent];
+			while(isset($data[$start]) && $start!=$end){
+				$start=$data[$data_index[$start]][$parent];
 				$re++;
 			}
 		}
@@ -108,9 +110,9 @@ class data_tree{
 		}
 		
 		$tree_index=explode('_', substr($tree_index,1,-1));
-	
 		foreach($tree_index as $vv){
 			@$kp=empty($data_index)?$vv:$data_index[$vv];
+			
 			if(isset($data[$kp])){
 				$re[$vv]=$data[$kp];
 				$re[$vv]['deep']=self::count_parent($data,$data_index,$vv);
@@ -164,10 +166,48 @@ class data_tree{
 	
 		return $tree;
 	}
-	private static function html_tree(){
+	/**
+	 * 筛选限定范围内的子项
+	 * @param unknown_type $data
+	 * @param unknown_type $index
+	 * @param mixed $name
+	 * @param unknown_type $level
+	 * @return boolean|Ambigous <multitype:number string , unknown>
+	 */
+	public static function filt_tree($data,$index=array(),$name,$sub=0){
+		if(is_array($name)){
+			$key=current($name);
+			$col_name=key($name);
+		}else{
+			$key=$name;
+			$col_name='name';
+		}
+		switch (true){
+			case ($key>0):/*分类的数字id*/
+				$cate=empty($index)?$data[$key]:$data[$index[$name]];
+				break;
+			case (is_string($key) && !empty($key)):/*分类的唯一英文标识*/
+				$cate=current(array_filter($data,
+				function($v)use($name,$key){
+					if($v[$key]==$name){return true;}
+				}));
+				break;
+			default :/*顶级分类*/
+				$cate=array('id'=>0,'title'=>'未分类','deep'=>0,'pid'=>0);
+				break;
+		}
+		if($sub>0){
+			$cate['_child']=array_filter($data,
+				function($v)use($cate){
+					if($v['pid']==$cate['id']){return true;}
+				});
+		}
+		return $cate;
+	}
+	private static function tree_html(){
 		
 	}
-	public static function output_tree($data,$config=array()){
+	public static function tree_output($data,$config=array()){
 		$default=array(
 				
 				);
