@@ -3,7 +3,7 @@
  */
 (function( $ ){
     /**
-     * 滚动菜单
+     * 下拉菜单动画效果
      * @param options
      * @returns {*|each|Array|each|each|each}
      */
@@ -37,6 +37,54 @@
         return this;
     };
     /**
+     * 生成二级下拉菜单
+     * @param options
+     */
+    $.fn.imenu_second=function(options){
+        var settings={
+            'data_input':{},
+            'site_root':'',
+            'class_menu_head':'menu_head l1 f14',/*一级菜单的样式*/
+            'class_menu_sub':'l2 f14',/*二级菜单的样式*/
+            'target_frame':''
+        };
+
+        if ( options ) {
+            $.extend( settings, options );
+        }
+
+        var a_group=[],container=this;
+        $.each(settings.data_input,function(ke,vo){
+            vo['url']=!vo['url']?'javascript:void(0);':settings.site_root+vo['url'];
+            if(Number(vo['type'])==2){/*目录类型菜单直接加到容器中*/
+                $('<li></li>').append(
+                    $('<a></a>')
+                    .attr({'href':vo['url'],'title':vo['tip'],'target':settings.target_frame})
+                    .addClass(settings.class_menu_head+' menu_'+vo['id'])
+                    .text(vo['title'])
+                    .add('<dl></dl>')
+                ).appendTo(container);
+            }else{
+                a_group.push(ke);
+            }
+        });
+        var len=a_group.length;
+        for (var i=0 ; i < len ; i++ ) {
+            var data=settings.data_input[a_group[i]],
+                obj_dl=$('a.menu_'+data['pid']).next('dl'),
+                obj_a=$('<a></a>')
+                    .attr({'href':data['url'],'title':data['tip'],'target':settings.target_frame})
+                    .addClass(settings.class_menu_sub+' menu_'+data['id'])
+                    .text(data['title']);
+            if(obj_dl.length>0){
+                $('<dd></dd>').append(obj_a).appendTo(obj_dl);
+            }else{
+                /*如果一个在容器中的menu既不是目录菜单,pid也没有对应的菜单元素,则直接追加到尾部*/
+                $('<li></li>').append(obj_a).appendTo(container);
+            }
+        }
+    };
+    /**
      * 面包屑工具
      * @param options
      * @returns {fn}
@@ -68,7 +116,7 @@
         var settings={
             'time':3,
             'speed':1000,
-            'beforeAction':function(){
+            'beforeAction':function(){/*在开始计时前的可选自定义函数*/
 
             }
         };
@@ -127,8 +175,14 @@
      * 上传文件的表单控件扩展工具
      * @returns {*|each|Array|each|each|each}
      */
-	$.fn.ifile=function(){
-
+	$.fn.ifile=function(options){
+	   var settings={
+	            'img_class':'prev'/*预览图的class*/
+	            }
+	        
+	        if ( options ) {
+	            $.extend( settings, options );
+	        }
     	return this.each(function(){
     		var ifile=$(this).hide(),
     		btn_cancel=$("<input type='button' class='cancel_upload' value='取消' />").click(function(){
@@ -144,23 +198,9 @@
     			ifile.nextAll('img').remove();
     			btn_cancel.show();
     			$.each(this.files,function(i,v){
-    				$('<img class="prev"/>').attr("src",window.URL.createObjectURL(v)).insertAfter(ifile);
+    				$('<img class="'+settings.img_class+'"/>').attr("src",window.URL.createObjectURL(v)).insertAfter(ifile);
     			});
     		}).after(btn_cancel);
         });
-    };
-    /**
-     * 点击图片弹出原图
-     */
-    $.fn.img_dialog=function(){
-//    	if(typeof(img_dialog)=='undefined'){
-//    		img_dialog=$(window.top.document.getElementById('view_org'));
-//    	}
-//    	this.parent().each(function(){
-//    		$(this).delegate('img.prev','click',function(){
-//    			img_dialog.show().find('img').attr('src',$(this).attr('src'));
-//    			img_dialog.css({"top":($(window.top).height()-img_dialog.height())/2,"left":($(window.top).width()-img_dialog.width())/2});
-//    		});
-//    	});
     };
 })( jQuery );
