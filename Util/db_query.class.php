@@ -227,15 +227,9 @@ class db_query{
 	 * @param unknown_type $key_prefix
 	 * @return multitype:
 	 */
-	public static function getGrids($input,$cols=array(),$except=false,$key_prefix=''){
+	public static function getGrids($cols_info,$cols=array(),$except=false,$key_prefix=''){
 		$re=array();
 		is_string($cols) && $cols=explode(',', $cols);
-	
-		if(is_string($input)){
-			$cols_info=self::getColumns($input);
-		}else{
-			$cols_info=$input;
-		}
 	
 		if(empty($cols)){
 			foreach ($cols_info as $kk=>$vv){
@@ -338,8 +332,6 @@ class db_query{
 		//最终的查询
 		$result['_list']=self::query("select $field from $table {$config['sql_main']} {$config['sql_right']}");
 		$config['page'] && $result['_total_rows']=self::getTotalRows($table,$config['sql_main'],$config['count_col']);
-		
-		return $result;
 	}
 	public static function getTotalRows($table,$sql_main,$count_col='*'){
 		return current(self::query("select count($count_col) ttr from $table $sql_main",true));

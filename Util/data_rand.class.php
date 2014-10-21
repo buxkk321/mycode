@@ -9,10 +9,10 @@ class data_rand {
 	 * @param bool $inarray true:返回存在于列表中的随机数,false:返回不在列表中的随机数
 	 * @return int
 	 */
-	public static function rand_in_array($fliparr,$min,$max,$inarray=true){
+	public static function num_in_array($fliparr,$min,$max,$inarray=true){
 		$num=mt_rand($min, $max);
 	
-		isset($fliparr[$num])!=$inarray && $num=self::rand_in_array($fliparr,$min,$max,$inarray);
+		isset($fliparr[$num])!=$inarray && $num=self::num_in_array($fliparr,$min,$max,$inarray);
 		
 		return $num;
 	}
@@ -24,7 +24,7 @@ class data_rand {
 	 * @param bool $duplicate 是否允许重复值
 	 * @return array 如果给定的num比min,max的差值还大,则返回false
 	 */
-	public static function rand_multiple($min,$max,$num=2,$duplicate=false){
+	public static function multi_num($min,$max,$num=2,$duplicate=false){
 		$re=array();
 		if($num<2){return false;}
 		if($duplicate){
@@ -36,7 +36,7 @@ class data_rand {
 				return false;
 			}
 			for($i=0;$i<$num;$i++){
-				$re[self::rand_in_array($re,$min,$max,false)]=1;
+				$re[self::num_in_array($re,$min,$max,false)]=1;
 			}
 			$re=array_keys($re);
 		}
@@ -44,7 +44,7 @@ class data_rand {
 		return $re;
 	}
 	
-	public static function rand_string($mate,$length){
+	public static function string($mate,$length){
 		$str='';
 		$max=strlen($mate)-1;
 		for($i=0;$i<$length;$i++){
