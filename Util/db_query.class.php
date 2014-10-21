@@ -36,6 +36,7 @@ class db_query{
 	 * @example 
 	 *  $key='name'
 	 *  $val=array(array(array('like "%asd%"'),array('!="asdasd"'),'_logic'=>'and'),'ccc','_logic'=>'or');
+	 *  result:(name like "%asd%" and name !="asdasd") or name="ccc"
 	 * @param unknown $key
 	 * @param unknown $val
 	 * @return string
@@ -49,8 +50,8 @@ class db_query{
 				unset($val['_logic'],$val['_multi']);
 				foreach ($val as $v){
 					$str[]   ='('.self::parseWhereItem($key,$v).')';
-					$whereStr .= '( '.implode(' '.$op.' ',$str).' )';
 				}
+				$whereStr .= '( '.implode(' '.$op.' ',$str).' )';
 			}else{
 				$whereStr .=$key.' '.$val[0];
 			}
@@ -221,26 +222,26 @@ class db_query{
 	}
 	/**
 	 * 生成列表表头或表单
-	 * @param unknown_type $input
-	 * @param unknown_type $cols
-	 * @param unknown_type $except
-	 * @param unknown_type $key_prefix
+	 * @param array $input
+	 * @param mixed $cols
+	 * @param bool $except
+	 * @param string $separ
 	 * @return multitype:
 	 */
-	public static function getGrids($cols_info,$cols=array(),$except=false,$key_prefix=''){
+	public static function getGrids($cols_info,$cols=array(),$except=false,$separ=null){
 		$re=array();
 		is_string($cols) && $cols=explode(',', $cols);
 	
-		if(empty($cols)){
-			foreach ($cols_info as $kk=>$vv){
-				$vv=array_change_key_case($vv);
-				$re[$key_prefix.$vv['field']]['title']=$vv['comment'];
-			}
-		}else{
-			$cols=array_flip($cols);
-			foreach($cols_info as $vv){
-				$vv=array_change_key_case($vv);
-				isset($cols[$vv['field']])!=$except && $re[$key_prefix.$vv['field']]['title']=$vv['comment'];
+		$cols=array_flip($cols);
+		foreach ($cols_info as $kk=>$vv){
+			$vv=array_change_key_case($vv);
+			if(isset($cols[$vv['field']])!=$except){
+				if(strpos($vv['comment'],$separ)===false){
+					$re[$vv['field']]['title']=$vv['comment'];
+				}else{
+					$re[$vv['field']]['title']=strstr($vv['comment'],$separ,true);
+					$re[$vv['field']]['tip']=strstr($vv['comment'],$separ);
+				}
 			}
 		}
 		unset($vv);
@@ -305,6 +306,77 @@ class db_query{
 		}
 		return $re;
 	}
+	
+	/**
+	 * post请求带文件上传的添加或修改数据的处理函数
+	 * @param string $table 完整的表名
+	 * @param array $field 要更新的字段信息,格式说明:
+	 *  ['pk'] 主键名
+	 *  ['filename'] 保存上传文件路劲的字段名
+	 *  ['fileconfig'] 文件上传的配置数据
+	 *  ['cols'] 直接从$_POST中获取的字段名,多个字段用英文逗号分隔，也可以是数组
+	 * @param function $before_edit 在执行数据库操作前的处理(验证)函数,可选,参数说明:
+	 * 	$result:上一步操作的结果数据,引用传值,不需要返回值,格式同最后的return,出错时需要设置 $result['status']=3;
+	 * @param function $after_edit update操作成功之后时使用的自定义处理函数,可选,格式说明:
+	 *  $result:之前的处理结果数据,引用传值
+	 * @return array $result 操作结果
+	 * 返回值说明:
+	 *  ['data'] 待操作的数据
+	 *  ['id']影响数据的主键值
+	 *	['status'] 状态:
+	 * 	 0:操作失败
+	 *   1:操作成功
+	 *   2:文件上传错误
+	 *   3:执行数据库操作前的处理函数出错
+	 *  ['msg'] 错误信息
+	 */
+	public static function post_edit($table,$field,$before_edit=null,$after_edit=null){
+		$pk=isset($field['pk'])?$field['pk']:'id';
+		$result=array(
+				'status'=>1,
+				'data'=>array_batch($field['cols'],$_POST,false)
+		);
+	
+		// 		if(!empty($field['filename'])){
+		// 			$info=Plugin\Upload::dealUploadFiles($field['filename'],$field['fileconfig']);
+		// 			if($info===false){
+		// 				$result['msg']=Plugin\Upload::$_upload_error;
+		// 				$result['status']=2;
+		// 			}elseif(!empty($info)){
+		// 				foreach($info as $kk=>$vv){
+		// 					if(is_numeric($kk)){
+		// 						//TODO 多文件上传
+	
+		// 					}else{
+		// 						$result['data'][$kk]=$vv['savepath'].$vv['savename'];
+		// 					}
+		// 				}
+		// 			}
+		// 		}
+	
+		is_callable($before_edit) && $before_edit($result);
+	
+		if($result['status']==1){
+			try {
+				if($_POST[$pk]>0){
+					self::update($table,$result['data'],$pk.'='.$_POST[$pk]);
+					$result['id']=$_POST[$pk];
+				}else{
+					$result['id']=self::insert($table,$result['data']);
+				}
+				is_callable($after_edit) && $after_edit($result);
+			} catch (\Exception $e) {
+				$result['status']=0;
+				if($_POST[$pk]>0){
+					$result['msg']='更新出错:'.$e->__toString();
+				}else{
+					$result['msg']='添加出错:'.$e->__toString();
+				}
+			}
+		}
+	
+		return $result;
+	}
 	/**
 	 * 获取戴分页的数据列表
 	 * @param string $table 查询数据表
@@ -336,7 +408,6 @@ class db_query{
 	public static function getTotalRows($table,$sql_main,$count_col='*'){
 		return current(self::query("select count($count_col) ttr from $table $sql_main",true));
 	}
-
 	
 	public static function getColumns($tn,$refresh){
 		$cacheKey = $tn.'.cache';
@@ -347,76 +418,5 @@ class db_query{
 			$cols_info=$this->adminCache->get($cacheKey);
 		}
 		return $cols_info;
-	}
-	
-	/**
-	 * post请求带文件上传的添加或修改数据的处理函数
-	 * @param string $table 完整的表名
-	 * @param array $field 要更新的字段信息,格式说明:
-	 *  ['pk'] 主键名
-	 *  ['filename'] 保存上传文件路劲的字段名
-	 *  ['fileconfig'] 文件上传的配置数据
-	 *  ['cols'] 直接从$_POST中获取的字段名,多个字段用英文逗号分隔，也可以是数组
-	 * @param function $before_edit 在执行数据库操作前的处理(验证)函数,可选,参数说明:
-	 * 	$result:上一步操作的结果数据,引用传值,不需要返回值,格式同最后的return,出错时需要设置 $result['status']=3;
-	 * @param function $after_edit update操作成功之后时使用的自定义处理函数,可选,格式说明:
-	 *  $result:之前的处理结果数据,引用传值
-	 * @return array $result 操作结果
-	 * 返回值说明:
-	 *  ['data'] 待操作的数据
-	 *  ['id']影响数据的主键值
-	 *	['status'] 状态:
-	 * 	 0:操作失败
-	 *   1:操作成功
-	 *   2:文件上传错误
-	 *   3:执行数据库操作前的处理函数出错
-	 *  ['msg'] 错误信息
-	 */
-	public static function post_edit($table,$field,$before_edit=null,$after_edit=null){
-		$pk=isset($field['pk'])?$field['pk']:'id';
-		$result=array(
-			'status'=>1,
-			'data'=>array_batch($field['cols'],$_POST,false)
-		);
-	
-// 		if(!empty($field['filename'])){
-// 			$info=Plugin\Upload::dealUploadFiles($field['filename'],$field['fileconfig']);
-// 			if($info===false){
-// 				$result['msg']=Plugin\Upload::$_upload_error;
-// 				$result['status']=2;
-// 			}elseif(!empty($info)){
-// 				foreach($info as $kk=>$vv){
-// 					if(is_numeric($kk)){
-// 						//TODO 多文件上传
-	
-// 					}else{
-// 						$result['data'][$kk]=$vv['savepath'].$vv['savename'];
-// 					}
-// 				}
-// 			}
-// 		}
-	
-		is_callable($before_edit) && $before_edit($result);
-	
-		if($result['status']==1){
-			try {
-				if($_POST[$pk]>0){
-					self::update($table,$result['data'],$pk.'='.$_POST[$pk]);
-					$result['id']=$_POST[$pk];
-				}else{
-					$result['id']=self::insert($table,$result['data']);
-				}
-				is_callable($after_edit) && $after_edit($result);
-			} catch (\Exception $e) {
-				$result['status']=0;
-				if($_POST[$pk]>0){
-					$result['msg']='更新出错:'.$e->__toString();
-				}else{
-					$result['msg']='添加出错:'.$e->__toString();
-				}
-			}
-		}
-	
-		return $result;
 	}
 }
