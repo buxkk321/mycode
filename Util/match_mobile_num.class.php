@@ -84,6 +84,7 @@ class match_mobile_num{
 			'4BC|A4C|AB4'=>'(4..|.4.|..4)',
 			
 			'AA[689]'=>'([689])\1',
+			'AA[^4]'=>'([^4])\1',
 			
 			'180%180'=>'^180.+180',
 			'189%189'=>'^189.+189',
@@ -178,7 +179,7 @@ class match_mobile_num{
 				'reg'=>array('AB88[A^B][AB^4]','AABB[A^B][AB^4]','888A[A^4]','AAA8[A^4]','AAAAAB[A^B][AB^4]'),
 			),
 			4=>array(
-				'reg'=>array('A168[A^4]','A158[^4]','A518[^4]','8AA8[A^4]','AAAAB[A^B][AB^4]'),
+				'reg'=>array('A168[A^4]','A158[A^4]','A518[A^4]','8AA8[A^4]','AAAAB[A^B][AB^4]'),
 				'php'=>array(
 					array('ap_positive','4'),
 					array('ap_negative','4')
@@ -272,7 +273,7 @@ class match_mobile_num{
 		}
 		if(empty($flow)){
 			$input['status']=4;
-			$input['msg']=$input['num'].'该号码没有对应的靓号规则';
+			$input['msg']=$input['num'].'没有对应的'.$input['generation'].'G靓号规则';
 			return ;
 		}
 		
@@ -340,10 +341,14 @@ class match_mobile_num{
 		
 		switch ($code){//结束操作
 			case 34://电信4G
-				$input['level']>1 && $input['nice_number']=1;
+				$input['level']>1 && $input['is_nice']=1;
 				break;
 			default:
-				$input['match_type'] && $input['nice_number']=1;
+				if($input['match_type']){
+					$input['is_nice']=1;
+				}else{
+					$input['level']=0;
+				}
 		}
 		
 	}
