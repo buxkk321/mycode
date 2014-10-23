@@ -43,7 +43,12 @@ class data_rand {
 	
 		return $re;
 	}
-	
+	/**
+	 * 根据提供的字符生成随机字符串,可能有重复
+	 * @param string $mate
+	 * @param int  $length
+	 * @return array
+	 */
 	public static function string($mate,$length){
 		$str='';
 		$max=strlen($mate)-1;
