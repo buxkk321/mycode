@@ -228,7 +228,7 @@ class db_query{
 	 * @param string $separ
 	 * @return multitype:
 	 */
-	public static function getGrids($cols_info,$cols=array(),$except=false,$separ=null){
+	public static function getGrids($cols_info,$cols=array(),$except=false){
 		$re=array();
 		is_string($cols) && $cols=explode(',', $cols);
 	
@@ -236,16 +236,14 @@ class db_query{
 		foreach ($cols_info as $kk=>$vv){
 			$vv=array_change_key_case($vv);
 			if(isset($cols[$vv['field']])!=$except){
-				if(strpos($vv['comment'],$separ)===false){
+				if(strpos($vv['comment'],'{')===false){
 					$re[$vv['field']]['title']=$vv['comment'];
 				}else{
-					$re[$vv['field']]['title']=strstr($vv['comment'],$separ,true);
-					$re[$vv['field']]['tip']=strstr($vv['comment'],$separ);
+					$re[$vv['field']]=json_decode($vv['comment'],true);
 				}
 			}
 		}
 		unset($vv);
-	
 		return $re;
 	}
 	
@@ -321,14 +319,14 @@ class db_query{
 	 *  $result:之前的处理结果数据,引用传值
 	 * @return array $result 操作结果
 	 * 返回值说明:
-	 *  ['data'] 待操作的数据
-	 *  ['id']影响数据的主键值
 	 *	['status'] 状态:
 	 * 	 0:操作失败
 	 *   1:操作成功
 	 *   2:文件上传错误
 	 *   3:执行数据库操作前的处理函数出错
 	 *  ['msg'] 错误信息
+	 *  ['id']影响数据的主键值
+	 *  ['data'] 待操作的数据
 	 */
 	public static function post_edit($table,$field,$before_edit=null,$after_edit=null){
 		$pk=isset($field['pk'])?$field['pk']:'id';
