@@ -8,15 +8,7 @@ class db_query{
 	private static $db;
 	private static $db_type;
 	private static $operates = array('AND'=>1,'OR'=>2,'XOR'=>3);
-	/**
-	 * 
-	 * @var string
-	 */
 	private static $sql_main='';
-	/**
-	 *
-	 * @var string
-	 */
 	private static $sql_right='';
 	private static function parseThinkWhere($key,$val){
 		$whereStr   = '';
@@ -304,7 +296,169 @@ class db_query{
 		}
 		return $re;
 	}
-	
+	/**
+	 * 自动完成、筛选、转换
+	 * @param array $data 输入数据
+	 * @param array $rules 完成规则,格式说明:
+	 * array(
+	 *  '字段名'=>array(
+	 *   'when'=>'执行时刻',// 默认为新增的时候自动填充
+	 *   'rule'=>'填充内容',
+	 *   'parse'=>'内容解析方式',
+	 *   'param'=>'额外的参数')
+	 * );
+	 * @param string $type 执行时刻,只有当该值和规则的第一个键值相等 或等于'both'时,才会执行自动完成
+	 */ 
+	public static function auto_pad(&$data,$rules,$type='insert'){
+// 		$auot=array(
+// 				'name'=>array('insert','strtolower', 'function'),
+// 				'create_time'=>array('insert','','now'),
+// 				'update_time'=>array('both','','now'),
+// 				);
+		foreach($rules as $col_name=>$auto){
+			if( $type == $auto['when'] || $auto['when'] == 'both') {
+				empty($auto['parse']) && $auto['parse'] = 'string';//内容解析方式默认为string
+				switch(trim($auto['parse'])) {//根据解析方式执行替换
+					case 'function':    
+						$args = (array)$auto['param'];
+						if(isset($data[$col_name])) {
+							array_unshift($args,$data[$col_name]);//字段的值作为第一个参数
+							if(call_user_func_array($auto['rule'], $args)===false) unset($data[$col_name]);
+						}else{
+							unset($data[$col_name]);
+						}
+						break;
+					case 'field':    // 用其它字段的值进行填充
+						$data[$col_name] = $data[$auto['rule']];
+						break;
+					case 'ignore': // 忽略指定的值,全等匹配
+						if(@$data[$col_name]===$auto['rule']) unset($data[$col_name]);
+						break;
+					case 'now':
+						$data[$col_name]=$_SERVER['REQUEST_TIME'];
+						break;
+					case 'string':
+						$data[$col_name] = (string)$auto['rule'];
+						break;
+					case 'int':
+						$data[$col_name] = (int)$auto['rule'];
+						break;
+					case 'float':
+						$data[$col_name] = (float)$auto['rule'];
+						break;
+					default://默认不进行解析直接赋值
+						$data[$col_name] = $auto['rule'];
+				}
+				
+			}
+		}
+	}
+	/**
+	 * 自动验证
+	 * @param array $data 输入数据
+	 * @param array $rules 验证规则,格式说明:
+	 * array(
+	 *  '字段名'=>array(
+	 *   'when'=>'验证时刻',
+	 *   'rule'=>'规则内容',
+	 *   'parse'=>'内容解析方式',
+	 *   'param'=>'额外的参数',
+	 *   'msg'=>'验证失败时的提示信息',
+	 *   
+	 *  )
+	 * );
+	 * @return boolean
+	 */
+	public static function auto_validate($data,$rules,$when='both'){
+		if(isset($rules)) { // 如果设置了数据自动验证则进行数据验证
+			$re['msg']='';
+			foreach($rules as $col_name=>$auto) {
+				
+				if($auto['when'] === $when || $auto['when'] == 'both') {
+					empty($auto['parse']) && $auto['parse']='reg';
+					switch(strtolower(trim($auto['parse']))) {
+						case 'eq': // 验证是否等于某个值
+							$re['status']=$data[$col_name] == $auto['rule'];
+							break;
+						case 'neq': // 验证是否不等于某个值
+							$re['status']=$data[$col_name] != $auto['rule'];
+							break;
+						case 'in': // 是否等于多个值中的某一个 逗号分隔字符串或者数组
+							$range = array_flip(strpos($auto['rule'],',')===false?((array)$auto['rule']):explode(',',$auto['rule']));
+							$re['status']=isset($range[$data[$col_name]]);
+							break;
+						case 'notin':// 是否不等于所有给定的值
+							$range = array_flip(strpos($auto['rule'],',')===false?((array)$auto['rule']):explode(',',$auto['rule']));
+							$re['status']=!isset($range[$data[$col_name]]);
+							break;
+						case 'field': // 验证两个字段是否相同
+							$re['status']=$data[$col_name] == $data[$auto['rule']];
+							break;
+						case 'reg':
+							$re['status']=preg_match($auto['rule'],$data[$col_name]);
+							break;
+						case 'function':// 使用函数进行验证
+							$args = (array)$auto['param'];
+							if(isset($data[$col_name])) {
+								array_unshift($args,$data[$col_name]);//字段的值作为第一个参数
+								$re['status']=(call_user_func_array($auto['rule'], $args)===false);
+							}else{
+								$re['status']=0;
+							}
+							break;
+						case 'between': // 验证是否在某个范围
+							if (strpos($auto['rule'],',')===false){
+								$min    =    $auto['rule'][0];
+								$max    =    $auto['rule'][1];
+							}else{
+								list($min,$max)   =  explode(',',$auto['rule']);
+							}
+							$re['status']=$data[$col_name]>=$min && $data[$col_name]<=$max;
+							break;
+						case 'notbetween': // 验证是否不在某个范围
+							if (strpos($auto['rule'],',')===false){
+								$min    =    $auto['rule'][0];
+								$max    =    $auto['rule'][1];
+							}else{
+								list($min,$max)   =  explode(',',$auto['rule']);
+							}
+							$re['status']=$data[$col_name]<$min || $data[$col_name]>$max;
+							break;
+						case 'length': // 验证长度
+							$length  =  mb_strlen($data[$col_name],'utf-8'); // 当前数据长度
+							if(strpos($auto['rule'],',')===false) { // 长度区间
+								$re['status']= $length == $auto['rule'];
+							}else{// 指定长度
+								list($min,$max)   =  explode(',',$auto['rule']);
+								$re['status']= $length >= $min && $length <= $max;
+							}
+							break;
+						case 'function':// 使用函数进行验证
+							$args = (array)$auto['param'];
+							if(isset($data[$col_name])) {
+								array_unshift($args,$data[$col_name]);//字段的值作为第一个参数
+								$re['status']=(call_user_func_array($auto['rule'], $args)===false);
+							}else{
+								$re['status']=0;
+							}
+							break;
+// 						case 'ip_allow': // IP 操作许可验证
+// 							return in_array(get_client_ip(),explode(',',$rule));
+// 						case 'ip_deny': // IP 操作禁止验证
+// 							return !in_array(get_client_ip(),explode(',',$rule));
+						default:
+							$re['msg']='没有可用的验证规则';
+							return false;
+					}
+				}
+				if(!$re['status']){
+					$re['msg']=$auto['msg'];
+					return false;
+				}
+			}
+		}
+		return true;
+	}
 	/**
 	 * post请求带文件上传的添加或修改数据的处理函数
 	 * @param string $table 完整的表名
@@ -407,14 +561,4 @@ class db_query{
 		return current(self::query("select count($count_col) ttr from $table $sql_main",true));
 	}
 	
-	public static function getColumns($tn,$refresh){
-		$cacheKey = $tn.'.cache';
-		if (!$this->adminCache->exists($cacheKey) || $refresh) {
-			$cols_info=self::query('SHOW FULL COLUMNS FROM '.$tn);
-			$this->adminCache->save($cacheKey, $cols_info);
-		}else{
-			$cols_info=$this->adminCache->get($cacheKey);
-		}
-		return $cols_info;
-	}
 }
