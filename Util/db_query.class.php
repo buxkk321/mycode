@@ -127,12 +127,20 @@ class db_query{
 	 */
 	public static function parseCondition($page_now,&$query,&$condition=array()){
 		$re=array('sql_main'=>'','sql_right'=>'');
-		//设置查询参数
-		if($query==null){
-			$query=base64_encode(json_encode($condition));
-		}else{
-			$condition=json_decode(base64_decode($query),true);
+		//limit条件
+		$page_now<1 && $page_now=1;//当前页码
+		!isset($condition['page_size']) && $condition['page_size']=7;
+		if($condition['page_size']>0){
+			@$offset=((int)$page_now-1)*((int)$condition['page_size']);
+			$re['sql_right'].="limit $offset,{$condition['page_size']}";
+			//设置查询参数
+			if($query==null){
+				$query=base64_encode(json_encode($condition));
+			}else{
+				$condition=json_decode(base64_decode($query),true);
+			}
 		}
+		
 		//拼中间部分的sql语句
 		isset($condition['join']) && $re['sql_main'].=$condition['join'].' ';
 		isset($condition['where']) && $re['sql_main'].=self::parseWhere($condition['where']).' ';
@@ -142,13 +150,7 @@ class db_query{
 		}
 		//order条件
 		isset($condition['order']) && $re['sql_right'].=$condition['order'].' ';
-		//limit条件
-		$page_now<1 && $page_now=1;//当前页码
-		!isset($condition['page_size']) && $condition['page_size']=7;
-		if($condition['page_size']>0){
-			@$offset=((int)$page_now-1)*((int)$condition['page_size']);
-			$re['sql_right'].="limit $offset,{$condition['page_size']}";
-		}
+		
 		
 		return $re;
 	}
@@ -224,7 +226,12 @@ class db_query{
 		$re=array();
 		is_string($cols) && $cols=explode(',', $cols);
 	
-		$cols=array_flip($cols);
+		if(empty($cols)){
+			$except=true;
+		}else{
+			$cols=array_flip($cols);
+		}
+		
 		foreach ($cols_info as $kk=>$vv){
 			$vv=array_change_key_case($vv);
 			if(isset($cols[$vv['field']])!=$except){
@@ -475,7 +482,7 @@ class db_query{
 				'status'=>1,
 				'data'=>array_batch($field['cols'],$_POST,false)
 		);
-	
+		
 		// 		if(!empty($field['filename'])){
 		// 			$info=Plugin\Upload::dealUploadFiles($field['filename'],$field['fileconfig']);
 		// 			if($info===false){

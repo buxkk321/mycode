@@ -5,7 +5,7 @@ namespace Common\My;
  * @author Administrator
  */
 class match_mobile_num{
-	public static $company=array('yidong','liantong','dianxin');//1移动,2联通,3电信
+	public static $company=array(1=>'yidong',2=>'liantong',3=>'dianxin');//1移动,2联通,3电信
 	public static $prefix=array(
 		/*移动的*/
 		134=>'10',135=>'10',136=>'10',137=>'10',138=>'10',139=>'10',
@@ -26,7 +26,7 @@ class match_mobile_num{
 	 * @var unknown
 	 */
 	public static $reg=array(
-			'ABABABAB'=>'(.)(?!\1)(.)(\1\2){3}',
+			'ABABABAB[A^B]'=>'(.)(?!\1)(.)(\1\2){3}',
 			'ABCDABCD[A^B][B^C][C^D]'=>'(.)(?!\1)(.)(?!\1|\2)(.)(?!\1|\2|\3)(.)\1\2\3\4',
 			'ABCDABCD'=>'(....)\1',
 			'AABBCCDD'=>'(.)\1(?!\1)(.)\2(?!\1|\2)(.)\3(?!\1|\2|\3)(.)\4',
@@ -129,7 +129,7 @@ class match_mobile_num{
 		),
 		33=>array(/*电信3g流程*/
 			array(
-				'reg'=>array('ABABABAB','AAA[^4689]')
+				'reg'=>array('ABABABAB[A^B]','AAA[^4689]')
 				),
 			array(
 				'reg'=>array('ABABAB'),
@@ -150,7 +150,7 @@ class match_mobile_num{
 		34=>array(/*电信4g流程*/
 			8=>array(
 				'eq'=>'44444',
-				'reg'=>array('ABCDABCD','ABABABAB','AABBCCDD','AAAA[^4]'),
+				'reg'=>array('ABCDABCD','ABABABAB[A^B]','AABBCCDD','AAAA[^4]'),
 				'php'=>array(
 					array('ap_positive','7'),
 					array('ap_negative','7')
