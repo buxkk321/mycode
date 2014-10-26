@@ -141,7 +141,7 @@ function getDist($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo){
 	$lonDelta=deg2rad($t<180?$t:360-$t);
 	$latFrom = deg2rad(90-$latitudeFrom);
 	$latTo = deg2rad(90-$latitudeTo);
-	$angle=cos($latFrom)*cos($latTo)+cos($lonDelta)*sin($latFrom)*sin($latTo);
+	$angle=acos(cos($latFrom)*cos($latTo)+cos($lonDelta)*sin($latFrom)*sin($latTo));
 	return $angle*6371000;
 }
 function vincentyGreatCircleDistance($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo, $earthRadius = 6371000) {
