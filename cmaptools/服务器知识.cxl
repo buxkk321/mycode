@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cmap xmlns:dcterms="http://purl.org/dc/terms/" xmlns="http://cmap.ihmc.us/xml/cmap/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:vcard="http://www.w3.org/2001/vcard-rdf/3.0#">
+    <res-meta>
+        <dc:title>&#x670d;&#x52a1;&#x5668;&#x77e5;&#x8bc6;</dc:title>
+        <dc:creator>
+            <vcard:FN>asdasd</vcard:FN>
+            <vcard:EMAIL>asdf</vcard:EMAIL>
+            <vcard:ORG>
+                <vcard:Orgname>sdsasd</vcard:Orgname>
+            </vcard:ORG>
+        </dc:creator>
+        <dc:contributor>
+            <vcard:FN>asdasd</vcard:FN>
+            <vcard:EMAIL>asdf</vcard:EMAIL>
+            <vcard:ORG>
+                <vcard:Orgname>sdsasd</vcard:Orgname>
+            </vcard:ORG>
+        </dc:contributor>
+        <dcterms:rightsHolder>
+            <vcard:FN>asdasd</vcard:FN>
+            <vcard:EMAIL>asdf</vcard:EMAIL>
+            <vcard:ORG>
+                <vcard:Orgname>sdsasd</vcard:Orgname>
+            </vcard:ORG>
+        </dcterms:rightsHolder>
+        <dcterms:created>2014-09-06T11:36:30+08:00</dcterms:created>
+        <dcterms:modified>2014-09-06T19:25:19+08:00</dcterms:modified>
+        <dc:language>zh</dc:language>
+        <dc:format>x-cmap/x-storable</dc:format>
+        <dc:publisher>FIHMC CmapTools 5.05.01</dc:publisher>
+        <dc:extent>6549 bytes</dc:extent>
+        <dc:source>cmap:1N73PPBN8-Y1MNQC-1:1N73PPJ85-1ZJ15NM-Y:1N7PL9SZM-CTG28D-5L</dc:source>
+    </res-meta>
+    <map width="755" height="1044">
+        <concept-list>
+            <concept id="1N7PLKTM8-1SCD347-7M" label="flags&#x8bf4;&#x660e;&#xa;&#x591a;&#x4e2a;&#x547d;&#x4ee4;&#x7528;,&#x5206;&#x9694;"/>
+            <concept id="1N7PMHJP0-1H66Y34-Q9" label="&#x7acb;&#x5373;&#x505c;&#x6b62;&#x91cd;&#x5199;&#x64cd;&#x4f5c;&#xa;&#x5e76;&#x4e0d;&#x518d;&#x5e94;&#x7528;&#x5176;&#x4ed6;&#x91cd;&#x5199;&#x89c4;&#x5219;&#x3002; "/>
+            <concept id="1N7PLZN4W-1NBPJC0-HC" label="IIS"/>
+            <concept id="1N7PMGYP1-8FH2PD-MV" label="????"/>
+            <concept id="1N7PMLXGH-240KQHH-V6" label="????"/>
+            <concept id="1N7PMLZ2D-QYN9DT-VZ" label="????"/>
+            <concept id="1N7PMHGT1-7P8HM2-PJ" label="????"/>
+            <concept id="1N7PMGCJ1-QNVKGB-LW" label="????"/>
+            <concept id="1N7QLCJ6Z-6TVTMD-CY" label="&#x5728;&#x5df2;&#x6709;&#x7684;&#x66ff;&#x6362;&#x4e32;&#x4e2d;&#xa;&#x8ffd;&#x52a0;&#x4e00;&#x4e2a;&#x8bf7;&#x6c42;&#x4e32;"/>
+            <concept id="1N7PLBTV0-1CPBW9X-6N" label="RewriteRule"/>
+            <concept id="1N7PL9WM8-153VRDS-5W" label="Apache"/>
+            <concept id="1N7PMHF7N-16ZFT0D-NR" label="????"/>
+        </concept-list>
+        <linking-phrase-list>
+            <linking-phrase id="1N7PLBTV0-84Q4Q6-6R" label="????"/>
+            <linking-phrase id="1N7PMHGT1-2G85T6-PM" label="[P]"/>
+            <linking-phrase id="1N7PMHJP0-812BZM-QD" label="[L]"/>
+            <linking-phrase id="1N7PMGCJK-NRSGJM-LZ" label="[R[=code]]"/>
+            <linking-phrase id="1N7QLCJ6Z-QPM139-D1" label="[QSA]"/>
+            <linking-phrase id="1N7PLKTM8-1LB6WTG-7Q" label="&#x5339;&#x914d;&#x90e8;&#x5206;&#x8bed;&#x6cd5;&#xa;RewriteRule &#x6b63;&#x5219; &#x66ff;&#x6362;&#x6210;&#x8fd9;&#x4e2a; [flags]"/>
+            <linking-phrase id="1N7PMHF7N-198D0YM-NV" label="[G]"/>
+            <linking-phrase id="1N7PMGYP1-1ZCSWDQ-MY" label="[F]"/>
+            <linking-phrase id="1N7PMLXH0-145B0T-V9" label="[N]"/>
+            <linking-phrase id="1N7PMLZ2X-24470RV-W2" label="[C]"/>
+        </linking-phrase-list>
+        <connection-list>
+            <connection id="1N7PMHGT1-1PGL6N6-PQ" from-id="1N7PLKTM8-1SCD347-7M" to-id="1N7PMHGT1-2G85T6-PM"/>
+            <connection id="1N7PMGYP1-W1MGZV-N1" from-id="1N7PLKTM8-1SCD347-7M" to-id="1N7PMGYP1-1ZCSWDQ-MY"/>
+            <connection id="1N7PMLZ2X-1ZHBBRR-WB" from-id="1N7PMLZ2X-24470RV-W2" to-id="1N7PMLZ2D-QYN9DT-VZ"/>
+            <connection id="1N7PMHGTK-MQPLTM-PW" from-id="1N7PMHGT1-2G85T6-PM" to-id="1N7PMHGT1-7P8HM2-PJ"/>
+            <connection id="1N7PMLZ2X-2BFPT0K-W5" from-id="1N7PLKTM8-1SCD347-7M" to-id="1N7PMLZ2X-24470RV-W2"/>
+            <connection id="1N7PLBTV0-2988LT0-6W" from-id="1N7PL9WM8-153VRDS-5W" to-id="1N7PLBTV0-84Q4Q6-6R"/>
+            <connection id="1N7PMGYP1-2945GMN-N6" from-id="1N7PMGYP1-1ZCSWDQ-MY" to-id="1N7PMGYP1-8FH2PD-MV"/>
+            <connection id="1N7PLKTM8-1VLY31P-80" from-id="1N7PLKTM8-1LB6WTG-7Q" to-id="1N7PLKTM8-1SCD347-7M"/>
+            <connection id="1N7PMHF7N-29HHP78-P3" from-id="1N7PMHF7N-198D0YM-NV" to-id="1N7PMHF7N-16ZFT0D-NR"/>
+            <connection id="1N7PMLXH0-15H4SVQ-VK" from-id="1N7PMLXH0-145B0T-V9" to-id="1N7PMLXGH-240KQHH-V6"/>
+            <connection id="1N7PMGCJK-S4L1KH-M2" from-id="1N7PLKTM8-1SCD347-7M" to-id="1N7PMGCJK-NRSGJM-LZ"/>
+            <connection id="1N7QLCJ6Z-282065H-D4" from-id="1N7PLKTM8-1SCD347-7M" to-id="1N7QLCJ6Z-QPM139-D1"/>
+            <connection id="1N7PMHJP0-2DKMN5T-QN" from-id="1N7PMHJP0-812BZM-QD" to-id="1N7PMHJP0-1H66Y34-Q9"/>
+            <connection id="1N7PMLXH0-11FM2NK-VD" from-id="1N7PLKTM8-1SCD347-7M" to-id="1N7PMLXH0-145B0T-V9"/>
+            <connection id="1N7PLKTM8-BCKMKJ-7T" from-id="1N7PLBTV0-1CPBW9X-6N" to-id="1N7PLKTM8-1LB6WTG-7Q"/>
+            <connection id="1N7QLCJ6Z-17ZJNWK-D9" from-id="1N7QLCJ6Z-QPM139-D1" to-id="1N7QLCJ6Z-6TVTMD-CY"/>
+            <connection id="1N7PLBTV0-KLPTM2-72" from-id="1N7PLBTV0-84Q4Q6-6R" to-id="1N7PLBTV0-1CPBW9X-6N"/>
+            <connection id="1N7PMHF7N-B8XD4V-NY" from-id="1N7PLKTM8-1SCD347-7M" to-id="1N7PMHF7N-198D0YM-NV"/>
+            <connection id="1N7PMHJP0-8XMV48-QH" from-id="1N7PLKTM8-1SCD347-7M" to-id="1N7PMHJP0-812BZM-QD"/>
+            <connection id="1N7PMGCJK-1Z2LMK0-M8" from-id="1N7PMGCJK-NRSGJM-LZ" to-id="1N7PMGCJ1-QNVKGB-LW"/>
+        </connection-list>
+        <concept-appearance-list>
+            <concept-appearance id="1N7PLKTM8-1SCD347-7M" x="800" y="887" width="146" height="57" font-name="Microsoft YaHei" font-size="18"/>
+            <concept-appearance id="1N7PMHJP0-1H66Y34-Q9" x="605" y="1132" width="237" height="57" font-name="Microsoft YaHei" font-size="18"/>
+            <concept-appearance id="1N7PLZN4W-1NBPJC0-HC" x="886" y="337" width="37" height="30" font-name="Microsoft YaHei" font-size="18"/>
+            <concept-appearance id="1N7PMGYP1-8FH2PD-MV" x="1163" y="828" width="51" height="30" font-name="Microsoft YaHei" font-size="18"/>
+            <concept-appearance id="1N7PMLXGH-240KQHH-V6" x="1094" y="1110" width="51" height="30" font-name="Microsoft YaHei" font-size="18"/>
+            <concept-appearance id="1N7PMLZ2D-QYN9DT-VZ" x="994" y="1148" width="51" height="30" font-name="Microsoft YaHei" font-size="18"/>
+            <concept-appearance id="1N7PMHGT1-7P8HM2-PJ" x="1176" y="1005" width="51" height="30" font-name="Microsoft YaHei" font-size="18"/>
+            <concept-appearance id="1N7PMGCJ1-QNVKGB-LW" x="845" y="1348" width="51" height="30" font-name="Microsoft YaHei" font-size="18"/>
+            <concept-appearance id="1N7QLCJ6Z-6TVTMD-CY" x="633" y="1212" width="160" height="57" font-name="Microsoft YaHei" font-size="18"/>
+            <concept-appearance id="1N7PLBTV0-1CPBW9X-6N" x="595" y="654" width="119" height="31" font-name="Microsoft YaHei" font-size="18"/>
+            <concept-appearance id="1N7PL9WM8-153VRDS-5W" x="704" y="503" width="80" height="35" font-name="Microsoft YaHei" font-size="18"/>
+            <concept-appearance id="1N7PMHF7N-16ZFT0D-NR" x="1171" y="935" width="51" height="30" font-name="Microsoft YaHei" font-size="18"/>
+        </concept-appearance-list>
+        <linking-phrase-appearance-list>
+            <linking-phrase-appearance id="1N7PLBTV0-84Q4Q6-6R" x="663" y="583" width="28" height="11"/>
+            <linking-phrase-appearance id="1N7PMHGT1-2G85T6-PM" x="988" y="946" width="30" height="25" font-name="Microsoft YaHei" font-size="16" text-margin="5" background-color="255,255,150,255"/>
+            <linking-phrase-appearance id="1N7PMHJP0-812BZM-QD" x="704" y="1072" width="29" height="25" font-name="Microsoft YaHei" font-size="16" text-margin="5" background-color="255,255,150,255"/>
+            <linking-phrase-appearance id="1N7PMGCJK-NRSGJM-LZ" x="909" y="1158" width="91" height="26" font-name="Microsoft YaHei" font-size="16" text-margin="5" background-color="255,255,150,255"/>
+            <linking-phrase-appearance id="1N7QLCJ6Z-QPM139-D1" x="785" y="1148" width="54" height="26" font-name="Microsoft YaHei" font-size="16" text-margin="5" background-color="255,255,150,255"/>
+            <linking-phrase-appearance id="1N7PLKTM8-1LB6WTG-7Q" x="582" y="773" width="266" height="41" font-name="Microsoft YaHei" font-size="16" background-color="255,255,150,255"/>
+            <linking-phrase-appearance id="1N7PMHF7N-198D0YM-NV" x="985" y="911" width="33" height="25" font-name="Microsoft YaHei" font-size="16" text-margin="5" background-color="255,255,150,255"/>
+            <linking-phrase-appearance id="1N7PMGYP1-1ZCSWDQ-MY" x="981" y="857" width="29" height="25" font-name="Microsoft YaHei" font-size="16" text-margin="5" background-color="255,255,150,255"/>
+            <linking-phrase-appearance id="1N7PMLXH0-145B0T-V9" x="947" y="998" width="34" height="25" font-name="Microsoft YaHei" font-size="16" text-margin="5" background-color="255,255,150,255"/>
+            <linking-phrase-appearance id="1N7PMLZ2X-24470RV-W2" x="897" y="1017" width="31" height="25" font-name="Microsoft YaHei" font-size="16" text-margin="5" background-color="255,255,150,255"/>
+        </linking-phrase-appearance-list>
+        <connection-appearance-list>
+            <connection-appearance id="1N7PMHGT1-1PGL6N6-PQ" from-pos="center" to-pos="center"/>
+            <connection-appearance id="1N7PMGYP1-W1MGZV-N1" from-pos="center" to-pos="center"/>
+            <connection-appearance id="1N7PMLZ2X-1ZHBBRR-WB" from-pos="center" to-pos="center"/>
+            <connection-appearance id="1N7PMHGTK-MQPLTM-PW" from-pos="center" to-pos="center"/>
+            <connection-appearance id="1N7PMLZ2X-2BFPT0K-W5" from-pos="center" to-pos="center"/>
+            <connection-appearance id="1N7PLBTV0-2988LT0-6W" from-pos="center" to-pos="center"/>
+            <connection-appearance id="1N7PMGYP1-2945GMN-N6" from-pos="center" to-pos="center"/>
+            <connection-appearance id="1N7PLKTM8-1VLY31P-80" from-pos="center" to-pos="center"/>
+            <connection-appearance id="1N7PMHF7N-29HHP78-P3" from-pos="center" to-pos="center"/>
+            <connection-appearance id="1N7PMLXH0-15H4SVQ-VK" from-pos="center" to-pos="center"/>
+            <connection-appearance id="1N7PMGCJK-S4L1KH-M2" from-pos="center" to-pos="center"/>
+            <connection-appearance id="1N7QLCJ6Z-282065H-D4" from-pos="center" to-pos="center"/>
+            <connection-appearance id="1N7PMHJP0-2DKMN5T-QN" from-pos="center" to-pos="center"/>
+            <connection-appearance id="1N7PMLXH0-11FM2NK-VD" from-pos="center" to-pos="center"/>
+            <connection-appearance id="1N7PLKTM8-BCKMKJ-7T" from-pos="center" to-pos="center"/>
+            <connection-appearance id="1N7QLCJ6Z-17ZJNWK-D9" from-pos="center" to-pos="center"/>
+            <connection-appearance id="1N7PLBTV0-KLPTM2-72" from-pos="center" to-pos="center"/>
+            <connection-appearance id="1N7PMHF7N-B8XD4V-NY" from-pos="center" to-pos="center"/>
+            <connection-appearance id="1N7PMHJP0-8XMV48-QH" from-pos="center" to-pos="center"/>
+            <connection-appearance id="1N7PMGCJK-1Z2LMK0-M8" from-pos="center" to-pos="center"/>
+        </connection-appearance-list>
+        <style-sheet-list>
+            <style-sheet id="_Default_">
+                <map-style background-color="255,255,255,0" image-style="full" image-top-left="0,0"/>
+                <concept-style font-name="Verdana" font-size="12" font-style="plain" font-color="0,0,0,255" text-margin="4" background-color="237,244,246,255" background-image-style="full" border-color="0,0,0,255" border-style="solid" border-thickness="1"
+                    border-shape="rounded-rectangle" text-alignment="center" shadow-color="none"/>
+                <linking-phrase-style font-name="Verdana" font-size="12" font-style="plain" font-color="0,0,0,255" text-margin="1" background-color="0,0,255,0" background-image-style="full" border-color="0,0,0,0" border-style="solid" border-thickness="1"
+                    border-shape="rectangle" text-alignment="center" shadow-color="none"/>
+                <connection-style color="0,0,0,255" style="solid" thickness="1" type="straight" arrowhead="if-to-concept-and-slopes-up"/>
+                <resource-style font-name="SanSerif" font-size="12" font-style="plain" font-color="0,0,0,255" background-color="192,192,192,255"/>
+            </style-sheet>
+            <style-sheet id="_LatestChanges_">
+                <concept-style font-name="Microsoft YaHei" font-size="18"/>
+                <linking-phrase-style font-name="Microsoft YaHei" font-size="16" text-margin="5" background-color="255,255,150,255"/>
+            </style-sheet>
+        </style-sheet-list>
+        <extra-graphical-properties-list>
+            <properties-list id="1N7PL9SZM-CTG28D-5L">
+                <property key="StyleSheetGroup_0" value="//*@!#$%%^&amp;*()() No Grouped StyleSheets @"/>
+            </properties-list>
+        </extra-graphical-properties-list>
+    </map>
+</cmap>
