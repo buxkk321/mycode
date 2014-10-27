@@ -351,7 +351,11 @@ class match_mobile_num{
 				}
 		}
 		
+		self::extra_match($input);
 	}
+	public static function extra_match(&$input){
+		
+	} 
 	/**
 	 * 入口
 	 * @param int|string $num 号码
@@ -371,9 +375,8 @@ class match_mobile_num{
 		}else{
 			$input['company']=$prefix_info[0];//运营商
 			$input['correct']=$prefix_info[1];//修正值
-			
 			self::do_match($input,$test);
-			
+			$input['company']=self::$company[$prefix_info[0]];
 		}
 		
 		return $input;

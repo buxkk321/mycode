@@ -214,6 +214,15 @@ class db_query{
 		$result['_page'].='<a href="'.$config['base_url'].'" class="jump_ok">确定</a>';
 	
 	}
+	private static function parseComment($comment){
+		if(strpos($comment,'{')===false){
+			$col_info['title']=$comment;
+		}else{
+			$col_info=json_decode($comment,true);
+		}
+		
+		return $col_info;
+	}
 	/**
 	 * 生成列表表头或表单
 	 * @param array $input
@@ -233,16 +242,56 @@ class db_query{
 		}
 		
 		foreach ($cols_info as $kk=>$vv){
-			$vv=array_change_key_case($vv);
 			if(isset($cols[$vv['field']])!=$except){
-				if(strpos($vv['comment'],'{')===false){
-					$re[$vv['field']]['title']=$vv['comment'];
-				}else{
-					$re[$vv['field']]=json_decode($vv['comment'],true);
-				}
+				$re[$vv['field']]=self::parseComment($vv['comment']);
 			}
 		}
 		unset($vv);
+		return $re;
+	}
+	/**
+	 * 取得需要输出的表头信息(多表)
+	 */
+	function getMultiGrids($cols_info_all,$cols='',$table_map){
+		$cc=$re=$con=array();
+		is_string($cols) && $cols=explode(',', $cols);
+		foreach ($cols as $vv){
+			if(strpos($vv,' ')===false){//没有设置别名
+				$tt=explode('.',$vv);//取得带表名的字段名
+				$key=$tt[1];
+			}else{
+				$tt=explode('.',substr($vv,0,strpos($vv,' ')));//取得带表名的字段名
+				$key=substr($vv,strrpos($vv,' ')+1);//别名设为映射键名
+			}
+// 			$con['tn'][]=$tt[0];//表名
+// 			$con['cn'][]=$tt[1];//字段名
+			$cc[$tt[0].'.'.$tt[1]]=array(
+					'tn'=>$tt[0],
+					'cn'=>$tt[1],
+					'al'=>$key
+					);//保存映射关系
+		}
+	
+// 		$con['tb_name']=implode('","',array_unique($con['tb_name']));
+// 		$con['col_name']=implode('","',array_unique($con['col_name']));
+// 		$sql='select TABLE_NAME,COLUMN_NAME,COLUMN_COMMENT
+// 			FROM information_schema.COLUMNS
+// 			where TABLE_SCHEMA="'.DEFAULT_DB_NAME.'" and
+// 			TABLE_NAME in("'.$con['tb_name'].'")and
+// // 			COLUMN_NAME in("'.$con['col_name'].'")';
+	
+// 		$tt=$this->db->fetchAll($sql,\Phalcon\Db::FETCH_ASSOC);
+	
+// 		foreach($tt as $vv){
+// 			isset($cc[$vv['TABLE_NAME'].'.'.$vv['COLUMN_NAME']]) && $re[$cc[$vv['TABLE_NAME'].'.'.$vv['COLUMN_NAME']]]=$vv['COLUMN_COMMENT'];
+// 		}
+
+		foreach ($cc as $kk=>$vv){
+			if(isset($cols_info_all[$vv['tn']][$vv['cn']])){
+				$info=array_change_key_case($cols_info_all[$vv['tn']][$vv['cn']]);
+				$re[$vv['al']]=self::parseComment($cols_info_all[$vv['tn']][$vv['cn']]['comment']);
+			}
+		}
 		return $re;
 	}
 	/**
