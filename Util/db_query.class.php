@@ -240,10 +240,11 @@ class db_query{
 		}else{
 			$cols=array_flip($cols);
 		}
-		
+
 		foreach ($cols_info as $kk=>$vv){
 			if(isset($cols[$vv['field']])!=$except){
 				$re[$vv['field']]=self::parseComment($vv['comment']);
+				$re[$vv['field']]['col_type']=$vv['type'];
 			}
 		}
 		unset($vv);
@@ -342,7 +343,6 @@ class db_query{
 					default://默认不进行解析直接赋值
 						$data[$col_name] = $auto['rule'];
 				}
-	
 			}
 		}
 	}
