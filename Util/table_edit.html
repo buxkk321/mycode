@@ -1,0 +1,59 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+<body>
+<div id="hidden_box">
+</div>
+<div class="g_frame_main">
+	<form action='' method='post'>
+			<table cellpadding='0' cellspacing='0'>
+				<tr>   
+					<th>字段名:</th>
+					<td></td>
+				</tr>
+				<tr>   
+					<th>显示标题:</th>
+					<td><input type='text' name='title' /></td>
+				</tr>
+				<tr>
+					<th>提示信息:</th>
+					<td><input type='text' type="" name='tip' /></td>
+				</tr>
+                <tr>
+                    <th>表单控件:</th>
+                    <td>
+                        <select name="type">
+                            <option value="text">普通文本输入框</option>
+                            <option value="textarea">文本域</option>
+                            <option value="editor">编辑器</option>
+                            <option value="radio">单选按钮</option>
+                            <option value="checkbox">多选框</option>
+                            <option value="select_one">下拉单选框</option>
+                            <option value="select_more">下拉多选框</option>
+                            <option value="file_one">单文件上传</option>
+                            <option value="file_more">多文件上传</option>
+                            <option value="hidden">隐藏域</option>
+                        </select>
+                    </td>
+                </tr>
+				<tr>   
+					<th>自动完成规则:</th>
+					<td><textarea name="auto_validate"></textarea></td>
+				</tr>
+                <tr>
+					<th>自动验证规则:</th>
+					<td><textarea name="auto_pad"></textarea></td>
+				</tr>
+			</table>
+			<div>
+				<input type="hidden" name='col_name' value=''/>
+				<input type="submit" class="submit yahei  f16" value="确定" />
+				<input type="button" class="submit yahei  f16"  value="返回"  href='' onclick='self.location.href=this.getAttribute("href")'/>
+			</div>
+	</form>
+	<div id='bottom_msg'></div>
+</div>
+</body>
+</html>

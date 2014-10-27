@@ -261,36 +261,18 @@ class db_query{
 				$tt=explode('.',$vv);//取得带表名的字段名
 				$key=$tt[1];
 			}else{
-				$tt=explode('.',substr($vv,0,strpos($vv,' ')));//取得带表名的字段名
-				$key=substr($vv,strrpos($vv,' ')+1);//别名设为映射键名
+				$tt=explode('.',strstr($vv, ' ',true));//取得带表名的字段名
+				$key=trim(strstr($vv, ' '));//别名设为映射键名
 			}
-// 			$con['tn'][]=$tt[0];//表名
-// 			$con['cn'][]=$tt[1];//字段名
-			$cc[$tt[0].'.'.$tt[1]]=array(
+			$cc[$key]=array(
 					'tn'=>$tt[0],
 					'cn'=>$tt[1],
-					'al'=>$key
 					);//保存映射关系
 		}
-	
-// 		$con['tb_name']=implode('","',array_unique($con['tb_name']));
-// 		$con['col_name']=implode('","',array_unique($con['col_name']));
-// 		$sql='select TABLE_NAME,COLUMN_NAME,COLUMN_COMMENT
-// 			FROM information_schema.COLUMNS
-// 			where TABLE_SCHEMA="'.DEFAULT_DB_NAME.'" and
-// 			TABLE_NAME in("'.$con['tb_name'].'")and
-// // 			COLUMN_NAME in("'.$con['col_name'].'")';
-	
-// 		$tt=$this->db->fetchAll($sql,\Phalcon\Db::FETCH_ASSOC);
-	
-// 		foreach($tt as $vv){
-// 			isset($cc[$vv['TABLE_NAME'].'.'.$vv['COLUMN_NAME']]) && $re[$cc[$vv['TABLE_NAME'].'.'.$vv['COLUMN_NAME']]]=$vv['COLUMN_COMMENT'];
-// 		}
 
 		foreach ($cc as $kk=>$vv){
 			if(isset($cols_info_all[$vv['tn']][$vv['cn']])){
-				$info=array_change_key_case($cols_info_all[$vv['tn']][$vv['cn']]);
-				$re[$vv['al']]=self::parseComment($cols_info_all[$vv['tn']][$vv['cn']]['comment']);
+				$re[$kk]=self::parseComment($cols_info_all[$vv['tn']][$vv['cn']]['comment']);
 			}
 		}
 		return $re;
@@ -357,7 +339,6 @@ class db_query{
 	 *   'parse'=>'内容解析方式',
 	 *   'param'=>'额外的参数',
 	 *   'msg'=>'验证失败时的提示信息',
-	 *
 	 *  )
 	 * );
 	 * @return boolean
