@@ -10,6 +10,32 @@ class db_query{
 	private static $operates = array('AND'=>1,'OR'=>2,'XOR'=>3);
 	private static $sql_main='';
 	private static $sql_right='';
+	public static function parseBetween($str,$delimiter=','){
+		$re=array();
+		if(isset($str)){
+			if(strpos($str,$delimiter)===false){
+				$re=$str;
+			}else{
+				$arr=explode($delimiter,$str);
+				if($arr[0]>$arr[1]){
+					if(is_numeric($arr[1])){
+						$re=array("between {$arr[1]} and {$arr[0]}");
+					}else{
+						$re=array('>='.$arr[0]);
+					}
+				}elseif($arr[0]<$arr[1]){
+					if(is_numeric($arr[0])){
+						$re=array("between {$arr[0]} and {$arr[1]}");
+					}else{
+						$re=array('<='.$arr[1]);
+					}
+				}else{
+					$re=(int)$arr[0];
+				}
+			}
+		}
+		return $re;
+	}
 	private static function parseThinkWhere($key,$val){
 		$whereStr   = '';
 		switch($key) {
@@ -127,12 +153,14 @@ class db_query{
 	 */
 	public static function parseCondition($page_now,&$query,&$condition=array()){
 		$re=array('sql_main'=>'','sql_right'=>'');
+		//order条件
+		isset($condition['order']) && $re['sql_right'].=$condition['order'].' ';
 		//limit条件
 		$page_now<1 && $page_now=1;//当前页码
 		!isset($condition['page_size']) && $condition['page_size']=7;
 		if($condition['page_size']>0){
 			@$offset=((int)$page_now-1)*((int)$condition['page_size']);
-			$re['sql_right'].="limit $offset,{$condition['page_size']}";
+			$re['sql_right'].="limit $offset,{$condition['page_size']} ";
 			//设置查询参数
 			if($query==null){
 				$query=base64_encode(json_encode($condition));
@@ -142,15 +170,16 @@ class db_query{
 		}
 		
 		//拼中间部分的sql语句
-		isset($condition['join']) && $re['sql_main'].=$condition['join'].' ';
+		if(isset($condition['join'])){
+			$join=is_array($condition['join'])?implode(' ',$condition['join']):(string)$condition['join'];
+			$re['sql_main'].=$join.' ';
+		}
 		isset($condition['where']) && $re['sql_main'].=self::parseWhere($condition['where']).' ';
+		
 		if(isset($condition['group'])){
 			$re['sql_main'].='group by '.$condition['group'].' ' ;
 			isset($condition['having']) && $re['sql_main'].='having '.$condition['having'].' ';
 		}
-		//order条件
-		isset($condition['order']) && $re['sql_right'].=$condition['order'].' ';
-		
 		
 		return $re;
 	}
@@ -440,6 +469,7 @@ class db_query{
 				break;
 			case 'phalcon';
 				$re=self::$db->fetchAll($sql,\Phalcon\Db::FETCH_ASSOC);
+				$re===false && $re=array();
 				break;
 			default:/*默认是原生pdo*/
 				$re=self::$db->query($sql,\PDO::FETCH_ASSOC);
@@ -568,18 +598,16 @@ class db_query{
 		$default=array(
 				'table'=>'',
 				'field'=>'*',
-				'count_col'=>'*',
 				'sql_main'=>'',
-				'sql_right'=>'',
-				'page'=>true
+				'sql_right'=>''
 			);
 		$config=(array)$config+$default;
 		$table=is_string($config['table'])?$config['table']:'';
 		$field=is_array($config['field'])?implode(',',$config['field']):$config['field'];
 		
 		//最终的查询
-		$result['_list']=self::query("select $field from $table {$config['sql_main']} {$config['sql_right']}");
-		$config['page'] && $result['_total_rows']=self::getTotalRows($table,$config['sql_main'],$config['count_col']);
+		$sql='select '.$field.' from '.$table.' '.$config['sql_main'].' '.$config['sql_right'];
+		$result['_list']=self::query($sql);
 	}
 	public static function getTotalRows($table,$sql_main,$count_col='*'){
 		return current(self::query("select count($count_col) ttr from $table $sql_main",true));
