@@ -606,7 +606,7 @@ class db_query{
 		$config['_current']<1 && $config['_current']=1;
 		$config['_current']>$total_page && $config['_current']=$total_page;
 		//limit条件
-		$subject['sql_right'].='limit '.($config['_current']-1)*$config['page_size'].','.$config['page_size'].' ';
+		$subject['sql_right']=(string)$subject['sql_right'].' limit '.($config['_current']-1)*$config['page_size'].','.$config['page_size'].' ';
 	}
 	/**
 	 * 生成分页,可以在getList之前执行
@@ -623,49 +623,53 @@ class db_query{
 	 *  ['_current']:当前页数
 	 *  ['_page']:分页html代码
 	 */
-	public static function buildPage(&$result=array(),$config=array()){
+	public static function buildPage($config=array()){
 		$default=array(
 				'base_url'=>'',
-				'page_now'=>1,
 				'page_size'=>6,
 				'visible_page'=>7,
-				'total_rows'=>0,
 				'%prev%'=>'上一页',
 				'%next%'=>'下一页',
+				'_total_rows'=>0,
+				'_current'=>1,
 		);
 		$config=(array)$config+$default;
 	
-		$total_page=$config['page_size']>1?ceil($config['total_rows'] / $config['page_size']):1;
-		$total_page<1 && $total_page=1;
-		$result['_total_page']=$total_page;
-	
-		$page=$config['page_now']<1?1:$config['page_now'];
-		$page>$total_page && $page=$total_page;
-		$result['_current']=$page;
-	
-		$result['_page']='<div id="page_box">';
-		$result['_page'].='<a href="'.$config['base_url'].($page-1).'" class="prev">'.$config['%prev%'].'</a>';
-		$result['_page'].='<a href="'.$config['base_url'].'1" class="first">1</a>';
+		if(!isset($config['_total_page'])){
+			$total_page=$config['page_size']>1?ceil($config['_total_rows'] / $config['page_size']):1;
+			$total_page<1 && $total_page=1;
+			$config['_total_page']=$total_page;
+			
+			$config['_current']<1 && $config['_current']=1;
+			$config['_current']>$total_page && $config['_current']=$total_page;
+		}else{
+			$total_page=$config['_total_page'];
+		}
+		$page=$config['_current'];
+		$config['_page']='<div id="page_box">';
+		$config['_page'].='<a href="'.$config['base_url'].($page-1).'" class="prev">'.$config['%prev%'].'</a>';
+		$config['_page'].='<a href="'.$config['base_url'].'1" class="first">1</a>';
 	
 		if($total_page>$config['visible_page']){
 			$i=$page-floor(($config['visible_page']-3)/2);
 			$i<2 && $i=2;
 			$i+$config['visible_page']-2>$total_page && $i=$total_page-($config['visible_page']-2);
-			$i>2 && $result['_page'].='<span class="left">...</span>';
+			$i>2 && $config['_page'].='<span class="left">...</span>';
 			for($j=0;$j<$config['visible_page']-2;$j++,$i++){
-				$result['_page'].='<a href="'.$config['base_url'].$i.'" class="'.($page==$i?'current':'page').'">'.$i.'</a>';
+				$config['_page'].='<a href="'.$config['base_url'].$i.'" class="'.($page==$i?'current':'page').'">'.$i.'</a>';
 			}
-			$i<$total_page && $result['_page'].='<span class="right">...</span>';
+			$i<$total_page && $config['_page'].='<span class="right">...</span>';
 		}else{
 			for($i=2;$i<$total_page;$i++){
-				$result['_page'].='<a href="'.$config['base_url'].$i.'" class="page '.($page==$i?'current':'').'">'.$i.'</a>';
+				$config['_page'].='<a href="'.$config['base_url'].$i.'" class="page '.($page==$i?'current':'').'">'.$i.'</a>';
 			}
 		}
 	
-		($total_page>1) && $result['_page'].='<a href="'.$config['base_url'].$total_page.'" class="end">'.$total_page.'</a>';
-		$result['_page'].='<a href="'.$config['base_url'].($page+1).'" class="next">'.$config['%next%'].'</a>';
-		$result['_page'].='<span class="jump">到第<input type="text" class="target_page" />页</span>';
-		$result['_page'].='<a href="'.$config['base_url'].'" class="jump_ok">确定</a>';
+		($total_page>1) && $config['_page'].='<a href="'.$config['base_url'].$total_page.'" class="end">'.$total_page.'</a>';
+		$config['_page'].='<a href="'.$config['base_url'].($page+1).'" class="next">'.$config['%next%'].'</a>';
+		$config['_page'].='<span class="jump">到第<input type="text" class="target_page" />页</span>';
+		$config['_page'].='<a href="'.$config['base_url'].'" class="jump_ok">确定</a>';
 	
+		return $config;
 	}
 }
