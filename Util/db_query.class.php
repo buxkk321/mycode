@@ -10,6 +10,40 @@ class db_query{
 	private static $operates = array('AND'=>1,'OR'=>2,'XOR'=>3);
 	private static $sql_main='';
 	private static $sql_right='';
+	/**
+	 * 获取各种查询条件
+	 * @param string $query 在url中传递的查询条件编码后的字符串
+	 * @param array $condition 查询条件,格式说明:
+	 * @param array $subject 存放sql语句的数组
+	 *  ['join']
+	 *  ['where']
+	 *  ['group']
+	 *  ['having']
+	 *  ['order']
+	 *  ['page_size']:每页显示条数
+	 * @return array 返回值说明
+	 */
+	public static function getCondition(&$query,&$condition=array(),&$subject){
+		$subject=array('sql_main'=>'','sql_right'=>'');
+		//准备或接受在url中传递的数据
+		if($query==null){
+			$query=base64_encode(json_encode($condition));
+		}else{
+			$condition=json_decode(base64_decode($query),true);
+		}
+		//拼中间部分的sql语句
+		if(isset($condition['join'])){
+			$join=is_array($condition['join'])?implode(' ',$condition['join']):(string)$condition['join'];
+			$subject['sql_main'].=$join.' ';
+		}
+		isset($condition['where']) && $subject['sql_main'].=self::parseWhere($condition['where']).' ';
+		if(isset($condition['group'])){
+			$subject['sql_main'].='group by '.$condition['group'].' ' ;
+			isset($condition['having']) && $subject['sql_main'].='having '.$condition['having'].' ';
+		}
+		//order条件
+		isset($condition['order']) && $subject['sql_right'].=$condition['order'].' ';
+	}
 	public static function parseBetween($str,$delimiter=','){
 		$re=array();
 		if(isset($str)){
