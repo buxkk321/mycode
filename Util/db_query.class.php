@@ -558,32 +558,6 @@ class db_query{
 	
 		return $result;
 	}
-	/**
-	 * 获取戴分页的数据列表
-	 * @param string $table 查询数据表
-	 * @param mixed $field 查询字段
-	 * @param array $condition 在url中传递的各种查询条件和用户配置值,格式说明:
-	 * @param int $current 当前页码
-	 * @param string $count_col 统计总记录数时使用的col_name,默认为'*'
-	 * @return array 返回值说明:
-	 *  ['_list']:数据列表
-	 *  ['_total_rows']:总记录数
-	 */
-	public static function getList(&$result=array(),$config=array()){
-		$default=array(
-				'table'=>'',
-				'field'=>'*',
-				'sql_main'=>'',
-				'sql_right'=>''
-			);
-		$config=(array)$config+$default;
-		$table=is_string($config['table'])?$config['table']:'';
-		$field=is_array($config['field'])?implode(',',$config['field']):$config['field'];
-		
-		//最终的查询
-		$sql='select '.$field.' from '.$table.' '.$config['sql_main'].' '.$config['sql_right'];
-		$result['_list']=self::query($sql);
-	}
 	public static function getTotalRows($table,$sql_main,$count_col='*'){
 		return current(self::query("select count($count_col) ttr from $table $sql_main",true));
 	}
@@ -639,7 +613,7 @@ class db_query{
 			$total_page=$config['page_size']>1?ceil($config['_total_rows'] / $config['page_size']):1;
 			$total_page<1 && $total_page=1;
 			$config['_total_page']=$total_page;
-			
+				
 			$config['_current']<1 && $config['_current']=1;
 			$config['_current']>$total_page && $config['_current']=$total_page;
 		}else{
@@ -672,4 +646,27 @@ class db_query{
 	
 		return $config;
 	}
+	
+	/**
+	 * 获取数据列表
+	 * @param string $table 查询数据表
+	 * @param mixed $field 查询字段
+	 * @return array
+	 */
+	public static function getList($config=array()){
+		$default=array(
+				'table'=>'',
+				'field'=>'*',
+				'sql_main'=>'',
+				'sql_right'=>''
+			);
+		$config=(array)$config+$default;
+		$table=is_string($config['table'])?$config['table']:'';
+		$field=is_array($config['field'])?implode(',',$config['field']):$config['field'];
+		
+		//最终的查询
+		$sql='select '.$field.' from '.$table.' '.$config['sql_main'].' '.$config['sql_right'];
+		return self::query($sql);
+	}
+	
 }
