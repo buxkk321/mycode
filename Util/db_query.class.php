@@ -612,7 +612,7 @@ class db_query{
 	 * @param mixed $field 查询字段
 	 * @return array
 	 */
-	public static function getList($config=array()){
+	public static function getList($config=array(),$return_sql=false){
 		$default=array(
 				'table'=>'',
 				'field'=>'*',
@@ -625,7 +625,11 @@ class db_query{
 		
 		//最终的查询
 		$sql='select '.$field.' from '.$table.' '.$config['sql_main'].' '.$config['sql_right'];
-		return self::query($sql);
+		if($return_sql){
+			return $sql;
+		}else{
+			return self::query($sql);
+		}
 	}
 	
 }
