@@ -539,7 +539,7 @@ class db_query{
 	 * @param array $subject 保存sql语句的数组
 	 * @return string 分页html代码
 	 */
-	public static function buildPage(&$config=array(),&$subject){
+	public static function buildPage(&$subject,&$config=array()){
 		$default=array(
 				'base_url'=>'',
 				'page_size'=>6,
@@ -595,7 +595,7 @@ class db_query{
 	 * 函数执行完成后会追加一个:
 	 *  ['_total_page'] 总页数
 	 */
-	public static function setLimit(&$subject,&$config){
+	public static function setPage(&$subject,&$config){
 		//计算总页数
 		$total_page=$config['page_size']>1?ceil($config['_total_rows'] / $config['page_size']):1;
 		$total_page<1 && $total_page=1;
