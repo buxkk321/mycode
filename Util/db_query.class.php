@@ -10,40 +10,7 @@ class db_query{
 	private static $operates = array('AND'=>1,'OR'=>2,'XOR'=>3);
 	private static $sql_main='';
 	private static $sql_right='';
-	/**
-	 * 获取各种查询条件
-	 * @param string $query 在url中传递的查询条件编码后的字符串
-	 * @param array $condition 查询条件,格式说明:
-	 * @param array $subject 存放sql语句的数组
-	 *  ['join']
-	 *  ['where']
-	 *  ['group']
-	 *  ['having']
-	 *  ['order']
-	 *  ['page_size']:每页显示条数
-	 * @return array 返回值说明
-	 */
-	public static function getCondition(&$query,&$condition=array(),&$subject){
-		$subject=array('sql_main'=>'','sql_right'=>'');
-		//准备或接受在url中传递的数据
-		if($query==null){
-			$query=base64_encode(json_encode($condition));
-		}else{
-			$condition=json_decode(base64_decode($query),true);
-		}
-		//拼中间部分的sql语句
-		if(isset($condition['join'])){
-			$join=is_array($condition['join'])?implode(' ',$condition['join']):(string)$condition['join'];
-			$subject['sql_main'].=$join.' ';
-		}
-		isset($condition['where']) && $subject['sql_main'].=self::parseWhere($condition['where']).' ';
-		if(isset($condition['group'])){
-			$subject['sql_main'].='group by '.$condition['group'].' ' ;
-			isset($condition['having']) && $subject['sql_main'].='having '.$condition['having'].' ';
-		}
-		//order条件
-		isset($condition['order']) && $subject['sql_right'].=$condition['order'].' ';
-	}
+
 	public static function parseBetween($str,$delimiter=','){
 		$re=array();
 		if(isset($str)){
@@ -170,53 +137,6 @@ class db_query{
 		}
 		return empty($whereStr)?'':' WHERE '.$whereStr;
 	}
-	/**
-	 * 解析各种查询条件
-	 * @param $page 当前页数
-	 * @param $query 在url中传递的查询条件编码后的字符串
-	 * @param array $condition 查询条件,格式说明:
-	 *  ['join']
-	 *  ['where']
-	 *  ['group']
-	 *  ['having']
-	 *  ['order']
-	 *  ['page_size']:每页显示条数
-	 * @return array 返回值说明
-	 * 
-	 * 
-	 */
-	public static function parseCondition($page_now,&$query,&$condition=array()){
-		$re=array('sql_main'=>'','sql_right'=>'');
-		//order条件
-		isset($condition['order']) && $re['sql_right'].=$condition['order'].' ';
-		//limit条件
-		$page_now<1 && $page_now=1;//当前页码
-		!isset($condition['page_size']) && $condition['page_size']=7;
-		if($condition['page_size']>0){
-			@$offset=((int)$page_now-1)*((int)$condition['page_size']);
-			$re['sql_right'].="limit $offset,{$condition['page_size']} ";
-			//设置查询参数
-			if($query==null){
-				$query=base64_encode(json_encode($condition));
-			}else{
-				$condition=json_decode(base64_decode($query),true);
-			}
-		}
-		
-		//拼中间部分的sql语句
-		if(isset($condition['join'])){
-			$join=is_array($condition['join'])?implode(' ',$condition['join']):(string)$condition['join'];
-			$re['sql_main'].=$join.' ';
-		}
-		isset($condition['where']) && $re['sql_main'].=self::parseWhere($condition['where']).' ';
-		
-		if(isset($condition['group'])){
-			$re['sql_main'].='group by '.$condition['group'].' ' ;
-			isset($condition['having']) && $re['sql_main'].='having '.$condition['having'].' ';
-		}
-		
-		return $re;
-	}
 
 	private static function parseComment($comment){
 		if(strpos($comment,'{')===false){
@@ -227,6 +147,9 @@ class db_query{
 		
 		return $col_info;
 	}
+	
+
+	
 	/**
 	 * 生成列表表头或表单
 	 * @param array $input
@@ -280,6 +203,44 @@ class db_query{
 			}
 		}
 		return $re;
+	}
+	/**
+	 * 获取各种查询条件
+	 * @param string $query 在url中传递的查询条件编码后的字符串
+	 * @param array $condition 查询条件,格式说明:
+	 * @param array $subject 存放sql语句的数组
+	 *  ['join']
+	 *  ['where']
+	 *  ['group']
+	 *  ['having']
+	 *  ['order']
+	 *  ['page_size']:每页显示条数,默认7页,如果设为0,则不解析url中的参数
+	 * @return array 返回值说明
+	 */
+	public static function setCondition(&$subject,&$condition=array(),&$query=''){
+		$subject=array('sql_main'=>'','sql_right'=>'');
+		!isset($condition['page_size']) && $condition['page_size']=7;
+		if($condition['page_size']>0){
+			//准备或接受在url中传递的数据
+			if($query==null){
+				$query=base64_encode(json_encode($condition));
+			}else{
+				$condition=json_decode(base64_decode($query),true);
+			}
+		}
+	
+		//拼中间部分的sql语句
+		if(isset($condition['join'])){
+			$join=is_array($condition['join'])?implode(' ',$condition['join']):(string)$condition['join'];
+			$subject['sql_main'].=$join.' ';
+		}
+		isset($condition['where']) && $subject['sql_main'].=self::parseWhere($condition['where']).' ';
+		if(isset($condition['group'])){
+			$subject['sql_main'].='group by '.$condition['group'].' ' ;
+			isset($condition['having']) && $subject['sql_main'].='having '.$condition['having'].' ';
+		}
+		//order条件
+		isset($condition['order']) && $subject['sql_right'].=$condition['order'].' ';
 	}
 	/**
 	 * 自动完成、筛选、转换
@@ -429,6 +390,9 @@ class db_query{
 		}
 		return true;
 	}
+	
+
+	
 	public static function setdb($db,$db_type='tp',$cache_type='file'){
 		self::$db=$db;
 		self::$db_type=$db_type;
@@ -561,27 +525,7 @@ class db_query{
 	public static function getTotalRows($table,$sql_main,$count_col='*'){
 		return current(self::query("select count($count_col) ttr from $table $sql_main",true));
 	}
-	/**
-	 * 解析limit条件并生成分页所需的参数
-	 */
-	public static function parseLimit(&$config,&$subject){
-		$default=array(
-				'page_size'=>7,
-				'_current'=>1,
-				'_total_rows'=>0,
-		);
-		$config=(array)$config+$default;
-		foreach ($config as &$v){$v=(int)$v;}
-		//计算总页数
-		$total_page=$config['page_size']>1?ceil($config['_total_rows'] / $config['page_size']):1;
-		$total_page<1 && $total_page=1;
-		$config['_total_page']=$total_page;
-		//当前页码
-		$config['_current']<1 && $config['_current']=1;
-		$config['_current']>$total_page && $config['_current']=$total_page;
-		//limit条件
-		$subject['sql_right']=(string)$subject['sql_right'].' limit '.($config['_current']-1)*$config['page_size'].','.$config['page_size'].' ';
-	}
+
 	/**
 	 * 生成分页,可以在getList之前执行
 	 * @param array $config 配置说明:
@@ -592,12 +536,10 @@ class db_query{
 	 'total_rows':总记录数
 	 '%prev%':上一页按钮的文本值
 	 '%next%':下一页按钮的文本值
-	 * @return array 返回值说明
-	 * 	['_total_page']:总页数
-	 *  ['_current']:当前页数
-	 *  ['_page']:分页html代码
+	 * @param array $subject 保存sql语句的数组
+	 * @return string 分页html代码
 	 */
-	public static function buildPage($config=array()){
+	public static function buildPage(&$config=array(),&$subject){
 		$default=array(
 				'base_url'=>'',
 				'page_size'=>6,
@@ -608,45 +550,62 @@ class db_query{
 				'_current'=>1,
 		);
 		$config=(array)$config+$default;
-	
-		if(!isset($config['_total_page'])){
-			$total_page=$config['page_size']>1?ceil($config['_total_rows'] / $config['page_size']):1;
-			$total_page<1 && $total_page=1;
-			$config['_total_page']=$total_page;
-				
-			$config['_current']<1 && $config['_current']=1;
-			$config['_current']>$total_page && $config['_current']=$total_page;
-		}else{
-			$total_page=$config['_total_page'];
-		}
+		/* 计算总页数 */
+		$total_page=$config['page_size']>1?ceil($config['_total_rows'] / $config['page_size']):1;
+		$total_page<1 && $total_page=1;
+		$config['_total_page']=$total_page;
+		/* 计算出合法的页码 */
+		$config['_current']<1 && $config['_current']=1;
+		$config['_current']>$total_page && $config['_current']=$total_page;
 		$page=$config['_current'];
-		$config['_page']='<div id="page_box">';
-		$config['_page'].='<a href="'.$config['base_url'].($page-1).'" class="prev">'.$config['%prev%'].'</a>';
-		$config['_page'].='<a href="'.$config['base_url'].'1" class="first">1</a>';
-	
+		/* 设置limit条件 */
+		$subject['sql_right']=(string)$subject['sql_right'].' limit '.($page-1)*$config['page_size'].','.$config['page_size'].' ';
+		/* 下面开始制作分页html代码 */
+		$result='<div id="page_box">';
+		$result.='<a href="'.$config['base_url'].($page-1).'" class="prev">'.$config['%prev%'].'</a>';
+		$result.='<a href="'.$config['base_url'].'1" class="first">1</a>';
 		if($total_page>$config['visible_page']){
 			$i=$page-floor(($config['visible_page']-3)/2);
 			$i<2 && $i=2;
 			$i+$config['visible_page']-2>$total_page && $i=$total_page-($config['visible_page']-2);
-			$i>2 && $config['_page'].='<span class="left">...</span>';
+			$i>2 && $result.='<span class="left">...</span>';
 			for($j=0;$j<$config['visible_page']-2;$j++,$i++){
-				$config['_page'].='<a href="'.$config['base_url'].$i.'" class="'.($page==$i?'current':'page').'">'.$i.'</a>';
+				$result.='<a href="'.$config['base_url'].$i.'" class="'.($page==$i?'current':'page').'">'.$i.'</a>';
 			}
-			$i<$total_page && $config['_page'].='<span class="right">...</span>';
+			$i<$total_page && $result.='<span class="right">...</span>';
 		}else{
 			for($i=2;$i<$total_page;$i++){
-				$config['_page'].='<a href="'.$config['base_url'].$i.'" class="page '.($page==$i?'current':'').'">'.$i.'</a>';
+				$result.='<a href="'.$config['base_url'].$i.'" class="page '.($page==$i?'current':'').'">'.$i.'</a>';
 			}
 		}
+		($total_page>1) && $result.='<a href="'.$config['base_url'].$total_page.'" class="end">'.$total_page.'</a>';
+		$result.='<a href="'.$config['base_url'].($page+1).'" class="next">'.$config['%next%'].'</a>';
+		$result.='<span class="jump">到第<input type="text" class="target_page" />页</span>';
+		$result.='<a href="'.$config['base_url'].'" class="jump_ok">确定</a>';
 	
-		($total_page>1) && $config['_page'].='<a href="'.$config['base_url'].$total_page.'" class="end">'.$total_page.'</a>';
-		$config['_page'].='<a href="'.$config['base_url'].($page+1).'" class="next">'.$config['%next%'].'</a>';
-		$config['_page'].='<span class="jump">到第<input type="text" class="target_page" />页</span>';
-		$config['_page'].='<a href="'.$config['base_url'].'" class="jump_ok">确定</a>';
-	
-		return $config;
+		return $result;
 	}
-	
+	/**
+	 * 解析limit条件并生成分页所需的参数
+	 * @param array $subject 存放sql语句的数组
+	 * @param array $config 相关配置,必要格式说明
+	 *  ['page_size'] 每页显示条数
+	 *  ['_current'] 当前页码
+	 *  ['_total_rows'] 总记录数
+	 * 函数执行完成后会追加一个:
+	 *  ['_total_page'] 总页数
+	 */
+	public static function setLimit(&$subject,&$config){
+		//计算总页数
+		$total_page=$config['page_size']>1?ceil($config['_total_rows'] / $config['page_size']):1;
+		$total_page<1 && $total_page=1;
+		$config['_total_page']=$total_page;
+		//当前页码
+		$config['_current']<1 && $config['_current']=1;
+		$config['_current']>$total_page && $config['_current']=$total_page;
+		//limit条件
+		$subject['sql_right']=(string)$subject['sql_right'].' limit '.($config['_current']-1)*$config['page_size'].','.$config['page_size'].' ';
+	}
 	/**
 	 * 获取数据列表
 	 * @param string $table 查询数据表
