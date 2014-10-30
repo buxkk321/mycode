@@ -290,14 +290,14 @@ class match_mobile_num{
 			if(isset($v['eq'])){
 				$len=strlen($v['eq']);
 				if(substr($input['num'],-$len)==$v['eq']){
-					$input['match_type']='eq{'.$len.'}';
+					$input['first_match']='eq{'.$len.'}';
 					$input['level']+=$k;
 					break;
 				}
 			}
 // 			if(isset($v['neq'])){
 // 				if(substr($input['num'],-strlen($v['neq']))!=$v['neq']){
-// 					$input['match_type']='neq['.$v['neq'].']';
+// 					$input['first_match']='neq['.$v['neq'].']';
 // 					$input['level']=$k+$fix;
 // 					break;
 // 				}
@@ -305,7 +305,7 @@ class match_mobile_num{
 			if(isset($v['enum'])){
 				foreach ($v['enum'] as $k2=>$v2){
 					if(isset($v2[substr($input['num'],-($k2))])){
-						$input['match_type']='eq{'.$k2.'}';
+						$input['first_match']='eq{'.$k2.'}';
 						$input['level']+=$k;
 						break 2;
 					}
@@ -314,7 +314,7 @@ class match_mobile_num{
 			if(isset($v['reg'])){
 				foreach ($v['reg'] as $v3){
 					if(preg_match('/'.self::$reg[$v3].'$/',$input['num'])){
-						$input['match_type']=$v3;
+						$input['first_match']=$v3;
 						$input['level']+=$k;
 						break 2;
 					}
@@ -331,7 +331,7 @@ class match_mobile_num{
 						$param[]=$input;
 					}
 					if(call_user_func_array('self::'.$v4[0],$param)){
-						$input['match_type']=$v4[0].($v4[1]>0?'_'.$v4[1]:'');
+						$input['first_match']=$v4[0].($v4[1]>0?'_'.$v4[1]:'');
 						$input['level']+=$k;
 						break 2;
 					}
@@ -344,7 +344,7 @@ class match_mobile_num{
 				$input['level']>1 && $input['is_nice']=1;
 				break;
 			default:
-				if($input['match_type']){
+				if($input['first_match']){
 					$input['is_nice']=1;
 				}else{
 					$input['level']=0;
@@ -426,7 +426,7 @@ class match_mobile_num{
 		for ($i=0,$j=0;$i<$c;$i++){
 			$re=self::entry($arr[$i],4);
 			if($re['level']>7){
-				$re["match_type"]!='AAAA[^4]' && dump($re);
+				$re["first_match"]!='AAAA[^4]' && dump($re);
 				$j++;
 			}
 		}
@@ -446,9 +446,9 @@ class match_mobile_num{
 		$len=3;
 		$str=substr($input['num'],-$len);
 		if($test=='reg'){
-			preg_match('/'.self::$reg['AAA[^4689]'].'/',$str) && $input['match_type']='AAA[^4689]';
+			preg_match('/'.self::$reg['AAA[^4689]'].'/',$str) && $input['first_match']='AAA[^4689]';
 		}else{
-			isset(self::$php_stable['AAA[^4689]'][$str]) && $input['match_type']='AAA[^4689]';
+			isset(self::$php_stable['AAA[^4689]'][$str]) && $input['first_match']='AAA[^4689]';
 		}
 		
 		if($test=='reg'){
@@ -456,7 +456,7 @@ class match_mobile_num{
 		}else{
 			$re=$input['prefix']==substr($input['num'], -3);
 		}
-		$re && $input['match_type']=$input["prefix"].'%'.$input["prefix"];
+		$re && $input['first_match']=$input["prefix"].'%'.$input["prefix"];
 		
 		//测试多个指定数字匹配
 		if($test=='reg'){
