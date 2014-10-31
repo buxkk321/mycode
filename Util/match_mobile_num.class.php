@@ -341,12 +341,9 @@ class match_mobile_num{
 		
 		switch ($code){//结束操作
 			case 34://电信4G
-				$input['level']>1 && $input['is_nice']=1;
-				break;
+
 			default:
-				if($input['first_match']){
-					$input['is_nice']=1;
-				}else{
+				if(!$input['first_match']){
 					$input['level']=0;
 				}
 		}
