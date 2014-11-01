@@ -114,55 +114,57 @@
      */
     $.fn.icountbtn=function(options){
         var settings={
-            'time':3,
-            'speed':1000,
-            'beforeAction':function(){/*在开始计时前的可选自定义函数*/
-
-            }
+            'time':3,/*计时时间(秒)*/
+            'speed':1000,/*更新间隔,如果<1000将以浮点数表示,最小值20*/
+            'beforeAction':function(){return true},/*计时开始前的验证函数,只有当该函数返回true时才会进行下一步*/
+            'afterAction':function(){}/*计时开始后的自定义函数*/
         };
         if ( options ) {
             $.extend( settings, options );
         }
+        if(settings.speed<20) settings.speed=20;
+        var fractionDigits=settings.speed<1000?5-String(settings.speed).length:0;
         return this.each(function(){
-            var btn=$(this).data('counting',false).click(function(){
-                if(!btn.data('counting')){
-                    var t=settings.time,org_text,do_count,do_reset,btn_init;
-                    if(btn.is('input')){
-                        btn_init=function(){
-                            org_text=btn.val();
-                            btn.val(org_text +'('+t+')');
-                        };
-                        do_count=function(){
-                            btn.val(org_text+'('+(--t)+')');
-                        };
-                        do_reset=function(){
-                            btn.val(org_text);
-                        };
-                    }else{
-                        btn_init=function(){
-                            org_text=$('<span>('+t+')</span>');
-                            btn.append(org_text);
-                        };
-                        do_count=function(){
-                            org_text.text("("+(--t)+")");
-                        };
-                        do_reset=function(){
-                            org_text.remove();
-                        };
-                    }
-
-                    btn.data('counting',true).attr('disable','disable');
+            var btn=$(this).data('counting',false),t=settings.time,org_text;
+            if(btn.is('input')){
+                var btn_init=function(){
+                    org_text=btn.val();
+                    btn.val(org_text +'('+t+')');
+                };
+                var do_count=function(){
+                    btn.val(org_text+'('+t+')');
+                };
+                var do_reset=function(){
+                    btn.val(org_text);
+                };
+            }else{
+                var btn_init=function(){
+                    org_text=$('<span>('+t+')</span>');
+                    btn.append(org_text);
+                };
+                var do_count=function(){
+                    org_text.text("("+t+")");
+                };
+                var do_reset=function(){
+                    org_text.remove();
+                };
+            }
+            btn.click(function(){
+                if(settings.beforeAction() && !btn.data('counting') ){/*还未开始计时*/
+                    btn.data('counting',true).prop('disable','disable');
                     clearInterval(btn.data('timer'));
-                    settings.beforeAction();
+                    settings.afterAction();
                     btn_init();
+                    var start=Date.now(),now=0;
                     btn.data('timer',setInterval(function(){
                             if(t<=0){
                                 clearInterval(btn.data('timer'));
                                 do_reset();
-                                btn.removeAttr('disabled').data('counting',false);
+                                btn.removeProp('disabled').data('counting',false);
                                 t=settings.time;
                                 return false;
                             }else{
+                                t=(settings.time-(Date.now()-start)/1000).toFixed(fractionDigits);
                                 do_count();
                             }
                         },settings.speed)
