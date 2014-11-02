@@ -1,6 +1,9 @@
 <?php
 namespace Common\My;
 class data_rand {
+	public static $mate_a_z='abcdefghijklmnopqrstuvwxyz';
+	public static $mate_A_Z='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+	public static $mate_0_9='0123456789';
 	/**
 	 * 生成一个存在(或不存在)于指定列表中的随机数
 	 * @param array $fliparr 数字列表,键名为待匹配的数字,键值不能为空
@@ -49,8 +52,16 @@ class data_rand {
 	 * @param int  $length
 	 * @return array
 	 */
-	public static function string($mate,$length){
+	public static function string($length,$mate){
 		$str='';
+		if(strpos($mate,'[')===false){
+			
+		}else{
+			$mate = str_replace(
+					array('[a-z]', '[A-Z]', '[0-9]'),
+					array(self::$mate_a_z,self::$mate_A_Z, self::$mate_0_9),
+					$mate);
+		}
 		$max=strlen($mate)-1;
 		for($i=0;$i<$length;$i++){
 			$str.=$mate[mt_rand(0,$max)];
