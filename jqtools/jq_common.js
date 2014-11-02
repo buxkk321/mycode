@@ -116,8 +116,8 @@
         var settings={
             'time':3,/*计时时间(秒)*/
             'speed':1000,/*更新间隔,如果<1000将以浮点数表示,最小值20*/
-            'beforeAction':function(){return true},/*计时开始前的验证函数,只有当该函数返回true时才会进行下一步*/
-            'afterAction':function(){}/*计时开始后的自定义函数*/
+            'beforeAction':function(){return true;},/*计时开始前的验证函数,只有当该函数返回true时才会进行下一步*/
+            'afterAction':function(){return 0;}/*计时开始后的自定义函数,返回值为本次计时的修正值*/
         };
         if ( options ) {
             $.extend( settings, options );
@@ -154,6 +154,12 @@
                     btn.data('counting',true).prop('disable','disable');
                     clearInterval(btn.data('timer'));
                     settings.afterAction();
+//                    var fix=String(settings.afterAction());
+//                    if(fix.charAt(0)=='-'){
+//                        t+=parseFloat(fix);
+//                    }else{
+//                        t+=parseFloat(0+fix);
+//                    }
                     btn_init();
                     var start=Date.now(),now=0;
                     btn.data('timer',setInterval(function(){
