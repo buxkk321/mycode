@@ -11,7 +11,7 @@ class fc{
 	public static $enctype=2;//编码类型
 	public static $compress=0;//压缩开关
 	public static function exists($key){
-		return file_exists(self::$root.$key);
+		return is_file(self::$root.$key);
 	}
 	public static function get($key){
 		$data=file_get_contents(self::$root.$key);
