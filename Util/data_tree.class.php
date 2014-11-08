@@ -166,6 +166,13 @@ class data_tree{
 	
 		return $tree;
 	}
+	//TODO:不用pid,只靠id本身保存的数据判断父级,生成无限级分类树
+// 	public static function build_tree_self($data,$callback){
+// 		$tree=array();
+// 		$child=self::$default['child'];
+// 		$pk=self::$default['pk'];
+		
+// 	}
 	/**
 	 * 筛选限定范围内的子项
 	 * @param unknown_type $data
@@ -204,6 +211,21 @@ class data_tree{
 		}
 		return $cate;
 	}
+	public static function decode($tree,$child=null,$return=true){
+		if(!isset($child)) $child=self::$default['child'];
+		static $data=array();
+		foreach ($tree as $k=>$v){
+			if(isset($v[$child])){
+				self::decode($v[$child],$child,false);
+			}else{
+				$data[$k]=$v;
+			}
+		}
+		if($return){
+			return $data;
+		}
+	}
+	
 	private static function tree_html(){
 		
 	}
