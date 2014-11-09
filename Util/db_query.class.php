@@ -454,12 +454,12 @@ class db_query{
 
 	/**
 	 * post请求带文件上传的添加或修改数据的处理函数
-	 * @param string $table 完整的表名
-	 * @param array $field 要更新的字段信息,格式说明:
+	 * @param array $config 配置项格式说明:
 	 *  ['pk'] 主键名
 	 *  ['filename'] 保存上传文件路劲的字段名
 	 *  ['fileconfig'] 文件上传的配置数据
 	 *  ['cols'] 直接从$_POST中获取的字段名,多个字段用英文逗号分隔，也可以是数组
+	 *  ['table'] 完整的表名
 	 * @param function $before_edit 在执行数据库操作前的处理(验证)函数,可选,参数说明:
 	 * 	$result:上一步操作的结果数据,引用传值,不需要返回值,格式同最后的return,出错时需要设置 $result['status']=3;
 	 * @param function $after_edit update操作成功之后时使用的自定义处理函数,可选,格式说明:
@@ -475,11 +475,17 @@ class db_query{
 	 *  ['id']影响数据的主键值
 	 *  ['data'] 待操作的数据
 	 */
-	public static function post_edit($table,$field,$before_edit=null,$after_edit=null){
-		$pk=isset($field['pk'])?$field['pk']:'id';
+	public static function post_edit($config,$before_edit=null,$after_edit=null){
+		$default=array(
+				'pk'=>'id',
+				'cols'=>array(),
+				'table'=>'',
+		);
+		$config=(array)$config+$default;
+		$pk=$config['pk'];
 		$result=array(
 				'status'=>1,
-				'data'=>array_batch($field['cols'],$_POST,false)
+				'data'=>array_batch($config['cols'],$_POST,false)
 		);
 		
 		// 		if(!empty($field['filename'])){
@@ -504,10 +510,10 @@ class db_query{
 		if($result['status']==1){
 			try {
 				if($_POST[$pk]>0){
-					self::update($table,$result['data'],$pk.'='.$_POST[$pk]);
+					self::update($config['table'],$result['data'],$pk.'='.$_POST[$pk]);
 					$result['id']=$_POST[$pk];
 				}else{
-					$result['id']=self::insert($table,$result['data']);
+					$result['id']=self::insert($config['table'],$result['data']);
 				}
 				is_callable($after_edit) && $after_edit($result);
 			} catch (\Exception $e) {
@@ -607,12 +613,12 @@ class db_query{
 		$subject['sql_right']=(string)$subject['sql_right'].' limit '.($config['_current']-1)*$config['page_size'].','.$config['page_size'].' ';
 	}
 	/**
-	 * 获取数据列表
+	 * 最后一步获取数据列表
 	 * @param string $table 查询数据表
 	 * @param mixed $field 查询字段
 	 * @return array
 	 */
-	public static function getList($config=array(),$return_sql=false){
+	public static function last_get_list($config=array(),$return_sql=false){
 		$default=array(
 				'table'=>'',
 				'field'=>'*',
@@ -631,5 +637,56 @@ class db_query{
 			return self::query($sql);
 		}
 	}
-	
+	/**
+	 * 获取数据列表
+	 * @param array $config 配置项说明:
+	 *  'base_url':不带参数的url,
+	 *  'query_var':查询条件字符串变量名,默认'query',
+	 *  'query_str':当前的查询条件字符串,
+	 *  'page_var':分页参数名,默认'p',
+	 *  'page_now':当前页数,
+	 *  'table':sql语句中from和join之间的内容,
+	 *  'field':sql语句中select和from之间的内容,默认'*',
+	 *  'condition':查询条件数组,格式参考setCondition方法,
+	 * @return array
+	 */
+	public static function getList($config=array()){
+		$re=$sql=array();
+		$default=array(
+				'base_url'=>'',
+				'query_var'=>'query',
+				'query_str'=>$_GET['query'],
+				'page_var'=>'p',
+				'page_now'=>$_GET['p'],
+				'table'=>'',
+				'field'=>'*',
+				'condition'=>array()
+		);
+		$config+=$default;
+		//TODO:table参数的扩展
+		!is_string($config['table']) && $config['table']='';
+		
+		is_array($config['field']) && $config['field']=implode(',',$config['field']);
+		
+		//分析整理查询条件
+		db_query::setCondition($sql,$config['condition'],$config['query_str']);
+		$re['_where']=(array)$config['condition']['where'];
+
+		if($config['condition']['page_size']>0){
+			//limit条件和分页
+			$temp=array(
+					'base_url'=>$config['base_url'].'?'.$config['query_var'].'='.$config['query_str'].'&'.$config['page_var'].'=',
+					'page_size'=>$config['condition']['page_size'],
+					'_current'=>$config['page_now'],
+					'_total_rows'=>db_query::getTotalRows($config['table'], $sql['sql_main'])
+			);
+			$re['_page']=db_query::buildPage($sql,$temp);
+			$re['_current']=$temp['_current'];
+		}
+		//最终的查询
+		$re['_sql']='select '.$config['field'].' from '.$config['table'].' '.$sql['sql_main'].' '.$sql['sql_right'];
+		$re['_list']=self::query($re['_sql']);
+		
+		return $re;
+	}
 }
