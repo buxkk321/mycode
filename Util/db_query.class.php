@@ -138,9 +138,15 @@ class db_query{
 		return empty($whereStr)?'':' WHERE '.$whereStr;
 	}
 
-	private static function parseComment($comment){
+	public static function parseComment($comment){
 		if(strpos($comment,'{')===false){
-			$col_info['title']=$comment;
+			$po=strpos($comment,'|');
+			if($po===false){
+				$col_info['title']=$comment;
+			}else{
+				$col_info['title']=substr($comment,0,$po);
+				$col_info['title_suffix']=substr($comment,$po+1);
+			}
 		}else{
 			$col_info=json_decode($comment,true);
 		}
@@ -507,22 +513,30 @@ class db_query{
 	
 		is_callable($before_edit) && $before_edit($result);
 	
-		if($result['status']==1){
-			try {
-				if($_POST[$pk]>0){
-					self::update($config['table'],$result['data'],$pk.'='.$_POST[$pk]);
-					$result['id']=$_POST[$pk];
-				}else{
-					$result['id']=self::insert($config['table'],$result['data']);
-				}
-				is_callable($after_edit) && $after_edit($result);
-			} catch (\Exception $e) {
-				$result['status']=0;
-				if($_POST[$pk]>0){
-					$result['msg']='更新出错:'.$e->__toString();
-				}else{
-					$result['msg']='添加出错:'.$e->__toString();
-				}
+		if($result['status']!=1){
+			return $result;
+		}
+		
+		try {
+			if($_POST[$pk]>0){
+				self::update($config['table'],$result['data'],$pk.'='.$_POST[$pk]);
+				$result['id']=$_POST[$pk];
+			}else{
+				$result['id']=self::insert($config['table'],$result['data']);
+			}
+			is_callable($after_edit) && $after_edit($result);
+		} catch (\Exception $e) {
+			$result['status']=0;
+			if($_POST[$pk]>0){
+				$result['msg']='更新出错:'.$e->__toString();
+			}else{
+				$result['msg']='添加出错:'.$e->__toString();
+			}
+		}
+		
+		if($result['status']==1 && !empty($result['del_list'])){
+			foreach ($result['del_list'] as $vv){
+				unlink($vv);
 			}
 		}
 	
