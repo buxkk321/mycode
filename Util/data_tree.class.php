@@ -225,7 +225,21 @@ class data_tree{
 			return $data;
 		}
 	}
-	
+	/**
+	 * 生成树状结构的索引
+	 * @param array $data
+	 * @param bool $first
+	 */
+	public static function build_map($data,$key_name=null,$first=true){
+		if($key_name==null) $key_name=self::$default['parent'];
+		$re=array();
+		if($first){
+			foreach($data as $k=>$v){
+				$re[$v[$key_name]][]=$k;
+			}
+		}
+		return $re;
+	}
 	private static function tree_html(){
 		
 	}
