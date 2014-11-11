@@ -169,16 +169,21 @@ class db_query{
 		is_string($cols) && $cols=explode(',', $cols);
 	
 		if(empty($cols)){
-			$except=true;
-		}else{
-			$cols=array_flip($cols);
-		}
-
-		foreach ($cols_info as $kk=>$vv){
-			if(isset($cols[$vv['field']])!=$except){
+			foreach ($cols_info as $kk=>$vv){
 				$re[$vv['field']]=self::parseComment($vv['comment']);
 				$re[$vv['field']]['col_type']=$vv['type'];
 			}
+		}else{
+			$cols=array_flip($cols);
+			$inte=array();
+			foreach ($cols_info as $kk=>$vv){
+				if(isset($cols[$vv['field']])!=$except){
+					$cols[$vv['field']]=self::parseComment($vv['comment']);
+					$cols[$vv['field']]['col_type']=$vv['type'];
+					$inte[$vv['field']]=1;
+				}
+			}
+			$re=array_intersect_key($cols, $inte);
 		}
 		unset($vv);
 		return $re;
@@ -246,7 +251,7 @@ class db_query{
 			isset($condition['having']) && $subject['sql_main'].='having '.$condition['having'].' ';
 		}
 		//order条件
-		isset($condition['order']) && $subject['sql_right'].=$condition['order'].' ';
+		isset($condition['order']) && $subject['sql_right'].='order by '.$condition['order'].' ';
 	}
 	/**
 	 * 自动完成、筛选、转换
@@ -685,7 +690,6 @@ class db_query{
 		//分析整理查询条件
 		db_query::setCondition($sql,$config['condition'],$config['query_str']);
 		$re['_where']=(array)$config['condition']['where'];
-
 		if($config['condition']['page_size']>0){
 			//limit条件和分页
 			$temp=array(

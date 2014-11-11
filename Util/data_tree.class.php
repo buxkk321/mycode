@@ -237,6 +237,8 @@ class data_tree{
 			foreach($data as $k=>$v){
 				$re[$v[$key_name]][]=$k;
 			}
+		}else{
+			
 		}
 		return $re;
 	}
