@@ -493,11 +493,14 @@ class db_query{
 				'table'=>'',
 		);
 		$config=(array)$config+$default;
+		is_string($config['cols']) && $config['cols']=explode(',', $config['cols']);
 		$pk=$config['pk'];
-		$result=array(
-				'status'=>1,
-				'data'=>array_batch($config['cols'],$_POST,false)
-		);
+		$result=array('status'=>1);
+		foreach($config['cols'] as $vv){
+			if(isset($_POST[$vv])){
+				$result['data'][$vv]=$_POST[$vv];
+			}
+		}
 		
 		// 		if(!empty($field['filename'])){
 		// 			$info=Plugin\Upload::dealUploadFiles($field['filename'],$field['fileconfig']);
@@ -529,6 +532,7 @@ class db_query{
 			}else{
 				$result['id']=self::insert($config['table'],$result['data']);
 			}
+			
 			is_callable($after_edit) && $after_edit($result);
 		} catch (\Exception $e) {
 			$result['status']=0;
