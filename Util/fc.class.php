@@ -23,6 +23,8 @@ class fc{
 			case 2:
 				$data   =   unserialize($data);
 				break;
+			case 9:
+				break;
 		}
 		return $data;
 	}	
@@ -33,6 +35,9 @@ class fc{
 				break;
 			case 2:
 				$data   =   serialize($value);
+				break;
+			case 9:
+				$data   =   $value;
 				break;
 		}
 		self::$compress && $data=gzcompress($data,1);

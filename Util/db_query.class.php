@@ -195,19 +195,19 @@ class db_query{
 		$cc=$re=$con=array();
 		is_string($cols) && $cols=explode(',', $cols);
 		foreach ($cols as $vv){
-			if(strpos($vv,' ')===false){//没有设置别名
+			$pos=strpos($vv,' ');
+			if($pos===false){//没有设置别名
 				$tt=explode('.',$vv);//取得带表名的字段名
 				$key=$tt[1];
 			}else{
-				$tt=explode('.',strstr($vv, ' ',true));//取得带表名的字段名
-				$key=trim(strstr($vv, ' '));//别名设为映射键名
+				$tt=explode('.',substr($vv,0,$pos));//取得带表名的字段名
+				$key=trim(substr($vv,$pos));//别名设为映射键名
 			}
 			$cc[$key]=array(
 					'tn'=>$tt[0],
 					'cn'=>$tt[1],
 					);//保存映射关系
 		}
-
 		foreach ($cc as $kk=>$vv){
 			if(isset($cols_info_all[$vv['tn']][$vv['cn']])){
 				$re[$kk]=self::parseComment($cols_info_all[$vv['tn']][$vv['cn']]['comment']);
