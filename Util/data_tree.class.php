@@ -230,12 +230,12 @@ class data_tree{
 	 * @param array $data
 	 * @param bool $first
 	 */
-	public static function build_map($data,$key_name=null,$first=true){
-		if($key_name==null) $key_name=self::$default['parent'];
+	public static function build_map($data,$col_name=null,$first=true){
+		if($col_name==null) $col_name=self::$default['parent'];
 		$re=array();
 		if($first){
 			foreach($data as $k=>$v){
-				$re[$v[$key_name]][]=$k;
+				$re[$v[$col_name]][]=$k;
 			}
 		}else{
 			
