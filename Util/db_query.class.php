@@ -191,8 +191,8 @@ class db_query{
 	/**
 	 * 取得需要输出的表头信息(多表)
 	 */
-	function getMultiGrids($cols_info_all,$cols='',$table_map){
-		$cc=$re=$con=array();
+	function getMultiGrids($cols_info_all,$cols=''){
+		$cols_map=$re=array();
 		is_string($cols) && $cols=explode(',', $cols);
 		foreach ($cols as $vv){
 			$pos=strpos($vv,' ');
@@ -203,12 +203,12 @@ class db_query{
 				$tt=explode('.',substr($vv,0,$pos));//取得带表名的字段名
 				$key=trim(substr($vv,$pos));//别名设为映射键名
 			}
-			$cc[$key]=array(
+			$cols_map[$key]=array(
 					'tn'=>$tt[0],
 					'cn'=>$tt[1],
 					);//保存映射关系
 		}
-		foreach ($cc as $kk=>$vv){
+		foreach ($cols_map as $kk=>$vv){
 			if(isset($cols_info_all[$vv['tn']][$vv['cn']])){
 				$re[$kk]=self::parseComment($cols_info_all[$vv['tn']][$vv['cn']]['comment']);
 			}
