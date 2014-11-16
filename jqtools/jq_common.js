@@ -2,40 +2,7 @@
  * Created by Administrator on 14-9-16.
  */
 (function( $ ){
-    /**
-     * 下拉菜单动画效果
-     * @param options
-     * @returns {*|each|Array|each|each|each}
-     */
-    $.fn.slide_menu=function(options){
-        var settings={
-            'direct':1,/*TODO:上下方向或左右方向的滚动*/
-            'container':{},/*当前组菜单所在容器,jq对象*/
-            'show_speed':400,/*显示速度*/
-            'hide_speed':200,/*隐藏速度*/
-            'default_open':null/*默认打开的元素*/
-        };
 
-        if ( options ) {
-            $.extend( settings, options );
-        }
-
-        this.each(function(){
-            var menu=$(this).data('is_open',false).click(function(){
-                if(!menu.data('is_open')){
-                    menu.next().stop(true).slideDown(settings.show_speed);
-                }else{
-                    menu.next().stop(true).slideUp(settings.hide_speed);
-                }
-                settings.container.find('a').removeClass('on');
-                menu.data('is_open',!menu.data('is_open')).addClass('on');
-            });
-        });
-        if(typeof(settings.default_open)=='number'){
-            this.eq(settings.default_open).click();
-        }
-        return this;
-    };
     /**
      * 生成二级下拉菜单
      * @param options
@@ -84,6 +51,89 @@
             }
         }
     };
+    $.mytools={
+        /**
+         * 省市区三级联动
+         **/
+        'pca_sel':function(options){
+            settings={
+                'province':$(),
+                'city':$(),
+                'area':$(),
+                'area_info':{},
+                'addr_code':''
+            };
+            if ( options ) {
+                $.extend( settings, options );
+            }
+            settings.province.html('').change(function(){
+                settings.city.html('');
+                $.each( settings.addr_info['tree'][$(this).val()] ,function(k){
+                    settings.city.append('<option value="'+k+'">'+settings.addr_info['data'][k]['title']+'</option>');
+                });
+            });
+            settings.city.change(function(){
+                settings.area.html('');
+                var city=$(this).val(),province=city.substr(0,2)+'0000';
+                $.each( addr_info['tree'][province][city] ,function(k){
+                    settings.area.append('<option value="'+k+'">'+settings.addr_info['data'][k]['title']+'</option>');
+                });
+            });
+            $.each( settings.addr_info['tree'] ,function(k){
+                settings.province.append('<option value="'+k+'">'+settings.addr_info['data'][k]['title']+'</option>');
+            });
+            if(addr_code!=''){
+                var p=addr_code.substr(0,2)+'0000',
+                    c=addr_code.substr(0,4)+'00';
+
+                settings.province.get(0).selectedIndex=sel.province.find('option[value="'+p+'"]').index();
+                settings.province.change();
+
+                settings.city.get(0).selectedIndex=sel.city.find('option[value="'+c+'"]').index();
+                settings.city.change();
+
+                settings.area.get(0).selectedIndex=sel.area.find('option[value="'+addr_code+'"]').index();
+            }else{
+                settings.province.change();
+                settings.city.change();
+            }
+        },
+        'bread':function(){
+
+        },
+        /*上传图片文件预览图*/
+        'img_view':function(options){
+            var settings={
+                'ifile':$(),
+                'img_class':'prev'/*预览图的class*/
+            }
+
+            if ( options ) {
+                $.extend( settings, options );
+            }
+            settings.input_file.each(function(){
+                var ifile=$(this).hide(),
+                    btn_cancel=$("<input type='button' class='cancel_upload' value='取消' />").click(function(){
+                        $(this).hide();
+                        ifile.nextAll('img').remove();
+                    }).hide();
+
+                $("<input type='button' value='浏览…' class='choose_file' />").click(function(){
+                    ifile.click();
+                }).insertBefore(ifile);
+
+                ifile.change(function(){
+                    ifile.nextAll('img').remove();
+                    btn_cancel.show();
+                    $.each(this.files,function(i,v){
+                        $('<img class="'+settings.img_class+'"/>').attr("src",window.URL.createObjectURL(v)).insertAfter(ifile);
+                    });
+                }).after(btn_cancel);
+            });
+        }
+
+    };
+
     /**
      * 面包屑工具
      * @param options
@@ -104,6 +154,40 @@
         	$.each(settings['tree'],function(i,v){
         		settings['box'](i,v).appendTo(ibread);
 			});
+        }
+        return this;
+    };
+    /**
+     * 下拉菜单的动画效果
+     * @param options
+     * @returns {*|each|Array|each|each|each}
+     */
+    $.fn.slide_menu=function(options){
+        var settings={
+            'direct':1,/*TODO:上下方向或左右方向的滚动*/
+            'container':{},/*当前组菜单所在容器,jq对象*/
+            'show_speed':400,/*显示速度*/
+            'hide_speed':200,/*隐藏速度*/
+            'default_open':null/*默认打开的元素*/
+        };
+
+        if ( options ) {
+            $.extend( settings, options );
+        }
+
+        this.each(function(){
+            var menu=$(this).data('is_open',false).click(function(){
+                if(!menu.data('is_open')){
+                    menu.next().stop(true).slideDown(settings.show_speed);
+                }else{
+                    menu.next().stop(true).slideUp(settings.hide_speed);
+                }
+                settings.container.find('a').removeClass('on');
+                menu.data('is_open',!menu.data('is_open')).addClass('on');
+            });
+        });
+        if(typeof(settings.default_open)=='number'){
+            this.eq(settings.default_open).click();
         }
         return this;
     };
@@ -179,36 +263,5 @@
             });
         });
     };
-    /**
-     * 上传文件的表单控件扩展工具
-     * @returns {*|each|Array|each|each|each}
-     */
-	$.fn.ifile=function(options){
-	   var settings={
-	            'img_class':'prev'/*预览图的class*/
-	            }
-	        
-	        if ( options ) {
-	            $.extend( settings, options );
-	        }
-    	return this.each(function(){
-    		var ifile=$(this).hide(),
-    		btn_cancel=$("<input type='button' class='cancel_upload' value='取消' />").click(function(){
-    			$(this).hide();
-    			ifile.nextAll('img').remove();
-    		}).hide();
-    		
-    		$("<input type='button' value='浏览…' class='choose_file' />").click(function(){
-    			ifile.click();
-    		}).insertBefore(ifile);
-    		
-    		ifile.change(function(){
-    			ifile.nextAll('img').remove();
-    			btn_cancel.show();
-    			$.each(this.files,function(i,v){
-    				$('<img class="'+settings.img_class+'"/>').attr("src",window.URL.createObjectURL(v)).insertAfter(ifile);
-    			});
-    		}).after(btn_cancel);
-        });
-    };
+
 })( jQuery );
