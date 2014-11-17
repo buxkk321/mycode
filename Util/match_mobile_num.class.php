@@ -366,7 +366,10 @@ class match_mobile_num{
 		$input['num']=$num.'';//号码
 		$input['prefix']=substr($num,0,3);//前三位
 		$prefix_info=self::$prefix[$input['prefix']];//根据号码前三位找到对应的信息
-		if($prefix_info==null){
+		if($generation<2){
+			$input['status']=2;
+			$input['msg']='请选择电话网络的代数';
+		}elseif($prefix_info==null){
 			$input['status']=3;
 			$input['msg']=$num.'该号码没有匹配的运营商';
 		}else{

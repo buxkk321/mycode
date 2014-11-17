@@ -18,6 +18,8 @@ class db_query{
 				$re=$str;
 			}else{
 				$arr=explode($delimiter,$str);
+				$arr[0]=(int)$arr[0];
+				$arr[1]=(int)$arr[1];
 				if($arr[0]>$arr[1]){
 					if(is_numeric($arr[1])){
 						$re=array("between {$arr[1]} and {$arr[0]}");
@@ -191,7 +193,7 @@ class db_query{
 	/**
 	 * 取得需要输出的表头信息(多表)
 	 */
-	function getMultiGrids($cols_info_all,$cols=''){
+	public static function getMultiGrids($cols_info_all,$cols=''){
 		$cols_map=$re=array();
 		is_string($cols) && $cols=explode(',', $cols);
 		foreach ($cols as $vv){
@@ -407,7 +409,6 @@ class db_query{
 	public static function setdb($db,$db_type='tp',$cache_type='file'){
 		self::$db=$db;
 		self::$db_type=$db_type;
-		return self;
 	}
 	
 /******************以下方法需要在setdb后调用******************/
