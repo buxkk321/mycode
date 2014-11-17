@@ -2,6 +2,12 @@
  * Created by Administrator on 14-9-16.
  */
 (function( $ ){
+    /**
+     * 分类树结构
+     * @param data
+     * @param options
+     * @returns {fn}
+     */
 	$.fn.treelist=function(data,options){
         var settings={
             'name_value':{},
@@ -77,6 +83,32 @@
             }
 
         });
+    };
+
+    $.fn.idefault=function(options){
+        var settings={
+            'select':{'selector1':'value1','selector2':'value2'},
+            'checkbox':{},
+            'radio':{},
+            'input':{}
+
+        },obj=this;
+        if ( options ) $.extend( settings, options );
+        $.each(settings.select,function(k,v){
+            if(k.indexOf('#')===0){
+                $(k).get(0).selectedIndex=$(k+' option[value="'+v+'"]').index();
+            }else{
+                var temp=obj.find('select[name="'+k+'"]');
+                temp.get(0).selectedIndex=temp.children('option[value="'+v+'"]').index();
+            }
+        });
+        $.each(settings.checkbox,function(k,v){
+
+        });
+        $.each(settings.radio,function(k,v){
+
+        });
+        return this;
     };
 
     /**

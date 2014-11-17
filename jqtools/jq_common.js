@@ -60,7 +60,7 @@
                 'province':$(),
                 'city':$(),
                 'area':$(),
-                'area_info':{},
+                'addr_data':{},
                 'addr_code':''
             };
             if ( options ) {
@@ -68,31 +68,31 @@
             }
             settings.province.html('').change(function(){
                 settings.city.html('');
-                $.each( settings.addr_info['tree'][$(this).val()] ,function(k){
-                    settings.city.append('<option value="'+k+'">'+settings.addr_info['data'][k]['title']+'</option>');
+                $.each( settings.addr_data['tree'][$(this).val()] ,function(k){
+                    settings.city.append('<option value="'+k+'">'+settings.addr_data['list'][k]['title']+'</option>');
                 });
             });
             settings.city.change(function(){
                 settings.area.html('');
                 var city=$(this).val(),province=city.substr(0,2)+'0000';
-                $.each( addr_info['tree'][province][city] ,function(k){
-                    settings.area.append('<option value="'+k+'">'+settings.addr_info['data'][k]['title']+'</option>');
+                $.each(settings.addr_data['tree'][province][city] ,function(k){
+                    settings.area.append('<option value="'+k+'">'+settings.addr_data['list'][k]['title']+'</option>');
                 });
             });
-            $.each( settings.addr_info['tree'] ,function(k){
-                settings.province.append('<option value="'+k+'">'+settings.addr_info['data'][k]['title']+'</option>');
+            $.each( settings.addr_data['tree'] ,function(k){
+                settings.province.append('<option value="'+k+'">'+settings.addr_data['list'][k]['title']+'</option>');
             });
-            if(addr_code!=''){
-                var p=addr_code.substr(0,2)+'0000',
-                    c=addr_code.substr(0,4)+'00';
+            if(settings.addr_code!=''){
+                var p=settings.addr_code.substr(0,2)+'0000',
+                    c=settings.addr_code.substr(0,4)+'00';
 
-                settings.province.get(0).selectedIndex=sel.province.find('option[value="'+p+'"]').index();
+                settings.province.get(0).selectedIndex=settings.province.children('option[value="'+p+'"]').index();
                 settings.province.change();
 
-                settings.city.get(0).selectedIndex=sel.city.find('option[value="'+c+'"]').index();
+                settings.city.get(0).selectedIndex=settings.city.children('option[value="'+c+'"]').index();
                 settings.city.change();
 
-                settings.area.get(0).selectedIndex=sel.area.find('option[value="'+addr_code+'"]').index();
+                settings.area.get(0).selectedIndex=settings.area.children('option[value="'+settings.addr_code+'"]').index();
             }else{
                 settings.province.change();
                 settings.city.change();
