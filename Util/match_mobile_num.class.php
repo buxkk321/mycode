@@ -5,7 +5,8 @@ namespace Common\My;
  * @author Administrator
  */
 class match_mobile_num{
-	public static $company=array(1=>'yidong',2=>'liantong',3=>'dianxin');//1移动,2联通,3电信
+	public static $company=array(1=>'yidong',2=>'liantong',3=>'dianxin');
+	public static $company_name=array(1=>'移动',2=>'联通',3=>'电信');
 	public static $prefix=array(
 		/*移动的*/
 		134=>'10',135=>'10',136=>'10',137=>'10',138=>'10',139=>'10',
@@ -273,7 +274,7 @@ class match_mobile_num{
 		}
 		if(empty($flow)){
 			$input['status']=4;
-			$input['msg']=$input['num'].'没有对应的'.$input['generation'].'G靓号规则';
+			$input['msg']='目前没有设置['.(self::$company_name[$input['company']]).$input['generation'].'G]靓号规则';
 			return ;
 		}
 		
