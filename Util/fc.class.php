@@ -7,14 +7,15 @@ use Admin\Controller\PublicController;
  * @author Administrator
  */
 class fc{
-	private static $root='./Runtime/Data/';
+	private static $temp='./Runtime/Data/';
+	private static $store='./Data/';
 	public static $enctype=2;//编码类型
 	public static $compress=0;//压缩开关
 	public static function exists($key){
-		return is_file(self::$root.$key);
+		return is_file(self::$temp.$key);
 	}
 	public static function get($key){
-		$data=file_get_contents(self::$root.$key);
+		$data=file_get_contents(self::$temp.$key);
 		self::$compress && $data=gzuncompress($data);
 		switch (self::$enctype){
 			case 1:
@@ -44,6 +45,27 @@ class fc{
 		$handle = fopen(self::$root.$key,'w');
 		fwrite($handle,$data);
 		fclose($handle);
+	}
+	public static function countByDate_4bit($return_date=false){
+		$date=date ( "Ymd" );
+		$file='./Data/Count.txt';
+		$arr=array('count'=>0);
+		if(is_file($file)){
+			$arr=json_decode(file_get_contents($file),true);
+			if($arr['date']==$date){
+				$arr['count']++;
+			}else{
+				$arr['date']=$date;
+			}
+		}
+		$handle = fopen($file,'w');
+		fwrite($handle,json_encode($arr));
+		fclose($handle);
+	
+		$str=str_pad($arr['count'], 4,'0',STR_PAD_LEFT);
+		$return_date && $str=$date.$str;
+	
+		return $str;
 	}
 	
 	public static function test(){
