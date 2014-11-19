@@ -42,7 +42,7 @@ class fc{
 				break;
 		}
 		self::$compress && $data=gzcompress($data,1);
-		$handle = fopen(self::$root.$key,'w');
+		$handle = fopen(self::$temp.$key,'w');
 		fwrite($handle,$data);
 		fclose($handle);
 	}

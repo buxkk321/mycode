@@ -65,17 +65,19 @@ class db_query{
 	private static function parseWhereItem($key,$val){
 		$whereStr = '';
 		if(is_array($val)) {
-			@$op=strtoupper((string)$val['_logic']);
-			if(isset(self::$operates[$op])){
-				$str   =  array();
+			if(count($val)==1){
+				$whereStr .=$key.' '.$val[0];
+			}else{
+				@$op=strtoupper((string)$val['_logic']);
+				!isset(self::$operates[$op]) && $op='AND';
 				unset($val['_logic'],$val['_multi']);
+				$str   =  array();
 				foreach ($val as $v){
 					$str[]   ='('.self::parseWhereItem($key,$v).')';
 				}
 				$whereStr .= '( '.implode(' '.$op.' ',$str).' )';
-			}else{
-				$whereStr .=$key.' '.$val[0];
 			}
+			
 		}elseif(is_numeric($val)){
 			$whereStr .=$key.'='.$val;
 		}else{
@@ -97,7 +99,6 @@ class db_query{
 		}else{
 			@$operate=strtoupper((string)$where['_logic']);
 			$operate=' '.(isset(self::$operates[$operate])?$operate:'AND').' '; 
-			
 			foreach ($where as $key=>$condition){
 				if(is_numeric($key)){
 					$key  = '_complex';
@@ -112,7 +113,7 @@ class db_query{
 					// }
 					// 多条件支持
 					$key    = trim($key);
-					if(strpos($key,'|')) { // 支持使用|或&一次设置多个条件
+					if(strpos($key,'|')) { // 支持使用|或&一次对多个字段设置条件
 						$cond_keys =  explode('|',$key);
 						$op='OR';
 					}elseif(strpos($key,'&')){
@@ -141,7 +142,13 @@ class db_query{
 	}
 
 	public static function parseComment($comment){
-		if(strpos($comment,'{')===false){
+		$col_info=array();
+		if(strpos($comment,'{')===false || strpos($comment,'}')===false){
+			$po=strpos($comment,'(');$end=strrpos($comment,')');
+			if($po!==false && $end!==false && $po<$end){
+				$col_info['tip']=substr($comment,$po,$end-$po+1);
+				$comment=substr($comment,0,$po).substr($comment,$end+1);
+			}
 			$po=strpos($comment,'|');
 			if($po===false){
 				$col_info['title']=$comment;
@@ -553,7 +560,8 @@ class db_query{
 		return $result;
 	}
 	public static function getTotalRows($table,$sql_main,$count_col='*'){
-		return current(self::query("select count($count_col) ttr from $table $sql_main",true));
+		$sql="select count($count_col) ttr from $table $sql_main";
+		return current(self::query($sql,true));
 	}
 
 	/**
