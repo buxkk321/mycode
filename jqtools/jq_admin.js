@@ -90,7 +90,8 @@
             'select':{'selector1':'value1','selector2':'value2'},
             'checkbox':{},
             'radio':{},
-            'input':{}
+            'input':{},
+            'textarea':{},
 
         },obj=this;
         if ( options ) $.extend( settings, options );
