@@ -245,7 +245,7 @@ class match_mobile_num{
 		}
 	}
 	/*执行匹配*/
-	private static function do_match(&$input,$test){
+	private static function do_match(&$input){
 		$input['level']=0;
 		$code=$input['company'].$input['generation'];
 		switch ($code){//流程修正
@@ -361,7 +361,7 @@ class match_mobile_num{
 	 * @param array $rules $匹配规则
 	 * @return unknown
 	 */
-	public static function entry($num,$generation,$test){
+	public static function entry($num,$generation){
 		$input['status']=1;
 		$input['generation']=$generation.'';//第几代
 		$input['num']=$num.'';//号码
@@ -376,7 +376,7 @@ class match_mobile_num{
 		}else{
 			$input['company']=$prefix_info[0];//运营商
 			$input['correct']=$prefix_info[1];//修正值
-			self::do_match($input,$test);
+			self::do_match($input);
 			$input['company']=self::$company[$prefix_info[0]];
 		}
 		
