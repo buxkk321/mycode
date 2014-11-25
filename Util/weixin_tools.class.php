@@ -86,11 +86,11 @@ class weixin_tools {
 		$output = weixin_tools::docurl($ch,$url);
 		if($output===false){
 			self::$last_errmsg=curl_error($ch);
+			return false;
 		}else{
 			$output=json_decode($output,true);
 		}
 		curl_close($ch);
-		
 		return $output;
 	}
 	
