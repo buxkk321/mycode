@@ -61,7 +61,7 @@ class weixin_tools {
 	 * @param  $cache 说明 ：该缓存类必须实现 exists、get、save三个静态方法,此处的读写都需要进行json编码
 	 * @return Ambigous <number, string, mixed>
 	 */
-	protected static function get_access_token($refresh=false,$cache){
+	public static function get_access_token($refresh=false,$cache){
 		$cacheKey='weixin.data';
 		if(!$refresh && $cache::exists($cacheKey)){
 			$data=$cache::get($cacheKey);
