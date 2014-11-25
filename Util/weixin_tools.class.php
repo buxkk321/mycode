@@ -47,7 +47,13 @@ class weixin_tools {
 			$url='https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid='.(self::$appid).'&secret='.(self::$secret);
 			// 			dump($url);
 			$ch = curl_init(); // 启动一个CURL会话
-			$data = json_decode(self::docurl($ch,$url),true);
+			$data = self::docurl($ch,$url);
+			if($data===false){
+				self::$last_errmsg=curl_error($ch);
+				return false;
+			}else{
+				$data=json_decode($data,true);
+			}
 			$data['time_out']=$_SERVER['REQUEST_TIME']+$data['expires_in'];
 			curl_close($ch);
 			$cache::save($cacheKey,$data);
