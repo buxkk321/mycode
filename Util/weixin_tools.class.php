@@ -28,34 +28,6 @@ class weixin_tools {
 		return $tmpInfo; // 返回数据
 	}
 	/**
-	 *  通过code获取openid
-	 * @param string $code
-	 * @return array
-	 */
-	public static function get_openid($code=''){
-		set_time_limit(0);
-		header("Content-type:text/html;charset=utf-8");
-	
-		$url='https://api.weixin.qq.com/sns/oauth2/access_token?appid='.(self::$appid).'&secret='.(self::$secret).'&code='.$code.'&grant_type=authorization_code';
-		$ch = curl_init(); // 启动一个CURL会话
-		$output = self::docurl($ch,$url);
-		if($output===false){
-			self::$last_errmsg=curl_error($ch);
-			return false;
-		}else{
-			$output=json_decode($output,true);
-		}
-	
-		curl_close($ch);
-	
-		if($output['openid']==''){
-			self::$last_errmsg='errcode '.$output['errcode'].':'.$output['errmsg'];
-			return false;
-		}else{
-			return $output;
-		}
-	}
-	/**
 	 * 获取access_token 带缓存
 	 * @param unknown_type $refresh
 	 * @param  $cache 说明 ：该缓存类必须实现 exists、get、save三个静态方法,此处的读写都需要进行json编码
@@ -82,6 +54,44 @@ class weixin_tools {
 		}
 	
 		return $data;
+	}
+	/**
+	 *  通过code获取openid
+	 * @param string $code
+	 * @return array
+	 */
+	public static function get_openid($code=''){
+		$url='https://api.weixin.qq.com/sns/oauth2/access_token?appid='.(self::$appid).'&secret='.(self::$secret).'&code='.$code.'&grant_type=authorization_code';
+		$ch = curl_init(); // 启动一个CURL会话
+		$output = self::docurl($ch,$url);
+		if($output===false){
+			self::$last_errmsg=curl_error($ch);
+			return false;
+		}else{
+			$output=json_decode($output,true);
+		}
+	
+		curl_close($ch);
+	
+		if($output['openid']==''){
+			self::$last_errmsg='errcode '.$output['errcode'].':'.$output['errmsg'];
+			return false;
+		}else{
+			return $output;
+		}
+	}
+	public static function get_user_info($token,$openid){
+		$url='https://api.weixin.qq.com/cgi-bin/user/info?access_token='.$token.'&openid='.$openid.'&lang=zh_CN';
+		$ch = curl_init();
+		$output = weixin_tools::docurl($ch,$url);
+		if($output===false){
+			self::$last_errmsg=curl_error($ch);
+		}else{
+			$output=json_decode($output,true);
+		}
+		curl_close($ch);
+		
+		return $output;
 	}
 	
 	public static function check_weixin_access(){
