@@ -11,6 +11,9 @@ class fc{
 	private static $store='./Data/';
 	public static $enctype=2;//编码类型
 	public static $compress=0;//压缩开关
+	public function __construct($enctype){
+		self::$enctype=$enctype;
+	}
 	public static function exists($key){
 		return is_file(self::$temp.$key);
 	}

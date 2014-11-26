@@ -412,15 +412,17 @@ class db_query{
 	}
 	
 
-	
-	public static function setdb($db,$db_type='tp',$cache_type='file'){
+	public function __construct($db,$db_type='tp'){
+		self::setdb($db,$db_type);
+	}
+	public static function setdb($db,$db_type='tp'){
 		self::$db=$db;
 		self::$db_type=$db_type;
 	}
 	
 /******************以下方法需要在setdb后调用******************/
 	
-	private static function query($sql,$current=false){
+	public static function query($sql,$current=false){
 		switch (strtolower(self::$db_type)){
 			case 'tp':
 				$re=self::$db->query($sql);
