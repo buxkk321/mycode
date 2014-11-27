@@ -26,20 +26,19 @@ class db_cache{
 			'refresh'=>false,
 			'table'=>'',
 			'keyfix'=>'',
-			'where'=>'',
+			'sql_right'=>'',
 			'current'=>true
 		);
 		$config+=$default;
 		if($config['keyfix']){
-			$cacheKey=$table.'.'.$config['keyfix'].'.data';
+			$cacheKey=$config['table'].'.'.$config['keyfix'].'.data';
 		}else{
-			$cacheKey=$table.'.data';
+			$cacheKey=$config['table'].'.data';
 		}
 		$cache=self::$cache;
 		$db=self::$db;
 		if (!$cache::exists($cacheKey) || $config['refresh']) {
-			$config['where'] && $config['where']=' where '.$config['where'];
-			$data=$db::query('select * from '.$table.$where);
+			$data=$db::query('select * from '.$config['table'].' '.$config['sql_right']);
 			if($data===false) return false;
 			if($config['current'] && is_array($data)) $data=current($data);
 			$cache::save($cacheKey,$data);
@@ -59,19 +58,33 @@ class db_cache{
 			'refresh'=>false,
 			'table'=>'',
 			'keyfix'=>'',
-			'where'=>'',
-			'uk'=>'id'
+			'sql_right'=>'',
+			'uk'=>'id',
+			'parent'=>'pid'
 		);
 		$config+=$default;
-		$cacheKey=$table.'.data';
+		$cacheKey=$config['table'].'.data';
 		$cache=self::$cache;
 		$db=self::$db;
-		if (!$cache::exists($cacheKey) || $refresh) {
-			$config['where'] && $config['where']=' where '.$config['where'];
-			$data['list']=$db::query('select * from '.$table.$where);
+		if (!$cache::exists($cacheKey) || $config['refresh']) {
+			$data=array(
+				'list'=>$db::query('select * from '.$config['table'].' '.$config['sql_right']),
+				'index'=>array(),
+				'tree'=>array()
+			);
 			if($data['list']===false) return false;
+			$temp=array();
 			foreach($data['list'] as $k=>$v){
 				$data['index'][$v[$config['uk']]]=$k;
+				$temp[$v[$config['parent']]][$v[$config['uk']]]=array();
+			}
+			foreach($temp as $k=>$v){
+				$ppid=$data['list'][$data['index'][$k]][$config['parent']];
+				if(isset($temp[$ppid])){
+					$temp[$ppid][$k]=&$v;
+				}else{
+					$data['tree'][$k]=&$v;
+				}
 			}
 			$cache::save($cacheKey,$data);
 		}else{

@@ -7,8 +7,8 @@ use Admin\Controller\PublicController;
  * @author Administrator
  */
 class fc{
-	private static $temp='./Runtime/Data/';
-	private static $store='./Data/';
+	private static $path=array('./Runtime/Data/',
+								'./Data/');
 	public static $enctype=2;//编码类型
 	public static $compress=0;//压缩开关
 	public function __construct($enctype){
@@ -17,8 +17,9 @@ class fc{
 	public static function exists($key){
 		return is_file(self::$temp.$key);
 	}
-	public static function get($key){
-		$data=file_get_contents(self::$temp.$key);
+	public static function get($key,$st=0){
+		
+		$data=file_get_contents(self::$path[$st].$key);
 		self::$compress && $data=gzuncompress($data);
 		switch (self::$enctype){
 			case 1:
@@ -32,7 +33,7 @@ class fc{
 		}
 		return $data;
 	}	
-	public static function save($key,$value){
+	public static function save($key,$value,$st=0){
 		switch (self::$enctype){
 			case 1:
 				$data   =   json_encode($value);
@@ -45,7 +46,7 @@ class fc{
 				break;
 		}
 		self::$compress && $data=gzcompress($data,1);
-		$handle = fopen(self::$temp.$key,'w');
+		$handle = fopen(self::$path[$st].$key,'w');
 		fwrite($handle,$data);
 		fclose($handle);
 	}
@@ -70,7 +71,7 @@ class fc{
 	
 		return $str;
 	}
-	
+
 	public static function test(){
 		$o='0123456789';
 		$arr1=array(180=>1,181=>1,189=>1,133=>1,153=>1,177=>1);
