@@ -21,7 +21,7 @@ class db_cache{
 		self::$cache=$cache;
 	}
 
-	public static function getData($config=array()){
+	public static function get_data($config=array()){
 		$default=array(
 			'refresh'=>false,
 			'table'=>'',
@@ -49,11 +49,10 @@ class db_cache{
 	}
 
 	
-	
 	/**
 	 * 分类信息缓存
 	 */
-	public static function getCategory($config=array()){
+	public static function get_category($config=array()){
 		$default=array(
 			'refresh'=>false,
 			'table'=>'',
@@ -103,7 +102,7 @@ class db_cache{
 		if (!$cache::exists($cacheKey) || $refresh) {
 			$addr['list']=$db::query('select code,title from '.$tn);
 			foreach($addr['list'] as $k=>$v){
-				$addr['index'][$v[$config['uk']]]=$k;
+				$addr['index'][$v['code']]=$k;
 			}
 			$addr['tree']=array();
 			foreach ($addr['list'] as $ke => $vo) {
@@ -142,7 +141,7 @@ class db_cache{
 		return $addr;
 	}
 
-	public static function getColumns($tn,$refresh=false){
+	public static function get_columns($tn,$refresh=false){
 		$cacheKey = $tn.'.cols';
 		$cache=self::$cache;
 		$db=self::$db;
@@ -159,7 +158,7 @@ class db_cache{
 		}
 		return $cols_info;
 	}
-	public static function getTableInfo($db,$tn,$refresh){
+	public static function get_table_info($db,$tn,$refresh){
 		$cacheKey = $tn.'.table';
 		$cache=self::$cache;
 		$db=self::$db;

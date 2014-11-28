@@ -14,11 +14,10 @@ class fc{
 	public function __construct($enctype){
 		self::$enctype=$enctype;
 	}
-	public static function exists($key){
-		return is_file(self::$temp.$key);
+	public static function exists($key,$st=0){
+		return is_file(self::$path[$st].$key);
 	}
 	public static function get($key,$st=0){
-		
 		$data=file_get_contents(self::$path[$st].$key);
 		self::$compress && $data=gzuncompress($data);
 		switch (self::$enctype){
