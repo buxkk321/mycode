@@ -45,6 +45,7 @@ class fc{
 				break;
 		}
 		self::$compress && $data=gzcompress($data,1);
+		!is_dir(self::$path[$st]) && mkdir(self::$path[$st],'0777',true);
 		$handle = fopen(self::$path[$st].$key,'w');
 		fwrite($handle,$data);
 		fclose($handle);
