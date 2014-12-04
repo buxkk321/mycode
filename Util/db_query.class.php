@@ -268,16 +268,16 @@ class db_query{
 	 * @param array $rules 完成规则,格式说明:
 	 * array(
 	 *  '字段名'=>array(
-	 *   'when'=>'执行时刻',// 默认为新增的时候自动填充
+	 *   'touch_type'=>'触发自动完成的事件类型',例如:insert,update
 	 *   'rule'=>'填充内容',
 	 *   'parse'=>'内容解析方式',
 	 *   'param'=>'额外的参数')
 	 * );
-	 * @param string $type 执行时刻,只有当该值和规则的第一个键值相等 或等于'both'时,才会执行自动完成
+	 * @param string $current_type 事件类型, 默认为insert
 	 */
-	public static function auto_pad(&$data,$rules,$type='insert'){
+	public static function auto_pad(&$data,$rules,$current_type='insert'){
 		foreach($rules as $col_name=>$auto){
-			if( $type == $auto['when'] || $auto['when'] == 'both') {
+			if( $current_type == $auto['touch_type'] || $auto['when'] == 'both') {//触发方式和当前的相等 或等于'both'时,才会执行自动完成
 				empty($auto['parse']) && $auto['parse'] = 'string';//内容解析方式默认为string
 				switch(trim($auto['parse'])) {//根据解析方式执行替换
 					case 'function':
@@ -290,22 +290,21 @@ class db_query{
 						}
 						break;
 					case 'field':    // 用其它字段的值进行填充
-						$data[$col_name] = $data[$auto['rule']];
+						if(isset($data[$auto['rule']])){
+							$data[$col_name] = $data[$auto['rule']];
+						}
 						break;
 					case 'ignore': // 忽略指定的值,全等匹配
 						if(@$data[$col_name]===$auto['rule']) unset($data[$col_name]);
 						break;
-					case 'now':
+					case 'now'://当前时间
 						$data[$col_name]=$_SERVER['REQUEST_TIME'];
 						break;
-					case 'string':
-						$data[$col_name] = (string)$auto['rule'];
-						break;
-					case 'int':
-						$data[$col_name] = (int)$auto['rule'];
-						break;
-					case 'float':
-						$data[$col_name] = (float)$auto['rule'];
+					case 'transform'://数据类型转换
+						$allow=array('string','int','float');
+						if(isset($allow[$auto['param']])){
+							$data[$col_name] = eval('return ('.$auto['param'].'$auto["rule"]');
+						}
 						break;
 					default://默认不进行解析直接赋值
 						$data[$col_name] = $auto['rule'];
@@ -412,10 +411,10 @@ class db_query{
 	}
 	
 
-	public function __construct($db,$db_type='tp'){
+	public function __construct($db,$db_type){
 		self::setdb($db,$db_type);
 	}
-	public static function setdb($db,$db_type='tp'){
+	public static function setdb($db,$db_type){
 		self::$db=$db;
 		self::$db_type=$db_type;
 	}

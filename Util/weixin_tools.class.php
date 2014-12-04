@@ -11,15 +11,15 @@ class weixin_tools {
 	 * @param unknown_type $post
 	 * @return mixed
 	 */
-	public static function docurl($ch,$c_url,$post=array()){
-		curl_setopt($ch, CURLOPT_URL, $c_url); // 要访问的地址
+	public static function docurl($ch,$url,$post=array()){
+		curl_setopt($ch, CURLOPT_URL, $url); // 要访问的地址
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0); // 对认证证书来源的检查，0表示阻止对证书的合法性的检查。
 		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 1); // 从证书中检查SSL加密算法是否存在
 		curl_setopt($ch, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']); // 模拟用户使用的浏览器
 		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1); // 使用自动跳转
 		curl_setopt($ch, CURLOPT_AUTOREFERER, 1); // 自动设置Referer
 		//    curl_setopt($curl, CURLOPT_POST, 1); // 发送一个常规的Post请求
-		//    curl_setopt($curl, CURLOPT_POSTFIELDS, $data); // Post提交的数据包
+		//    curl_setopt($curl, CURLOPT_POSTFIELDS, $post); // Post提交的数据包
 		curl_setopt($ch, CURLOPT_TIMEOUT, 5); // 设置超时限制防止死循环
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); // 获取的信息以文件流的形式返回
 		curl_setopt($ch, CURLOPT_HEADER, 0); // 显示返回的Header区域内容
