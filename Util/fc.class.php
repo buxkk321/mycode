@@ -50,9 +50,8 @@ class fc{
 		fwrite($handle,$data);
 		fclose($handle);
 	}
-	public static function countByDate_4bit($return_date=false){
+	public static function countByDate_4bit($return_date=false,$file='./Data/Count.txt'){
 		$date=date ( "Ymd" );
-		$file='./Data/Count.txt';
 		$arr=array('count'=>0);
 		if(is_file($file)){
 			$arr=json_decode(file_get_contents($file),true);
