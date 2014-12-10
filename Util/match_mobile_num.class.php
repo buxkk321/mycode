@@ -385,7 +385,11 @@ class match_mobile_num{
 		self::extra_match($input);
 	}
 	public static function extra_match(&$input){
-		
+		$month=substr($input['num'],-4,2);
+		$day=substr($input['num'],-2);
+		if(($month=='02' && $day>0 && $day<30) || checkdate($month,$day,'2000')){
+			$input['month_match']=$month.$day;
+		}
 	} 
 	/**
 	 * 入口
