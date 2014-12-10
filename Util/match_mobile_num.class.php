@@ -388,7 +388,7 @@ class match_mobile_num{
 		$month=substr($input['num'],-4,2);
 		$day=substr($input['num'],-2);
 		if(($month=='02' && $day>0 && $day<30) || checkdate($month,$day,'2000')){
-			$input['month_match']=$month.$day;
+			$input['month_match']=$month;
 		}
 	} 
 	/**
