@@ -70,7 +70,25 @@ class fc{
 	
 		return $str;
 	}
-
+	
+	public static function get_data($config=array()){
+		$default=array(
+				'refresh'=>false,
+				'cacheKey'=>'',
+				'get_data'=>function(){}
+		);
+		$config+=$default;
+		if (!self::exists($config['cacheKey']) || $config['refresh']) {
+			$data=$config['get_data']();
+			if($data===false) return false;
+			if($config['current'] && is_array($data)) $data=current($data);
+			self::save($config['cacheKey'],$data);
+		}else{
+			$data=self::get($config['cacheKey']);
+		}
+		return $data;
+	}
+	
 	public static function test(){
 		$o='0123456789';
 		$arr1=array(180=>1,181=>1,189=>1,133=>1,153=>1,177=>1);
