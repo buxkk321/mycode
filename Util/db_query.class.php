@@ -18,8 +18,6 @@ class db_query{
 				$re=$str;
 			}else{
 				$arr=explode($delimiter,$str);
-				$arr[0]=(int)$arr[0];
-				$arr[1]=(int)$arr[1];
 				if($arr[0]>$arr[1]){
 					if(is_numeric($arr[1])){
 						$re=array("between {$arr[1]} and {$arr[0]}");
