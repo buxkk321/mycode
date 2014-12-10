@@ -20,7 +20,7 @@ class db_cache{
 		self::$db=$db;
 		self::$cache=$cache;
 	}
-
+	
 	public static function get_data($config=array()){
 		$default=array(
 			'refresh'=>false,
