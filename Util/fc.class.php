@@ -8,7 +8,7 @@ use Admin\Controller\PublicController;
  */
 class fc{
 	private static $path=array('./Runtime/Data/',
-								'./Data/');
+								'./Data/');//默认路径
 	public static $enctype=2;//编码类型
 	public static $compress=0;//压缩开关
 	public function __construct($enctype){
@@ -79,20 +79,18 @@ class fc{
 		$default=array(
 				'refresh'=>false,
 				'cacheKey'=>'',
-				'current'=>true,
 				'get_data'=>function(){},
-				'insure'=>function(){return false;}
+				'insure'=>function($data){if(!$data) return true;}
 		);
 		$config+=$default;
 		if (!self::exists($config['cacheKey']) || $config['refresh']) {
 			$data=$config['get_data']();
 			if($data===false) return false;
-			if($config['current'] && is_array($data)) $data=current($data);
 			self::save($config['cacheKey'],$data);
 		}else{
 			$data=self::get($config['cacheKey']);
 		}
-		if(!$insure && $config['insure']($data)){//根据自定义的规则进行自动刷新,只刷新一次
+		if($config['insure']($data)===true && !$insure){//根据自定义的规则进行自动刷新,只刷新一次
 			$config['refresh']=true;
 			$data=self::get_data($config,true);
 		}
