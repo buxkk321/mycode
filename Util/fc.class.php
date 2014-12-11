@@ -70,12 +70,17 @@ class fc{
 	
 		return $str;
 	}
-	
-	public static function get_data($config=array()){
+	/**
+	 * 缓存获取到的数据
+	 * @param unknown_type $config
+	 * @return boolean|unknown
+	 */
+	public static function get_data($config=array(),$insure=false){
 		$default=array(
 				'refresh'=>false,
 				'cacheKey'=>'',
-				'get_data'=>function(){}
+				'get_data'=>function(){},
+				'insure'=>function(){return false;}
 		);
 		$config+=$default;
 		if (!self::exists($config['cacheKey']) || $config['refresh']) {
@@ -86,6 +91,11 @@ class fc{
 		}else{
 			$data=self::get($config['cacheKey']);
 		}
+		if(!$insure && $config['insure']($data)){//根据自定义的规则进行自动刷新,只刷新一次
+			$config['refresh']=true;
+			$data=self::get_data($config,true);
+		}
+		
 		return $data;
 	}
 	

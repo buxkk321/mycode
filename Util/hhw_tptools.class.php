@@ -1,6 +1,5 @@
 <?php
 namespace Common\My;
-use Common\My\fc;
 class hhw_tptools {
 	public static $tn_ac='hhw_area_code';
 	public static $pre_to_company=array(1=>'yidong',2=>'liantong',3=>'dianxin');
@@ -26,7 +25,7 @@ class hhw_tptools {
 			$addr=fc::get($cacheKey);
 		}
 		if(!isset($addr['tree']) && !$insure){
-			return $this->get_area_code(1,$range,true);
+			return self::get_area_code(1,$range,true);
 		}
 		if(is_numeric($range)){
 			$p=str_pad($range,6,'0',STR_PAD_RIGHT);
