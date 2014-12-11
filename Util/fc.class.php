@@ -72,13 +72,14 @@ class fc{
 	}
 	/**
 	 * 缓存获取到的数据
-	 * @param unknown_type $config
+	 * @param array $config
 	 * @return boolean|unknown
 	 */
 	public static function get_data($config=array(),$insure=false){
 		$default=array(
 				'refresh'=>false,
 				'cacheKey'=>'',
+				'current'=>true,
 				'get_data'=>function(){},
 				'insure'=>function(){return false;}
 		);
@@ -98,7 +99,6 @@ class fc{
 		
 		return $data;
 	}
-	
 	public static function test(){
 		$o='0123456789';
 		$arr1=array(180=>1,181=>1,189=>1,133=>1,153=>1,177=>1);

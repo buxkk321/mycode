@@ -2,6 +2,7 @@
 namespace Common\My;
 class hhw_tptools {
 	public static $tn_ac='hhw_area_code';
+	public static $tn_pc='hhw_pack_category';
 	public static $pre_to_company=array(1=>'yidong',2=>'liantong',3=>'dianxin');
 	public static function get_area_code($refresh=false,$range=null,$insure=false){
 		$cacheKey=self::$tn_ac.'.data';
@@ -45,6 +46,51 @@ class hhw_tptools {
 			$addr=$temp;
 		}
 		return $addr;
+	}
+	
+	public static function get_columns($tn,$refresh=false,$insure=false){
+		$cacheKey = $tn.'.cache';
+		if (!fc::exists($cacheKey) || $refresh) {
+			$info=M()->query('SHOW FULL COLUMNS FROM '.$tn);
+			$cols_info=array();
+			foreach($info as $vv){
+				$cols_info[$vv['field']]=array_change_key_case($vv);
+			}
+			fc::save($cacheKey, $cols_info);
+		}else{
+			$cols_info=fc::get($cacheKey);
+		}
+		if(!$cols_info && !$insure){
+			$cols_info=self::get_columns($tn,true,true);
+		}
+		return $cols_info;
+	}
+	/**
+	 * 套餐分类
+	 */
+	public static function get_pack_category($refresh=false,$company=null,$insure=false){
+		$cacheKey=self::$tn_pc.'.data';
+		if (!fc::exists($cacheKey) || $refresh) {
+			$category['data']=M()->query('select * from '.self::$tn_pc);
+			$category['map']=data_tree::build_map($category['data'],'company');
+			$category['index']=data_tree::set_index($category['data'],1);
+			fc::save($cacheKey,$category);
+		}else{
+			$category=fc::get($cacheKey);
+		}
+		if(!isset($category['index']) && !$insure){
+			$category=self::get_pack_category(true,null,true);
+		}
+		$c=array('yidong'=>1,'liantong'=>1,'dianxin'=>1);
+		if(isset($c[$company])){
+			$temp=array();
+			foreach((array)$category['map'][$company] as $k=>$v){
+				$temp[]=$category['data'][$v];
+			}
+			unset($category['map']);
+			$category=array('data'=>$temp);
+		}
+		return $category;
 	}
 	public static function getSundryInfo($refresh=false,$table,$name=''){
 		$cacheKey=$table.'.'.$name.'.data';
