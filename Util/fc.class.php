@@ -77,10 +77,10 @@ class fc{
 	 */
 	public static function get_data($config=array(),$insure=false){
 		$default=array(
-				'refresh'=>false,
-				'cacheKey'=>'',
-				'get_data'=>function(){},
-				'insure'=>function($data){if(!$data) return true;}
+			'refresh'=>false,
+			'cacheKey'=>'',
+			'get_data'=>function(){},
+			'insure'=>function($data){if(!$data) return true;}
 		);
 		$config+=$default;
 		if (!self::exists($config['cacheKey']) || $config['refresh']) {

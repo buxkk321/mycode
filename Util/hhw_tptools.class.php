@@ -3,6 +3,7 @@ namespace Common\My;
 class hhw_tptools {
 	public static $tn_ac='hhw_area_code';
 	public static $tn_pc='hhw_pack_category';
+	public static $tn_sundry='hhw_sundry';
 	public static $pre_to_company=array(1=>'yidong',2=>'liantong',3=>'dianxin');
 	public static function get_area_code($refresh=false,$range=null,$insure=false){
 		$cacheKey=self::$tn_ac.'.data';
@@ -92,14 +93,17 @@ class hhw_tptools {
 		}
 		return $category;
 	}
-	public static function getSundryInfo($refresh=false,$table,$name=''){
-		$cacheKey=$table.'.'.$name.'.data';
-		fc::$enctype=9;
+	public static function get_sundry_info($refresh=false,$name='',$insure=false){
+		$cacheKey=self::$tn_sundry.'.'.$name.'.data';
+		fc::$enctype=1;
 		if (!fc::exists($cacheKey) || $refresh) {
-			$data=M()->table($table)->where('name="'.$name.'"')->getField('content');
+			$data=M()->table(self::$tn_sundry)->where('name="'.$name.'"')->getField('content');
 			fc::save($cacheKey,$data);
 		}else{
 			$data=fc::get($cacheKey);
+		}
+		if(($data=='' || !is_string($data)) && !$insure){
+			$data=self::get_sundry_info(true,$name,true);
 		}
 		return $data;
 	}
