@@ -93,7 +93,7 @@ class hhw_tptools {
 		}
 		return $category;
 	}
-	public static function get_sundry_info($refresh=false,$name='',$insure=false){
+	public static function get_sundry_content($refresh=false,$name='',$insure=false){
 		$cacheKey=self::$tn_sundry.'.'.$name.'.data';
 		fc::$enctype=1;
 		if (!fc::exists($cacheKey) || $refresh) {
@@ -103,7 +103,7 @@ class hhw_tptools {
 			$data=fc::get($cacheKey);
 		}
 		if(($data=='' || !is_string($data)) && !$insure){
-			$data=self::get_sundry_info(true,$name,true);
+			$data=self::get_sundry_content(true,$name,true);
 		}
 		return $data;
 	}
