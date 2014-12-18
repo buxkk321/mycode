@@ -4,7 +4,11 @@ class hhw_tptools {
 	public static $tn_ac='hhw_area_code';
 	public static $tn_pc='hhw_pack_category';
 	public static $tn_sundry='hhw_sundry';
-	public static $pre_to_company=array(1=>'yidong',2=>'liantong',3=>'dianxin');
+	public static $default_company=array(
+				'yidong'=>'移动',
+				'liantong'=>'联通',
+				'dianxin'=>'电信'
+			);
 	public static function get_area_code($refresh=false,$range=null,$insure=false){
 		$cacheKey=self::$tn_ac.'.data';
 		if (!fc::exists($cacheKey) || $refresh) {

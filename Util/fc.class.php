@@ -1,6 +1,5 @@
 <?php
 namespace Common\My;
-use Admin\Controller\PublicController;
 
 /**
  * 文件缓存

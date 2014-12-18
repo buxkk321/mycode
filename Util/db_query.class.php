@@ -276,8 +276,24 @@ class db_query{
 	public static function auto_pad(&$data,$rules,$current_type='insert'){
 		foreach($rules as $col_name=>$auto){
 			if( $current_type == $auto['touch_type'] || $auto['when'] == 'both') {//触发方式和当前的相等 或等于'both'时,才会执行自动完成
-				empty($auto['parse']) && $auto['parse'] = 'string';//内容解析方式默认为string
 				switch(trim($auto['parse'])) {//根据解析方式执行替换
+					case 'array': // 将当前字段的值作为键名,替换成给定的数组对应的值
+						if(isset($auto['rule'][$data[$col_name]])){
+							$data[$col_name] = $auto['rule'][$data[$col_name]];
+						}
+						break;
+					case 'ignore': // 忽略指定的值,全等匹配
+						if(@$data[$col_name]===$auto['rule']) unset($data[$col_name]);
+						break;
+					case 'now'://当前时间
+						$data[$col_name]=$_SERVER['REQUEST_TIME'];
+						break;
+					case 'transform'://数据类型转换
+						$allow=array('string','int','float','bool');
+						if(isset($allow[$auto['param']])){
+							$data[$col_name] = eval('return ('.$auto['param'].')$auto["rule"];');
+						}
+						break;
 					case 'function':
 						$args = (array)$auto['param'];
 						if(isset($data[$col_name])) {
@@ -290,18 +306,6 @@ class db_query{
 					case 'field':    // 用其它字段的值进行填充
 						if(isset($data[$auto['rule']])){
 							$data[$col_name] = $data[$auto['rule']];
-						}
-						break;
-					case 'ignore': // 忽略指定的值,全等匹配
-						if(@$data[$col_name]===$auto['rule']) unset($data[$col_name]);
-						break;
-					case 'now'://当前时间
-						$data[$col_name]=$_SERVER['REQUEST_TIME'];
-						break;
-					case 'transform'://数据类型转换
-						$allow=array('string','int','float');
-						if(isset($allow[$auto['param']])){
-							$data[$col_name] = eval('return ('.$auto['param'].'$auto["rule"]');
 						}
 						break;
 					default://默认不进行解析直接赋值
@@ -701,7 +705,7 @@ class db_query{
 		
 		//分析整理查询条件
 		db_query::setCondition($sql,$config['condition'],$config['query_str']);
-		$re['_where']=(array)$config['condition']['where'];
+		$re['_condition']=(array)$config['condition'];
 		if($config['condition']['page_size']>0){
 			//limit条件和分页
 			$temp=array(
