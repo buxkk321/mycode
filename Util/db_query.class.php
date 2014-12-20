@@ -418,13 +418,13 @@ class db_query{
 	}
 	public static function setdb($db,$db_type){
 		self::$db=$db;
-		self::$db_type=$db_type;
+		self::$db_type=strtolower($db_type);
 	}
 	
 /******************以下方法需要在setdb后调用******************/
 	
 	public static function query($sql,$current=false){
-		switch (strtolower(self::$db_type)){
+		switch (self::$db_type){
 			case 'tp':
 				$re=self::$db->query($sql);
 				break;
@@ -484,8 +484,6 @@ class db_query{
 	 *  ['table'] 完整的表名
 	 * @param function $before_edit 在执行数据库操作前的处理(验证)函数,可选,参数说明:
 	 * 	$result:上一步操作的结果数据,引用传值,不需要返回值,格式同最后的return,出错时需要设置 $result['status']=3;
-	 * @param function $after_edit update操作成功之后时使用的自定义处理函数,可选,格式说明:
-	 *  $result:之前的处理结果数据,引用传值
 	 * @return array $result 操作结果
 	 * 返回值说明:
 	 *	['status'] 状态:
@@ -497,7 +495,7 @@ class db_query{
 	 *  ['id']影响数据的主键值
 	 *  ['data'] 待操作的数据
 	 */
-	public static function post_edit($config,$before_edit=null,$after_edit=null){
+	public static function post_edit($config,$before_edit=null){
 		$default=array(
 				'pk'=>'id',
 				'cols'=>array(),
@@ -543,8 +541,6 @@ class db_query{
 			}else{
 				$result['id']=self::insert($config['table'],$result['data']);
 			}
-			
-			is_callable($after_edit) && $after_edit($result);
 		} catch (\Exception $e) {
 			$result['status']=0;
 			if($_POST[$pk]>0){
@@ -720,6 +716,80 @@ class db_query{
 		//最终的查询
 		$re['_sql']='select '.$config['field'].' from '.$config['table'].' '.$sql['sql_main'].' '.$sql['sql_right'];
 		$re['_list']=self::query($re['_sql']);
+		
+		return $re;
+	}
+	/**
+	 * 
+	 * @param unknown_type $action
+	 * @param unknown_type $table
+	 * @param unknown_type $record_id
+	 * @param unknown_type $user_id
+	 * @return array
+	 */
+	public static function action_log($config,$action,$table,$record_id,$user_id){
+		$re=array('status'=>0);
+		$default=array(
+				''
+				);
+		
+		//参数检查
+		if(empty($action) || empty($table) || empty($record_id)){
+			return '参数不能为空';
+		}
+		if(empty($user_id)){
+			$user_id = is_login();
+		}
+		
+		//查询行为,判断是否执行
+		$action_info = M('Action')->getByName($action);
+		if($action_info['status'] != 1){
+			return '该行为被禁用或删除';
+		}
+		
+		//插入行为日志
+		$data['action_id']      =   $action_info['id'];
+		$data['user_id']        =   $user_id;
+		$data['action_ip']      =   ip2long(get_client_ip());
+		$data['model']          =   $model;
+		$data['record_id']      =   $record_id;
+		$data['create_time']    =   NOW_TIME;
+		
+		//解析日志规则,生成日志备注
+		if(!empty($action_info['log'])){
+			if(preg_match_all('/\[(\S+?)\]/', $action_info['log'], $match)){
+				$log['user']    =   $user_id;
+				$log['record']  =   $record_id;
+				$log['model']   =   $model;
+				$log['time']    =   NOW_TIME;
+				$log['data']    =   array('user'=>$user_id,'model'=>$model,'record'=>$record_id,'time'=>NOW_TIME);
+				foreach ($match[1] as $value){
+					$param = explode('|', $value);
+					if(isset($param[1])){
+						$replace[] = call_user_func($param[1],$log[$param[0]]);
+					}else{
+						$replace[] = $log[$param[0]];
+					}
+				}
+				$data['remark'] =   str_replace($match[0], $replace, $action_info['log']);
+			}else{
+				$data['remark'] =   $action_info['log'];
+			}
+		}else{
+			//未定义日志规则，记录操作url
+			$data['remark']     =   '操作url：'.$_SERVER['REQUEST_URI'];
+		}
+		
+		M('ActionLog')->add($data);
+		
+		if(!empty($action_info['rule'])){
+			//解析行为
+			$rules = parse_action($action, $user_id);
+		
+			//执行行为
+			$res = execute_action($rules, $action_info['id'], $user_id);
+		}
+		
 		
 		return $re;
 	}
