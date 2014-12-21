@@ -2,8 +2,12 @@
 namespace Common\My;
 class hhw_tptools {
 	public static $tn_ac='hhw_area_code';
+	public static $tn_area='hhw_area';
 	public static $tn_pc='hhw_pack_category';
 	public static $tn_sundry='hhw_sundry';
+	public static $tn_mnr='hhw_mobile_num_rule';
+	public static $tn_mnf='hhw_mobile_num_flow';
+	public static $tn_mnl='hhw_mobile_num_level';
 	public static $default_company=array(
 				'yidong'=>'移动',
 				'liantong'=>'联通',
@@ -111,8 +115,48 @@ class hhw_tptools {
 		}
 		return $data;
 	}
-	public static function getd(){
+	public static function check_empty($tn,$where){
+		$a=M()->table($tn)->where($where)->limit(1)->find();
+		return empty($a);
+	}
+	public static function get_num_addr($num){
+// 		$url='http://www.showji.com/search.htm?m='.$num;
+// 		$url='http://www.ip138.com:8080/search.asp?action=mobile&mobile='.$num;
+		$time=strstr(microtime(true)*1000,'.',true);
+		$url='http://api.showji.com/locating/showji.com1118.aspx?m='.$num.'&output=json&callback=querycallback&timestamp='.$time;
+		$ch=curl_init();
+		curl_setopt($ch, CURLOPT_URL, $url); // 要访问的地址
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0); // 对认证证书来源的检查，0表示阻止对证书的合法性的检查。
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 1); // 从证书中检查SSL加密算法是否存在
+		curl_setopt($ch, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']); // 模拟用户使用的浏览器
+		curl_setopt($ch, CURLOPT_TIMEOUT, 5); // 设置超时限制防止死循环
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); // 获取的信息以文件流的形式返回
+		curl_setopt($ch, CURLOPT_HEADER, 0); // 不显示返回的Header区域内容
+		$str=curl_exec($ch);// 执行操作
+		$re=$catch=array();
+		if ($str===false) {
+			$re['msg']=curl_error($ch);
+		}else{
+			preg_match_all('/mobile.*?([0-9]{11})/is',$str,$catch);//抓取手机号
+			$re['num']=$catch[1][0];
+			preg_match_all('/postcode.*?([0-9]{6})/is',$str,$catch);//抓取邮编
+			$re['post_code']=$catch[1][0];
+			if($re['num'] && $re['post_code']){
+				preg_match_all('/postcode.*?([0-9]{6})/is',$str,$catch);//抓取邮编
+				$ainfo=M()->table(self::$tn_area)->where('post_code='.$re['post_code']);
+				if($ainfo==null){
+					$ainfo=M()->table(self::$tn_area)->where($where);
+				}
+				
+				
+				$re['status']=1;
+			}else{
+				$re['msg']='获取手机号归属地的接口已更新,请联系开发人员升级接口解析程序';
+			}
+		}
+		curl_close($ch);
 		
+		return $re;
 	}
 	/**
 	 * 入口

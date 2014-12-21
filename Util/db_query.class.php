@@ -438,7 +438,8 @@ class db_query{
 		if($current && is_array($re)) $re=current($re);
 		return $re;
 	}
-	private static function insert($table,$data=array()){
+	
+	private static function insert($table,$data=array(),$duplicate=array()){
 		is_array($table) && $table = implode(',', $table);
 		switch (strtolower(self::$db_type)){
 			case 'tp':
@@ -504,7 +505,7 @@ class db_query{
 		$config=(array)$config+$default;
 		is_string($config['cols']) && $config['cols']=explode(',', $config['cols']);
 		$pk=$config['pk'];
-		$result=array('status'=>1);
+		$result=array('status'=>1,'pk'=>$pk);
 		foreach($config['cols'] as $vv){
 			if(isset($_POST[$vv])){
 				$result['data'][$vv]=$_POST[$vv];
