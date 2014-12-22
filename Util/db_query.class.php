@@ -8,9 +8,8 @@ class db_query{
 	private static $db;
 	private static $db_type;
 	private static $operates = array('AND'=>1,'OR'=>2,'XOR'=>3);
-	private static $sql_main='';
-	private static $sql_right='';
-
+	
+	
 	public static function parseBetween($str,$delimiter=','){
 		$re=array();
 		if(isset($str)){
@@ -682,7 +681,7 @@ class db_query{
 	 *  'condition':查询条件数组,格式参考setCondition方法,
 	 * @return array
 	 */
-	public static function getList($config=array()){
+	public static function getList($config){
 		$re=$sql=array();
 		$default=array(
 				'base_url'=>'',
@@ -694,7 +693,7 @@ class db_query{
 				'field'=>'*',
 				'condition'=>array()
 		);
-		$config+=$default;
+		$config=(array)$config+$default;
 		//TODO:table参数的扩展
 		!is_string($config['table']) && $config['table']='';
 		
@@ -717,80 +716,6 @@ class db_query{
 		//最终的查询
 		$re['_sql']='select '.$config['field'].' from '.$config['table'].' '.$sql['sql_main'].' '.$sql['sql_right'];
 		$re['_list']=self::query($re['_sql']);
-		
-		return $re;
-	}
-	/**
-	 * 
-	 * @param unknown_type $action
-	 * @param unknown_type $table
-	 * @param unknown_type $record_id
-	 * @param unknown_type $user_id
-	 * @return array
-	 */
-	public static function action_log($config,$action,$table,$record_id,$user_id){
-		$re=array('status'=>0);
-		$default=array(
-				''
-				);
-		
-		//参数检查
-		if(empty($action) || empty($table) || empty($record_id)){
-			return '参数不能为空';
-		}
-		if(empty($user_id)){
-			$user_id = is_login();
-		}
-		
-		//查询行为,判断是否执行
-		$action_info = M('Action')->getByName($action);
-		if($action_info['status'] != 1){
-			return '该行为被禁用或删除';
-		}
-		
-		//插入行为日志
-		$data['action_id']      =   $action_info['id'];
-		$data['user_id']        =   $user_id;
-		$data['action_ip']      =   ip2long(get_client_ip());
-		$data['model']          =   $model;
-		$data['record_id']      =   $record_id;
-		$data['create_time']    =   NOW_TIME;
-		
-		//解析日志规则,生成日志备注
-		if(!empty($action_info['log'])){
-			if(preg_match_all('/\[(\S+?)\]/', $action_info['log'], $match)){
-				$log['user']    =   $user_id;
-				$log['record']  =   $record_id;
-				$log['model']   =   $model;
-				$log['time']    =   NOW_TIME;
-				$log['data']    =   array('user'=>$user_id,'model'=>$model,'record'=>$record_id,'time'=>NOW_TIME);
-				foreach ($match[1] as $value){
-					$param = explode('|', $value);
-					if(isset($param[1])){
-						$replace[] = call_user_func($param[1],$log[$param[0]]);
-					}else{
-						$replace[] = $log[$param[0]];
-					}
-				}
-				$data['remark'] =   str_replace($match[0], $replace, $action_info['log']);
-			}else{
-				$data['remark'] =   $action_info['log'];
-			}
-		}else{
-			//未定义日志规则，记录操作url
-			$data['remark']     =   '操作url：'.$_SERVER['REQUEST_URI'];
-		}
-		
-		M('ActionLog')->add($data);
-		
-		if(!empty($action_info['rule'])){
-			//解析行为
-			$rules = parse_action($action, $user_id);
-		
-			//执行行为
-			$res = execute_action($rules, $action_info['id'], $user_id);
-		}
-		
 		
 		return $re;
 	}
