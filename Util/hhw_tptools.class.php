@@ -10,13 +10,13 @@ class hhw_tptools {
 	public static $tn_mnf='hhw_mobile_num_flow';
 	public static $tn_mnl='hhw_mobile_num_level';
 	public static $admin_log='hhw_admin_log';
-	public static $default_company=array(
-				'yidong'=>'移动',
-				'liantong'=>'联通',
-				'dianxin'=>'电信'
-			);
-	public static $code2company=array(1=>'yidong',2=>'liantong',3=>'dianxin');
 	
+	public static $default_company=array('yidong'=>'移动','liantong'=>'联通','dianxin'=>'电信');
+	public static $company2code=array('yidong'=>1,'liantong'=>2,'dianxin'=>3);
+	public static $code2company=array(1=>'yidong',2=>'liantong',3=>'dianxin');
+	public static $code2name=array(1=>'移动',2=>'联通',3=>'电信');
+	
+	public static $support=array('eq'=>1,'enum'=>1,'reg'=>1,'php'=>1);//支持的靓号规则解析模式
 	private static $pre_info=array();
 	private static $flow=array();
 	
@@ -217,27 +217,54 @@ class hhw_tptools {
 	 * @return unknown
 	 */
 	public static function num_match_init(){
+		//读取号段配置
 		$cinfo=(array)json_decode(self::get_sundry_content(0,'company_config'),true);
-		$company2code=array_flip(self::$code2company);
 		foreach($cinfo as $k=>$v){
 			foreach($v['pre'] as $kk=>$vv){
-				self::$pre_info[$kk]=$company2code[$k].$vv;
+				self::$pre_info[$kk]=self::$company2code[$k].$vv;
 			}
 		}
+		//读取匹配流程配置
 		$join=array(
-				'left join '.self::$tn_mnl.' mnl on mnl.id=mnf.level_id',
-				'left join '.self::$tn_mnr.' mnr on mnr.id=mnf.rule_id'
+				'left join '.self::$tn_mnl.' mnl on mnl.lv_code=mnf.lv_code',
+				'left join '.self::$tn_mnr.' mnr on mnr.name=mnf.rule_name'
 			);
 		$field=array(
+				'mnf.lv_code',
 				'mnf.sort',
+				'mnr.id',
 				'mnr.parse',
 				'mnr.rule',
 				'mnr.param',
 				'mnr.name',
 				'mnr.title'
 			);
-		$finfo=M()->table(self::$tn_mnf.' mnf')->join($join)->field($field)->select();
-		dump($finfo);
+		$finfo=M()->table(self::$tn_mnf.' mnf')->join($join)->field($field)->group('mnf.id')->select();
+		self::$flow=array();
+		foreach($finfo as $v){
+			$key1=substr($v['lv_code'],0,2);
+			$lv=substr($v['lv_code'],2);
+			switch($v['parse']){
+				case 'eq':
+					break;
+				case 'enum':
+					$v['rule']=array_flip(explode(',',$v['rule']));
+					break;
+				case 'reg':
+					break;
+				case 'php':
+					$param=explode(',',$v['param']);
+					$v['rule']=array_merge(array($v['rule']),$param);
+					break;
+				default:
+					continue;
+			}
+			self::$flow[$key1][$v['sort']][$v['parse']][$v['id']]=$v['rule'];
+			self::$flow[$key1][$v['sort']]['level']=$lv;
+		}
+		foreach(self::$flow as $k=>$v){
+			ksort(self::$flow[$k]);
+		}
 	}
 	public static function num_match($num,$gen){
 		$input=array(
@@ -263,75 +290,56 @@ class hhw_tptools {
 		return $input;
 	}
 	private static function do_match(&$input){
-		$input['level']=0;
 		$code=$input['company'].$input['gen'];
-		switch ($code){//流程修正
-			case 33://电信3G
-				if($input['correct']>0){
-					$flow=array_slice(self::$flow[$code],(int)$input['correct']);
-				}else{
-					$flow=self::$flow[$code];
-				}
-				$input['level']=7;
-				break;
-			case 22://联通2G
-				$flow=self::$flow[23];
-				unset($flow[7]['php'],$flow[7]['reg']['AABB'],$flow[7]['reg']['ABAB']);
-				break;
-			default:
-				$flow=self::$flow[$code];
+		if($input['correct']>0){
+			$lvs=array();
+			foreach(self::$flow[$code] as $v){
+				$lvs[]=$v['level'];
+			}
+			$flow=array_slice(self::$flow[$code],(int)$input['correct']);
+			foreach($flow as $k=>$v){
+				$flow[$k]['level']=current($lvs);
+				next($lvs);
+			}
+		}else{
+			$flow=self::$flow[$code];
 		}
 		if(empty($flow)){
 			$input['status']=4;
-			$input['msg']='目前没有设置['.(self::$company_name[$input['company']]).$input['gen'].'G]靓号规则';
+			$input['msg']='目前没有设置['.self::$company_name[$input['company']].$input['gen'].'G]靓号规则';
 			return ;
 		}
-	
-		// 		if($test=='reg'){
-		// 			$flow[8]['reg'][]='[+1]{6}';
-		// 			$flow[8]['reg'][]='[-1]{6}';
-		// 		}else{
-		// 			$flow[8]['php'][]=array('ap_positive','6');
-		// 			$flow[8]['php'][]=array('ap_negative','6');
-		// 		}
-		// 		dump($flow);
 	
 		foreach ($flow as $k=>$v){
 			if(isset($v['eq'])){
 				$len=strlen($v['eq']);
 				if(substr($input['num'],-$len)==$v['eq']){
-					$input['first_match']='eq{'.$len.'}';
-					$input['level']+=$k;
+					$input['first_match']=$k;
+					$input['level']=$v['level'];
 					break;
 				}
 			}
-			// 			if(isset($v['neq'])){
-			// 				if(substr($input['num'],-strlen($v['neq']))!=$v['neq']){
-			// 					$input['first_match']='neq['.$v['neq'].']';
-			// 					$input['level']=$k+$fix;
-			// 					break;
-			// 				}
-			// 			}
 			if(isset($v['enum'])){
 				foreach ($v['enum'] as $k2=>$v2){
-					if(isset($v2[substr($input['num'],-($k2))])){
-						$input['first_match']='eq{'.$k2.'}';
-						$input['level']+=$k;
+					$end=substr($input['num'],-strlen($v2[0]));
+					if(isset($v2[$end])){
+						$input['first_match']=$k2;
+						$input['level']=$v['level'];
 						break 2;
 					}
 				}
 			}
 			if(isset($v['reg'])){
-				foreach ($v['reg'] as $v3){
-					if(preg_match('/'.self::$reg[$v3].'$/',$input['num'])){
-						$input['first_match']=$v3;
-						$input['level']+=$k;
+				foreach ($v['reg'] as $k3=>$v3){
+					if(preg_match('/'.$v3.'$/',$input['num'])){
+						$input['first_match']=$k3;
+						$input['level']=$v['level'];
 						break 2;
 					}
 				}
 			}
 			if(isset($v['php'])){
-				foreach ($v['php'] as $v4){
+				foreach ($v['php'] as $k4=>$v4){
 					if (isset($v4[1])) {
 						//为了效率优化做以下约定:第二个单元为截取尾号的长度,第三个单元为指定的数字,第四个单元为$input数组的键名
 						$param[]=substr($input['num'],-($v4[1]));
@@ -341,8 +349,8 @@ class hhw_tptools {
 						$param[]=$input;
 					}
 					if(call_user_func_array('self::'.$v4[0],$param)){
-						$input['first_match']=$v4[0].($v4[1]>0?'_'.$v4[1]:'');
-						$input['level']+=$k;
+						$input['first_match']=$k4;
+						$input['level']=$v['level'];
 						break 2;
 					}
 				}
@@ -361,8 +369,14 @@ class hhw_tptools {
 		self::extra_match($input);
 	}
 	public static function extra_match(&$input){
+		$str=substr($input['num'],-4);
 		$month=substr($input['num'],-4,2);
 		$day=substr($input['num'],-2);
+		if($str[1]=='0'){
+			
+		}else{
+			
+		}
 		if(($month=='02' && $day>0 && $day<30) || checkdate($month,$day,'2000')){
 			$input['month_match']=$month;
 		}

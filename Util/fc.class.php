@@ -81,7 +81,7 @@ class fc{
 			'get_data'=>function(){},
 			'insure'=>function($data){if(!$data) return true;}
 		);
-		$config+=$default;
+		$config=(array)$config+$default;
 		if (!self::exists($config['cacheKey']) || $config['refresh']) {
 			$data=$config['get_data']();
 			if($data===false) return false;
