@@ -1,6 +1,7 @@
 --------未完成-------
 上传文件进度条
 php计数->流水号
+levenshtein距离
 
 
 -----------已完成----------
@@ -10,6 +11,16 @@ php:
 js:
 验证时间日期的有效性,
 hashchange
+
+mysql:
+删除一对一或一对多
+delimiter ||
+drop trigger if exists ***_delete||
+create trigger ***_delete BEFORE delete on *** for each row   
+begin
+DELETE FROM `***_***_detail` WHERE id=Old.id;
+end||
+
 
 
 正则:
