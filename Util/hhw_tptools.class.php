@@ -36,7 +36,6 @@ class hhw_tptools {
 					$addr['tree'][$kp[0].'0000'][$kp[0].$kp[1].'00'][$ke]=1;
 				}
 			}
-	
 			fc::save($cacheKey,$addr);
 		}else{
 			$addr=fc::get($cacheKey);
@@ -63,7 +62,42 @@ class hhw_tptools {
 		}
 		return $addr;
 	}
-	
+	public static function get_post_code_info($refresh=false,$range=null,$insure=false){
+		$cacheKey=self::$tn_area.'.data';
+		if (!fc::exists($cacheKey) || $refresh) {
+			$addr['list']=M()->table(self::$tn_area)->field('post_code,title')->select();
+			data_tree::set_index($addr['list'],0,'post_code');
+			$addr['tree']=array();
+			foreach ($addr['list'] as $ke => $vo) {
+				$kp=str_split($ke,2);
+				$addr['tree'][$kp[0].'0000'][$kp[0].$kp[1].'00']=1;
+			}
+			fc::save($cacheKey,$addr);
+		}else{
+			$addr=fc::get($cacheKey);
+		}
+		if(!isset($addr['tree']) && !$insure){
+			return self::get_post_code_info(1,$range,true);
+		}
+		if(is_numeric($range)){
+			$p=str_pad($range,6,'0',STR_PAD_RIGHT);
+			$addr['tree']=array($p=>$addr['tree'][$p]);
+			foreach ($addr['list'] as $k=>$v){
+				if(substr($k,0,2)!=$range){
+					unset($addr['list'][$k]);
+				}
+			}
+		}elseif(is_string($range)){
+		}elseif(is_array($range)){
+			$temp=array();
+			foreach ($range as $v){
+				$p=str_pad($v,6,'0',STR_PAD_RIGHT);
+				$temp[$p]=$addr[$p];
+			}
+			$addr=$temp;
+		}
+		return $addr;
+	}
 	public static function get_columns($tn,$refresh=false,$insure=false){
 		$cacheKey = $tn.'.cache';
 		if (!fc::exists($cacheKey) || $refresh) {
@@ -129,12 +163,23 @@ class hhw_tptools {
 		}
 		return $data;
 	}
-	public static function get_num_addr($num){
+	/**
+	 * 获取手机号归属地信息
+	 * @param unknown_type $num
+	 * @param unknown_type $_ch
+	 * @param unknown_type $delay 延迟时间,单位微秒
+	 * @return Ambigous <string, multitype:>
+	 */
+	public static function get_num_addr($num,$_ch=null,$delay=0){
 		// 		$url='http://www.showji.com/search.htm?m='.$num;
 		// 		$url='http://www.ip138.com:8080/search.asp?action=mobile&mobile='.$num;
 		$time=strstr(microtime(true)*1000,'.',true);
 		$url='http://api.showji.com/locating/showji.com1118.aspx?m='.$num.'&output=json&callback=querycallback&timestamp='.$time;
-		$ch=curl_init();
+		if($_ch){//如果有手动指定的cURL handle,则使用手动指定的,否则自动创建一个
+			$ch=$_ch;
+		}else{
+			$ch=curl_init();
+		}
 		curl_setopt($ch, CURLOPT_URL, $url); // 要访问的地址
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0); // 对认证证书来源的检查，0表示阻止对证书的合法性的检查。
 		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 1); // 从证书中检查SSL加密算法是否存在
@@ -147,25 +192,27 @@ class hhw_tptools {
 		if ($str===false) {
 			$re['msg']=curl_error($ch);
 		}else{
-			preg_match_all('/mobile.*?([0-9]{11})/is',$str,$catch);//抓取手机号
+			preg_match_all('/mobile\D*?([0-9]{11})\D/is',$str,$catch);//抓取手机号
 			$re['num']=$catch[1][0];
-			preg_match_all('/postcode.*?([0-9]{6})/is',$str,$catch);//抓取邮编
+			preg_match_all('/postcode\D*?([0-9]{6})\D/is',$str,$catch);//抓取邮编
 			$re['post_code']=$catch[1][0];
 			if($re['num'] && $re['post_code']){
 				preg_match_all('/postcode.*?([0-9]{6})/is',$str,$catch);//抓取邮编
-				$ainfo=M()->table(self::$tn_area)->where('post_code='.$re['post_code']);
-				if($ainfo==null){
-					$ainfo=M()->table(self::$tn_area)->where();
+				$check=self::check_empty(self::$tn_area, 'post_code='.$re['post_code']);
+				if($check){
+					M()->table(self::$tn_area)->add(array('post_code'=>$re['post_code']));
 				}
-	
-	
 				$re['status']=1;
+			}elseif($re['num'] && !$re['post_code']){
+				$re['msg']='号码['.$re['num'].']没有找到归属地信息,请手动设置归属地或联系管理员';
 			}else{
-				$re['msg']='获取手机号归属地的接口已更新,请联系开发人员升级接口解析程序';
+				$re['msg']='被第三方接口屏蔽或接口已更新,请联系开发人员升级接口解析程序:'.$str;
 			}
 		}
-		curl_close($ch);
-	
+		if(!$_ch) curl_close($ch);//如果没有手动指定curl则关闭刚才创建的curl
+		if($delay>0){
+			usleep($delay);
+		}
 		return $re;
 	}
 	public static function check_empty($tn,$where){
@@ -208,6 +255,15 @@ class hhw_tptools {
 		}
 	
 		return $re;
+	}
+	public static function lv_encode($company,$gen,$level){
+		if(isset(self::$company2code[$company])) $company=self::$company2code[$company];
+		return $company.$gen.$level;
+	}
+	public static function lv_decode($lv_code,&$subject){
+		$subject['company']=hhw_tptools::$code2company[substr($lv_code,0,1)];
+		$subject['gen']=substr($lv_code,1,1);
+		$subject['level']=substr($lv_code,2);
 	}
 	/**
 	 * 计算靓号等级模块初始化
@@ -361,7 +417,7 @@ class hhw_tptools {
 			case 34://电信4G
 	
 			default:
-				if(!$input['first_match']){
+				if(!$input['first_match']){//没有匹配任何靓号,默认为0
 					$input['level']=0;
 				}
 		}
@@ -369,15 +425,16 @@ class hhw_tptools {
 		self::extra_match($input);
 	}
 	public static function extra_match(&$input){
-		$str=substr($input['num'],-4);
-		$month=substr($input['num'],-4,2);
+		//判断生日号
+		$str=substr($input['num'],-4);//末尾4位
+		$month=$str[1];
 		$day=substr($input['num'],-2);
-		if($str[1]=='0'){
-			
-		}else{
-			
+		if($str[0]!='1' && $str[1]=='2'){//个位是2，但不是12
+			$check_2=true;
+		}elseif($str[0]=='1'){
+			$month=$str[0].$str[1];
 		}
-		if(($month=='02' && $day>0 && $day<30) || checkdate($month,$day,'2000')){
+		if(($check_2 && $day>0 && $day<30) || checkdate($month,$day,'2000')){
 			$input['month_match']=$month;
 		}
 	}
