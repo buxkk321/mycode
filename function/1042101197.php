@@ -202,15 +202,26 @@ function curlGet($ch=null,$url){
 	return $re; // 返回数据
 }
 /**
+ * 实时输出数据功能初始化
+ */
+function opr_init($charset='utf-8'){
+	$charset && header("Content-type: text/html; charset=utf-8");
+	error_reporting(E_ALL);
+	set_time_limit(0);
+	ob_end_clean ();
+	ob_start ();
+}
+/**
  * 实时输出数据,可选择记录时间
  * @param unknown_type $data
  */
-function output_realtime($data,$type='var_dump',$showtime=false,$restore=''){
+function opr($data,$type,$showtime=false,$restore=''){
 	static $start=0;
+	!$type && $type='var_dump';
 	if($type=='echo'){
-		eval($type.' $data;');
+		echo $data;
 	}else{
-		eval($type.'($data);');
+		$type($data);
 	}
 	if($showtime){
 		!$start && $start=microtime(true);
@@ -219,6 +230,7 @@ function output_realtime($data,$type='var_dump',$showtime=false,$restore=''){
 	if($restore){
 
 	}
+	echo '<br/>';
 	ob_flush();
 	flush();
 }
