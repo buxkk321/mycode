@@ -11,7 +11,7 @@ class hhw_tptools {
 	public static $tn_mnl='hhw_mobile_num_level';
 	public static $admin_log='hhw_admin_log';
 	
-	public static $default_company=array('yidong'=>'移动','liantong'=>'联通','dianxin'=>'电信');
+	public static $company2name=array('yidong'=>'移动','liantong'=>'联通','dianxin'=>'电信');
 	public static $company2code=array('yidong'=>1,'liantong'=>2,'dianxin'=>3);
 	public static $code2company=array(1=>'yidong',2=>'liantong',3=>'dianxin');
 	public static $code2name=array(1=>'移动',2=>'联通',3=>'电信');
