@@ -209,8 +209,8 @@ class hhw {
 			if($re['num'] && $re['post_code'] && $re['City']){
 				$re['msg']='归属地城市:'.$re['City'].',邮编:'.$re['post_code'];
 				$where=array('post_code'=>$re['post_code']);
-				$addr_info=M()->table(self::$tn_ac)->where($where)->order('xzqh_code')->select();
-				$re['xzqh_code']=$addr_info[0]['xzqh_code'];
+				$addr_info=M()->table(self::$tn_ac)->where($where)->order('xzqh_code')->find();
+				$re['xzqh_code']=$addr_info['xzqh_code'];
 				$re['status']=1;
 			}elseif($re['num'] && !$re['post_code']){
 				$re['msg']='号码['.$re['num'].']没有找到归属地信息,请手动设置归属地或联系管理员';
