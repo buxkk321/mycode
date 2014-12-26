@@ -14,6 +14,9 @@ function flipvar(&$var1,&$var2){
 	$var2=$var1^$var2;
 	$var1=$var1^$var2;
 }
+function get_unicode($str){
+	return substr(json_encode($str),1,-1);
+}
 /**
  * 计算未达标的个数
  * @param unknown $now 本次完成的数量
