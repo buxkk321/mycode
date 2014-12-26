@@ -1,9 +1,10 @@
 <?php
 namespace Common\My;
-class hhw_tptools {
-	public static $tn_ac='hhw_area_code';
+class hhw {
+	public static $tn_ac='hhw_addr_code';
 	public static $tn_area='hhw_area';
 	public static $tn_pc='hhw_pack_category';
+	public static $tn_pack='hhw_pack_monthly';
 	public static $tn_sundry='hhw_sundry';
 	public static $tn_mn='hhw_mobile_num';
 	public static $tn_mnr='hhw_mobile_num_rule';
@@ -17,8 +18,6 @@ class hhw_tptools {
 	public static $code2name=array(1=>'移动',2=>'联通',3=>'电信');
 	
 	public static $support=array('eq'=>1,'enum'=>1,'reg'=>1,'php'=>1);//支持的靓号规则解析模式
-	private static $pre_info=array();
-	private static $flow=array();
 	
 	public static function get_area_code($refresh=false,$range=null,$insure=false){
 		$cacheKey=self::$tn_ac.'.data';
@@ -174,7 +173,8 @@ class hhw_tptools {
 		// 		$url='http://www.showji.com/search.htm?m='.$num;
 		// 		$url='http://www.ip138.com:8080/search.asp?action=mobile&mobile='.$num;
 		$time=strstr(microtime(true)*1000,'.',true);
-		$url='http://api.showji.com/locating/showji.com1118.aspx?m='.$num.'&output=json&callback=querycallback&timestamp='.$time;
+		$callback='';
+		$url='http://api.showji.com/locating/showji.com1118.aspx?m='.$num.'&output=json&timestamp='.$time.'&callback='.$callback;
 		if($_ch){//如果有手动指定的cURL handle,则使用手动指定的,否则自动创建一个
 			$ch=$_ch;
 		}else{
@@ -192,21 +192,30 @@ class hhw_tptools {
 		if ($str===false) {
 			$re['msg']=curl_error($ch);
 		}else{
-			preg_match_all('/mobile\D*?([0-9]{11})\D/is',$str,$catch);//抓取手机号
-			$re['num']=$catch[1][0];
-			preg_match_all('/postcode\D*?([0-9]{6})\D/is',$str,$catch);//抓取邮编
-			$re['post_code']=$catch[1][0];
-			if($re['num'] && $re['post_code']){
-				preg_match_all('/postcode.*?([0-9]{6})/is',$str,$catch);//抓取邮编
-				$check=self::check_empty(self::$tn_area, 'post_code='.$re['post_code']);
-				if($check){
-					M()->table(self::$tn_area)->add(array('post_code'=>$re['post_code']));
-				}
+			$re=json_decode($str,true);
+			if($re){
+				$re['num']=$re['Mobile'];
+				$re['post_code']=$re['PostCode'];
+			}else{
+				preg_match_all('/mobile\D*?([0-9]{11})\D/is',$str,$catch);//抓取手机号
+				$re['num']=$catch[1][0];
+				preg_match_all('/postcode\D*?([0-9]{6})\D/is',$str,$catch);//抓取邮编
+				$re['post_code']=$catch[1][0];
+				preg_match_all('/city\D*?[\'\"]([\p{Han}]+?)[\'\"]\D/is',$str,$catch);//抓取邮编
+				$re['City']=$catch[1][0];
+			}
+			
+			if($re['num'] && $re['post_code'] && $re['City']){
+				$re['msg']='归属地城市:'.$re['City'].',邮编:'.$re['post_code'];
+				$where=array('post_code'=>$re['post_code']);
+				$addr_info=M()->table(self::$tn_ac)->where($where)->select();
+				$re['xzqh_code']=$addr_info['xzqh_code'];
 				$re['status']=1;
 			}elseif($re['num'] && !$re['post_code']){
 				$re['msg']='号码['.$re['num'].']没有找到归属地信息,请手动设置归属地或联系管理员';
+				$re['status']=2;
 			}else{
-				$re['msg']='被第三方接口屏蔽或接口已更新,请联系开发人员升级接口解析程序:'.$str;
+				$re['msg']='调用过于频繁或接口已更新,如有疑问请联系管理员:'.addslashes(htmlspecialchars($str));
 			}
 		}
 		if(!$_ch) curl_close($ch);//如果没有手动指定curl则关闭刚才创建的curl
@@ -260,182 +269,19 @@ class hhw_tptools {
 		if(isset(self::$company2code[$company])) $company=self::$company2code[$company];
 		return $company.$gen.$level;
 	}
-	public static function lv_decode($lv_code,&$subject){
-		$subject['company']=hhw_tptools::$code2company[substr($lv_code,0,1)];
-		$subject['gen']=substr($lv_code,1,1);
+	public static function lv_decode($lv_code,&$subject,$type=0){
 		$subject['level']=substr($lv_code,2);
-	}
-	/**
-	 * 计算靓号等级模块初始化
-	 * @param int|string $num 号码
-	 * @param int|string $gen 第几代
-	 * @param array $assist_data 其他必要数据
-	 * @return unknown
-	 */
-	public static function num_match_init(){
-		//读取号段配置
-		$cinfo=(array)json_decode(self::get_sundry_content(0,'company_config'),true);
-		foreach($cinfo as $k=>$v){
-			foreach($v['pre'] as $kk=>$vv){
-				self::$pre_info[$kk]=self::$company2code[$k].$vv;
-			}
-		}
-		//读取匹配流程配置
-		$join=array(
-				'left join '.self::$tn_mnl.' mnl on mnl.lv_code=mnf.lv_code',
-				'left join '.self::$tn_mnr.' mnr on mnr.name=mnf.rule_name'
-			);
-		$field=array(
-				'mnf.lv_code',
-				'mnf.sort',
-				'mnr.id',
-				'mnr.parse',
-				'mnr.rule',
-				'mnr.param',
-				'mnr.name',
-				'mnr.title'
-			);
-		$finfo=M()->table(self::$tn_mnf.' mnf')->join($join)->field($field)->group('mnf.id')->select();
-		self::$flow=array();
-		foreach($finfo as $v){
-			$key1=substr($v['lv_code'],0,2);
-			$lv=substr($v['lv_code'],2);
-			switch($v['parse']){
-				case 'eq':
-					break;
-				case 'enum':
-					$v['rule']=array_flip(explode(',',$v['rule']));
-					break;
-				case 'reg':
-					break;
-				case 'php':
-					$param=explode(',',$v['param']);
-					$v['rule']=array_merge(array($v['rule']),$param);
-					break;
-				default:
-					continue;
-			}
-			self::$flow[$key1][$v['sort']][$v['parse']][$v['id']]=$v['rule'];
-			self::$flow[$key1][$v['sort']]['level']=$lv;
-		}
-		foreach(self::$flow as $k=>$v){
-			ksort(self::$flow[$k]);
+		switch ($type){
+			case 0:
+				$subject['company']=self::$code2company[substr($lv_code,0,1)];
+				$subject['gen']=substr($lv_code,1,1);
+				break;
+			case 1:
+				$subject['company']=self::$code2name[substr($lv_code,0,1)];
+				$subject['gen']=substr($lv_code,1,1).G;
+				break;
 		}
 	}
-	public static function num_match($num,$gen){
-		$input=array(
-				'status'=>1,
-				'gen'=>$gen.'',//第几代
-				'num'=>$num.'',//号码
-				'prefix'=>substr($num,0,3),//前三位
-		
-		);
-		$prefix_info=self::$pre_info[$input['prefix']];//根据号码前三位找到对应的信息
-		if($gen<2){
-			$input['status']=2;
-			$input['msg']='请选择电话网络的代数';
-		}elseif($prefix_info==null){
-			$input['status']=3;
-			$input['msg']='手机号['.$num.']没有匹配的运营商';
-		}else{
-			$input['company']=$prefix_info[0];//运营商
-			$input['correct']=$prefix_info[1];//修正值
-			self::do_match($input);
-			$input['company']=self::$code2company[$prefix_info[0]];
-		}
-		return $input;
-	}
-	private static function do_match(&$input){
-		$code=$input['company'].$input['gen'];
-		if($input['correct']>0){
-			$lvs=array();
-			foreach(self::$flow[$code] as $v){
-				$lvs[]=$v['level'];
-			}
-			$flow=array_slice(self::$flow[$code],(int)$input['correct']);
-			foreach($flow as $k=>$v){
-				$flow[$k]['level']=current($lvs);
-				next($lvs);
-			}
-		}else{
-			$flow=self::$flow[$code];
-		}
-		if(empty($flow)){
-			$input['status']=4;
-			$input['msg']='目前没有设置['.self::$company_name[$input['company']].$input['gen'].'G]靓号规则';
-			return ;
-		}
 	
-		foreach ($flow as $k=>$v){
-			if(isset($v['eq'])){
-				$len=strlen($v['eq']);
-				if(substr($input['num'],-$len)==$v['eq']){
-					$input['first_match']=$k;
-					$input['level']=$v['level'];
-					break;
-				}
-			}
-			if(isset($v['enum'])){
-				foreach ($v['enum'] as $k2=>$v2){
-					$end=substr($input['num'],-strlen($v2[0]));
-					if(isset($v2[$end])){
-						$input['first_match']=$k2;
-						$input['level']=$v['level'];
-						break 2;
-					}
-				}
-			}
-			if(isset($v['reg'])){
-				foreach ($v['reg'] as $k3=>$v3){
-					if(preg_match('/'.$v3.'$/',$input['num'])){
-						$input['first_match']=$k3;
-						$input['level']=$v['level'];
-						break 2;
-					}
-				}
-			}
-			if(isset($v['php'])){
-				foreach ($v['php'] as $k4=>$v4){
-					if (isset($v4[1])) {
-						//为了效率优化做以下约定:第二个单元为截取尾号的长度,第三个单元为指定的数字,第四个单元为$input数组的键名
-						$param[]=substr($input['num'],-($v4[1]));
-						isset($v4[2]) && $param[]=$v4[2];
-						isset($v4[3]) && $param[]=$input[$v4[3]];
-					}else{
-						$param[]=$input;
-					}
-					if(call_user_func_array('self::'.$v4[0],$param)){
-						$input['first_match']=$k4;
-						$input['level']=$v['level'];
-						break 2;
-					}
-				}
-			}
-		}
 	
-		switch ($code){//结束操作
-			case 34://电信4G
-	
-			default:
-				if(!$input['first_match']){//没有匹配任何靓号,默认为0
-					$input['level']=0;
-				}
-		}
-	
-		self::extra_match($input);
-	}
-	public static function extra_match(&$input){
-		//判断生日号
-		$str=substr($input['num'],-4);//末尾4位
-		$month=$str[1];
-		$day=substr($input['num'],-2);
-		if($str[0]!='1' && $str[1]=='2'){//个位是2，但不是12
-			$check_2=true;
-		}elseif($str[0]=='1'){
-			$month=$str[0].$str[1];
-		}
-		if(($check_2 && $day>0 && $day<30) || checkdate($month,$day,'2000')){
-			$input['month_match']=$month;
-		}
-	}
 }

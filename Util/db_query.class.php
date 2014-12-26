@@ -139,8 +139,9 @@ class db_query{
 	}
 
 	public static function parseComment($comment){
-		$col_info=array();
-		if(strpos($comment,'{')===false || strpos($comment,'}')===false){
+		$col_info=array('title'=>'');
+		if($comment==''){
+		}elseif(strpos($comment,'{')===false || strpos($comment,'}')===false){
 			$po=strpos($comment,'(');$end=strrpos($comment,')');
 			if($po!==false && $end!==false && $po<$end){
 				$col_info['tip']=substr($comment,$po,$end-$po+1);
@@ -164,16 +165,15 @@ class db_query{
 	
 	/**
 	 * 生成列表表头或表单
-	 * @param array $input
+	 * @param array $cols_info 输入的所有字段信息,要求所有键名皆为小写
 	 * @param mixed $cols
-	 * @param bool $except
+	 * @param number $except 处理提供的字段的方式
 	 * @param string $separ
 	 * @return multitype:
 	 */
-	public static function getGrids($cols_info,$cols=array(),$except=false){
+	public static function getGrids($cols_info,$cols=array(),$except=0){
 		$re=array();
 		is_string($cols) && $cols=explode(',', $cols);
-	
 		if(empty($cols)){
 			foreach ($cols_info as $kk=>$vv){
 				$re[$vv['field']]=self::parseComment($vv['comment']);
@@ -181,17 +181,34 @@ class db_query{
 			}
 		}else{
 			$cols=array_flip($cols);
-			$inte=array();
-			foreach ($cols_info as $kk=>$vv){
-				if(isset($cols[$vv['field']])!=$except){
-					$cols[$vv['field']]=self::parseComment($vv['comment']);
-					$cols[$vv['field']]['col_type']=$vv['type'];
-					$inte[$vv['field']]=1;
-				}
+			switch ($except){
+				case 1://排除给定字段的值
+					foreach ($cols_info as $kk=>$vv){
+						if(!isset($cols[$vv['field']])){
+							$re[$vv['field']]=self::parseComment($vv['comment']);
+							$re[$vv['field']]['col_type']=$vv['type'];
+						}
+					}
+					break;
+				case 2://将存在字段,才提取出来
+					$inte=array();
+					foreach ($cols_info as $kk=>$vv){
+						if(isset($cols[$vv['field']])){
+							$cols[$vv['field']]=self::parseComment($vv['comment']);
+							$cols[$vv['field']]['col_type']=$vv['type'];
+							$inte[$vv['field']]=1;
+						}
+					}
+					$re=array_intersect_key($cols, $inte);
+					break;
+				default://不管给定字段是否存在,都进行创建
+					foreach ($cols as $kk=>&$vv){
+						$vv=self::parseComment($cols_info[$kk]['comment']);
+						$vv['col_type']=$cols_info[$kk]['type'];
+					}
+					$re=$cols;
 			}
-			$re=array_intersect_key($cols, $inte);
 		}
-		unset($vv);
 		return $re;
 	}
 	/**
@@ -245,12 +262,12 @@ class db_query{
 				$condition=json_decode(base64_decode($query),true);
 			}
 		}
-	
 		//拼中间部分的sql语句
 		if(isset($condition['join'])){
 			$join=is_array($condition['join'])?implode(' ',$condition['join']):(string)$condition['join'];
 			$subject['sql_main'].=$join.' ';
 		}
+		
 		isset($condition['where']) && $subject['sql_main'].=self::parseWhere($condition['where']).' ';
 		if(isset($condition['group'])){
 			$subject['sql_main'].='group by '.$condition['group'].' ' ;
@@ -701,6 +718,7 @@ class db_query{
 		
 		//分析整理查询条件
 		db_query::setCondition($sql,$config['condition'],$config['query_str']);
+// 		dump($sql);exit;
 		$re['_condition']=(array)$config['condition'];
 		if($config['condition']['page_size']>0){
 			//limit条件和分页
@@ -715,6 +733,7 @@ class db_query{
 		}
 		//最终的查询
 		$re['_sql']='select '.$config['field'].' from '.$config['table'].' '.$sql['sql_main'].' '.$sql['sql_right'];
+		
 		$re['_list']=self::query($re['_sql']);
 		
 		return $re;
