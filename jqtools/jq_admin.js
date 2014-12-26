@@ -96,12 +96,9 @@
         },obj=this;
         if ( options ) $.extend( settings, options );
         $.each(settings.select,function(k,v){
-            if(k.indexOf('#')===0){
-                $(k).get(0).selectedIndex=$(k+' option[value="'+v+'"]').index();
-            }else{
-                var temp=obj.find('select[name="'+k+'"]');
-                temp.get(0).selectedIndex=temp.children('option[value="'+v+'"]').index();
-            }
+            var temp=obj.find(k);
+            temp.get(0).selectedIndex=temp.children('option[value="'+v+'"]').index();
+            temp.change();
         });
         $.each(settings.checkbox,function(k,v){
 
