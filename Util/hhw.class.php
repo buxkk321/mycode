@@ -192,10 +192,11 @@ class hhw {
 		if ($str===false) {
 			$re['msg']=curl_error($ch);
 		}else{
-			$re=json_decode($str,true);
-			if($re){
-				$re['num']=$re['Mobile'];
-				$re['post_code']=$re['PostCode'];
+			$rt=json_decode($str,true);
+			if($rt){
+				$re['City']=$rt['City'];
+				$re['num']=$rt['Mobile'];
+				$re['post_code']=$rt['PostCode'];
 			}else{
 				preg_match_all('/mobile\D*?([0-9]{11})\D/is',$str,$catch);//抓取手机号
 				$re['num']=$catch[1][0];
@@ -208,8 +209,8 @@ class hhw {
 			if($re['num'] && $re['post_code'] && $re['City']){
 				$re['msg']='归属地城市:'.$re['City'].',邮编:'.$re['post_code'];
 				$where=array('post_code'=>$re['post_code']);
-				$addr_info=M()->table(self::$tn_ac)->where($where)->select();
-				$re['xzqh_code']=$addr_info['xzqh_code'];
+				$addr_info=M()->table(self::$tn_ac)->where($where)->order('xzqh_code')->select();
+				$re['xzqh_code']=$addr_info[0]['xzqh_code'];
 				$re['status']=1;
 			}elseif($re['num'] && !$re['post_code']){
 				$re['msg']='号码['.$re['num'].']没有找到归属地信息,请手动设置归属地或联系管理员';
@@ -219,9 +220,7 @@ class hhw {
 			}
 		}
 		if(!$_ch) curl_close($ch);//如果没有手动指定curl则关闭刚才创建的curl
-		if($delay>0){
-			usleep($delay);
-		}
+		if($delay>0) usleep($delay);
 		return $re;
 	}
 	public static function check_empty($tn,$where){
@@ -229,6 +228,25 @@ class hhw {
 		return empty($a);
 	}
 	
+
+	
+	public static function lv_encode($company,$gen,$level){
+		if(isset(self::$company2code[$company])) $company=self::$company2code[$company];
+		return $company.$gen.$level;
+	}
+	public static function lv_decode($lv_code,&$subject,$type=0){
+		$subject['level']=substr($lv_code,2);
+		switch ($type){
+			case 0:
+				$subject['company']=self::$code2company[substr($lv_code,0,1)];
+				$subject['gen']=substr($lv_code,1,1);
+				break;
+			case 1:
+				$subject['company']=self::$code2name[substr($lv_code,0,1)];
+				$subject['gen']=substr($lv_code,1,1).G;
+				break;
+		}
+	}
 	/**
 	 * 后台管理员的操作的日志
 	 * @param string $table
@@ -265,23 +283,4 @@ class hhw {
 	
 		return $re;
 	}
-	public static function lv_encode($company,$gen,$level){
-		if(isset(self::$company2code[$company])) $company=self::$company2code[$company];
-		return $company.$gen.$level;
-	}
-	public static function lv_decode($lv_code,&$subject,$type=0){
-		$subject['level']=substr($lv_code,2);
-		switch ($type){
-			case 0:
-				$subject['company']=self::$code2company[substr($lv_code,0,1)];
-				$subject['gen']=substr($lv_code,1,1);
-				break;
-			case 1:
-				$subject['company']=self::$code2name[substr($lv_code,0,1)];
-				$subject['gen']=substr($lv_code,1,1).G;
-				break;
-		}
-	}
-	
-	
 }
