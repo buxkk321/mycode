@@ -17,6 +17,7 @@ class hhw {
 	public static $tn_sg='hhw_score_gift';
 	public static $tn_so='hhw_score_order';
 	public static $tn_sr='hhw_score_record';
+	public static $tn_dsr='hhw_daily_score_record';
 	public static $admin_log='hhw_admin_log';
 	public static $tn_member='hhw_member';
 	public static $tn_ucm='hhw_ucenter_member';
@@ -180,14 +181,14 @@ class hhw {
 			$cacheKey=hhw::$tn_hall.'.'.$province_code.'.data';
 			if (!fc::exists($cacheKey) || $refresh) {
 				$sql='select * from '.hhw::$tn_hall.' where left(addr_code,2)='.$province_code;
-				$category['data']=M()->query($sql);
-				$category['map']=data_tree::build_map($category['data'],'addr_code');
-				fc::save($cacheKey,$category);
+				$hall=array('data'=>M()->query($sql));
+				$hall['map']=data_tree::build_map($hall['data'],'addr_code');
+				fc::save($cacheKey,$hall);
 			}else{
-				$category=fc::get($cacheKey);
+				$hall=fc::get($cacheKey);
 			}
 		}
-		return $category;
+		return $hall;
 	}
 	public static function get_addr_info($code,$type){
 		$re=array('status'=>0);
