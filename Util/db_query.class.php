@@ -566,7 +566,6 @@ class db_query{
 				$result['msg']='添加出错:'.$e->__toString();
 			}
 		}
-		
 		if($result['status']==1 && !empty($result['del_list'])){
 			foreach ($result['del_list'] as $vv){
 				unlink($vv);

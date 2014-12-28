@@ -5,12 +5,21 @@ class hhw {
 	public static $tn_area='hhw_area';
 	public static $tn_pc='hhw_pack_category';
 	public static $tn_pack='hhw_pack_monthly';
+	public static $tn_cpa='hhw_custom_pack_attr';
 	public static $tn_sundry='hhw_sundry';
 	public static $tn_mn='hhw_mobile_num';
 	public static $tn_mnr='hhw_mobile_num_rule';
 	public static $tn_mnf='hhw_mobile_num_flow';
 	public static $tn_mnl='hhw_mobile_num_level';
+	public static $tn_hall='hhw_hall';
+	public static $tn_order='hhw_order';
+	public static $tn_od='hhw_order_detail';
+	public static $tn_sg='hhw_score_gift';
+	public static $tn_so='hhw_score_order';
+	public static $tn_sr='hhw_score_record';
 	public static $admin_log='hhw_admin_log';
+	public static $tn_member='hhw_member';
+	public static $tn_ucm='hhw_ucenter_member';
 	
 	public static $company2name=array('yidong'=>'移动','liantong'=>'联通','dianxin'=>'电信');
 	public static $company2code=array('yidong'=>1,'liantong'=>2,'dianxin'=>3);
@@ -18,12 +27,16 @@ class hhw {
 	public static $code2name=array(1=>'移动',2=>'联通',3=>'电信');
 	
 	public static $support=array('eq'=>1,'enum'=>1,'reg'=>1,'php'=>1);//支持的靓号规则解析模式
-	
+	/**
+	 * 后台用户操作类型
+	 * @var array
+	 */
+	public static $act_type=array('下载','新增','修改','删除');
 	public static function get_area_code($refresh=false,$range=null,$insure=false){
 		$cacheKey=self::$tn_ac.'.data';
 		if (!fc::exists($cacheKey) || $refresh) {
-			$addr['list']=M()->table(self::$tn_ac)->field('code,title')->select();
-			data_tree::set_index($addr['list'],0,'code');
+			$addr['list']=M()->table(self::$tn_ac)->field('xzqh_code,title')->select();
+			data_tree::set_index($addr['list'],0,'xzqh_code');
 			$addr['tree']=array();
 			foreach ($addr['list'] as $ke => $vo) {
 				$kp=str_split($ke,2);
@@ -162,6 +175,33 @@ class hhw {
 		}
 		return $data;
 	}
+	public static  function get_hall_info($refresh=false,$province_code=42){
+		if(is_numeric($province_code)){
+			$cacheKey=hhw::$tn_hall.'.'.$province_code.'.data';
+			if (!fc::exists($cacheKey) || $refresh) {
+				$sql='select * from '.hhw::$tn_hall.' where left(addr_code,2)='.$province_code;
+				$category['data']=M()->query($sql);
+				$category['map']=data_tree::build_map($category['data'],'addr_code');
+				fc::save($cacheKey,$category);
+			}else{
+				$category=fc::get($cacheKey);
+			}
+		}
+		return $category;
+	}
+	public static function get_addr_info($code,$type){
+		$re=array('status'=>0);
+		$arr=array('post_code','xzqh_code','title','id');
+		if(!isset($arr[$type])) $type='post_code';
+	
+		$addr_info=M()->table(hhw::$tn_ac)->where($type.'="'.(int)$code.'"')->find();
+		if(empty($addr_info)){
+	
+		}else{
+			$re['xzqh_code']=$addr_info['xzqh_code'];
+			$re['status']=1;
+		}
+	}
 	/**
 	 * 获取手机号归属地信息
 	 * @param unknown_type $num
@@ -205,22 +245,24 @@ class hhw {
 				preg_match_all('/city\D*?[\'\"]([\p{Han}]+?)[\'\"]\D/is',$str,$catch);//抓取邮编
 				$re['City']=$catch[1][0];
 			}
-			
+				
 			if($re['num'] && $re['post_code'] && $re['City']){
 				$re['msg']='归属地城市:'.$re['City'].',邮编:'.$re['post_code'];
 				$where=array('post_code'=>$re['post_code']);
-				$addr_info=M()->table(self::$tn_ac)->where($where)->order('xzqh_code')->find();
-				$re['xzqh_code']=$addr_info['xzqh_code'];
+				$addr_info=self::get_addr_info($re['post_code']);
+				!$addr_info['status'] && $re['xzqh_code']=substr($addr_info['xzqh_code'],0,4).'00';
 				$re['status']=1;
 			}elseif($re['num'] && !$re['post_code']){
 				$re['msg']='号码['.$re['num'].']没有找到归属地信息,请手动设置归属地或联系管理员';
 				$re['status']=2;
 			}else{
 				$re['msg']='调用过于频繁或接口已更新,如有疑问请联系管理员:'.addslashes(htmlspecialchars($str));
+				$re['status']=3;
 			}
 		}
 		if(!$_ch) curl_close($ch);//如果没有手动指定curl则关闭刚才创建的curl
 		if($delay>0) usleep($delay);
+		
 		return $re;
 	}
 	public static function check_empty($tn,$where){
@@ -248,31 +290,44 @@ class hhw {
 		}
 	}
 	/**
-	 * 后台管理员的操作的日志
+	 * 	后台管理员的操作的日志
+	 * @param int $action_type
 	 * @param string $table
 	 * @param mixed $record_id
 	 * @param int $user_id
+	 * @param mixed $detail
 	 * @return array
 	 */
-	public static function admin_log($table,$record_id,$user_id){
+
+	public static function admin_log($action_type,$table,$record_id,$user_id,$detail=''){
 		$re=array('status'=>0);
 		//参数检查
 		if(empty($table) || empty($record_id) || empty($user_id)){
 			$re['msg']='参数不能为空';
 			return $re;
 		}
-		if(strpos($record_id,',')!==false) $record_id=implode(',',$record_id);
-		if(!is_array($record_id)) $record_id=array($record_id);
+		
+		if(is_string($record_id)) $record_id=explode(',',$record_id);
+		if(!is_array($record_id)) $record_id=(array)$record_id;
+		
+		if(is_array($detail)){
+			$is_string=0;
+		}else{
+			$is_string=1;
+		}
+		
 		foreach($record_id as $v){
 			//插入行为日志
 			$data=array(
-					'user_id'=>$user_id,
+					'uid'=>$user_id,
 					'action_ip'=>ip2long(get_client_ip()),
+					'action_type'=>$action_type,
 					'table'=>$table,
-					'record_id'=>$v,
+					'record_id'=>(int)$v,
 					'create_time'=>$_SERVER['REQUEST_TIME'],
-					'action_url'=>$_SERVER['REQUEST_URI']
+					'action_url'=>$_SERVER['REQUEST_URI'],
 			);
+			$data['detail']=$is_string?''.$detail:$detail[$v];
 			$id=M()->table(self::$admin_log)->add($data);
 			$re['status']=(bool)$id;
 			if(!$id){
@@ -280,7 +335,6 @@ class hhw {
 				break;
 			}
 		}
-	
 		return $re;
 	}
 }
