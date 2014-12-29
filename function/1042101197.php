@@ -213,6 +213,22 @@ function opr_init($charset='utf-8'){
 	set_time_limit(0);
 	ob_end_clean ();
 	ob_start ();
+	echo 
+		'<script>
+			var custom_scroll=0;
+			window.onscroll = function(){
+				console.log(this.scrollTop);
+				console.log(this.scrollHeight);
+				if(this.scrollHeight - this.scrollTop > 30){
+					custom_scroll=1;
+				}
+			}
+			function scrollBottom(){
+				if(!custom_scroll){
+					window.scrollTo(0,document.body.scrollHeight);
+				}
+			}
+		</script>';
 }
 /**
  * 实时输出数据,可选择记录时间
@@ -221,6 +237,7 @@ function opr_init($charset='utf-8'){
 function opr($data,$type,$showtime=false,$restore=''){
 	static $start=0;
 	!$type && $type='var_dump';
+	
 	if($type=='echo'){
 		echo $data;
 	}else{
