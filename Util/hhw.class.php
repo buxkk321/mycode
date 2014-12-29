@@ -202,6 +202,7 @@ class hhw {
 			$re['xzqh_code']=$addr_info['xzqh_code'];
 			$re['status']=1;
 		}
+		return $re;
 	}
 	/**
 	 * 获取手机号归属地信息
@@ -251,7 +252,7 @@ class hhw {
 				$re['msg']='归属地城市:'.$re['City'].',邮编:'.$re['post_code'];
 				$where=array('post_code'=>$re['post_code']);
 				$addr_info=self::get_addr_info($re['post_code']);
-				!$addr_info['status'] && $re['xzqh_code']=substr($addr_info['xzqh_code'],0,4).'00';
+				$addr_info['status'] && $re['xzqh_code']=substr($addr_info['xzqh_code'],0,4).'00';
 				$re['status']=1;
 			}elseif($re['num'] && !$re['post_code']){
 				$re['msg']='号码['.$re['num'].']没有找到归属地信息,请手动设置归属地或联系管理员';
