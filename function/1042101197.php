@@ -31,6 +31,74 @@ function count_lack($now,$all,$target){
 	return $re;
 }
 /**
+ * 将输入数组重排成以唯一id或标识作为键名的数组
+ * @param array $data 输入数据
+ * @param int $plan 处理方式,数值说明:
+ *  0:只排序不返回索引
+ *  1:只返回索引不排序
+ *  2:排序并返回索引
+ * @param string $uk 标识值单元的键名,默认为'id'
+ */
+function set_index(&$data,$plan=0,$uk='id'){
+	$temp=array();
+	switch ($plan){
+		case 0:
+			foreach($data as $k=>$v){
+				$temp[$v[$uk]]=$v;
+			}
+			$data=$temp;
+			$temp=0;
+			break;
+		case 1:
+			foreach($data as $k=>$v){
+				$temp[$v[$uk]]=$k;
+			}
+			break;
+		case 2:
+			$temp2=array();
+			foreach($data as $k=>$v){
+				$temp2[$v[$uk]]=$v;
+				$temp[$v[$uk]]=$k;
+			}
+			$data=$temp2;
+			unset($temp2);
+			break;
+	}
+	unset($v);
+	return $temp;
+}
+/**
+ * 无限级分类,返回分好组的多维数组
+ * @param array $data 原始数据
+ * @param array $data_index 主键到原始数据数字索引的映射
+ * @return array
+ */
+function build_tree($data,$data_index=array(),$parent='pid',$child='child',$end='0',$multicount='') {
+	$tree=array();
+	$parent=(string)$parent;
+	$child=(string)$child;
+	$multicount=(string)$multicount;
+	$end=(string)$end;
+
+	$s=empty($data_index);
+	foreach ($data as $ke => $vo) {
+		$kp=$s?$vo[$parent]:$data_index[$vo[$parent]];
+		if($vo[$parent]==$end){
+			$tree['_tree'][]=& $data[$ke];
+		}elseif(isset($data[$kp])){
+			$data[$kp][$child][] =& $data[$ke];
+			if($multicount!=''){
+				if(!isset($data[$ke][$multicount])) $data[$ke][$multicount]=1;
+				$data[$kp][$multicount]+=$data[$ke][$multicount];
+			}
+		}else{
+			$tree['_noparent'][]=& $data[$ke];
+		}
+	}
+
+	return $tree;
+}
+/**
  * 数组任意位置插入新单元,保留键名
  * @param array $arr
  * @param int $offset
@@ -269,6 +337,14 @@ function error_response($errinfo){
 	}elseif(is_array($errinfo)){
 		$response+=$errinfo;
 	}
-	echo json_encode($response);
-	exit;
+	exit(json_encode($response));
+}
+
+function success_response($sucinfo){
+	$success=array(
+			'status'=>1,
+			'msg'=>$sucinfo['msg']?:'成功',
+			'success_response'=>$sucinfo['result']
+	);
+	exit(json_encode($success));
 }
