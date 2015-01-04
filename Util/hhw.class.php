@@ -322,13 +322,14 @@ class hhw {
 			//插入行为日志
 			$data=array(
 					'uid'=>$user_id,
-					'action_ip'=>ip2long(get_client_ip()),
+					'action_ip'=>get_client_ip(1),
 					'action_type'=>$action_type,
 					'table'=>$table,
 					'record_id'=>(int)$v,
 					'create_time'=>$_SERVER['REQUEST_TIME'],
 					'action_url'=>$_SERVER['REQUEST_URI'],
 			);
+            dump($data);
 			$data['detail']=$is_string?''.$detail:$detail[$v];
 			$id=M()->table(self::$admin_log)->add($data);
 			$re['status']=(bool)$id;

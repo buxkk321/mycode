@@ -1,11 +1,12 @@
 <?php
 namespace Common\My;
-use Common;
 /**
  * ...
  * @author Administrator
  */
 class math{
+
+    public static $prime_list=array();
 	/**
 	 * 正则规则
 	 * @var unknown
@@ -52,45 +53,42 @@ class math{
 // 7	49	343	2401	16807	117649	823543	5764801	40353607
 // 8	64	512	4096	32768	262144	2097152	16777216	134217728
 // 9	81	729	6561	59049	531441	4782969	43046721	387420489
-			
-	
-	/**
-	 * 开始匹配
-	 * @param int|string $num 号码
-	 * @param int|string $generation 第几代
-	 * @param array $rules $匹配规则
-	 * @return unknown
-	 */
-	public static function entry($num,$generation){
-		$input['status']=1;
-		$input['generation']=$generation.'';//第几代
-		$input['num']=$num.'';//号码
-		$input['prefix']=substr($num,0,3);//前三位
-		$prefix_info=self::$prefix[$input['prefix']];//根据号码前三位找到对应的信息
-		if($prefix_info==null){
-			$input['status']=3;
-			$input['msg']='该号码没有匹配的运营商,请检查程序配置是否正确';
-			dump($input['msg']);
-		}else{
-			$input['company']=$prefix_info[0];//运营商
-			$input['correct']=$prefix_info[1];//修正值
-			call_user_func_array ( 'self::match_type_'.$input['company'].$input['generation'] , array(&$input ));
-		}
 
-		return $input;
-	}
-	
-	
-	public static function get_reg_arithmetic_progression($length=2,$cd=1){
-		for($j=0,$reg='(';$j<$cd;$j++){
-			for($i=0;$i<10;$i++){
-				$reg.=$i.'(?='.($i+$cd).')';
-			}
-		}
-		
-		return '(0(?=1)|1(?=2)|2(?=3)|3(?=4)|4(?=5)|5(?=6)|6(?=7)|7(?=8)|8(?=9)|9(?=0)){6}[0-9]';
-	}
-	
+
+    /**
+     * 求质数
+     * @param int $start
+     * @param int $end
+     */
+    public static function get_prime($f=1,$start_len=null,$end_len=null){
+        !$start_len && $start_len=5;
+        !$end_len && $end_len=9;
+        $re=array();
+        $gmp=gmp_nextprime (str_repeat('9',$start_len-1));
+        $str=gmp_strval($gmp);
+        $len=strlen($str);
+        $re[$len][]=$str;
+        $time=microtime(true);
+        if($f){
+            while(true){
+                if($len>$end_len){
+                    break;
+                }else{
+                    $gmp=gmp_nextprime ($str);
+                    $str=gmp_strval($gmp);
+                    $len=strlen($str);
+                    $re[$len][]=$str;
+                }
+            }
+        }else{
+            while($len<=$end_len){
+               //TODO:判断质数
+            }
+        }
+        echo microtime(true)-$time;
+        return $re;
+    }
+
 	//测试代码
 	public static function test($input){
 		$o='0123456789';
