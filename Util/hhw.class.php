@@ -329,7 +329,6 @@ class hhw {
 					'create_time'=>$_SERVER['REQUEST_TIME'],
 					'action_url'=>$_SERVER['REQUEST_URI'],
 			);
-            dump($data);
 			$data['detail']=$is_string?''.$detail:$detail[$v];
 			$id=M()->table(self::$admin_log)->add($data);
 			$re['status']=(bool)$id;
