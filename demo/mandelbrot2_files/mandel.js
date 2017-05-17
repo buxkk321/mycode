@@ -48,6 +48,7 @@ var pmin=-2.25;
 var pmax=0.75;
 var qmin=-1.5;
 var qmax=1.5;
+var phi=(Math.sqrt(5)+1)/2;
 
 var lastColor=0;
 var mouseDown=false;
@@ -158,36 +159,32 @@ function computeMandel(){
             var Ci=qmax-ystep*sy;
             var k=0;
 
-           //var Tr=0;
-           //var Ti=0;
-           //var Zr=0.0;
-           //var Zi=0.0;
-           //do{
-           //
-           //  //Zi=2*Zr*Zi+Ci;
-           //  //Zr=Tr-Ti+Cr;
-           //
-           //   Tr=Zr*Zr;
-           //   Ti=Zi*Zi;/*虚数部分中平方后变成实数的部分，需要减去*/
-           //
-           //   Zi=2*Zr*Zi+Ci;/*新的虚数部分*/
-           //   Zr=Tr-Ti+Cr;/*新的实数部分*/
-           //
-           //   k++;
-           //}while(((Tr+Ti)<=ITERATION_LIMIT) && (k<KMAX));
-
             var Tr=0;
             var Ti=0;
-            var Zr=zero_decimal;
-            var Zi=zero_decimal;
+
+
+            var Zr=0.0;
+            var Zi=0.0;
             do{
-                Tr=Zr.pow(2);
-                Ti=Zi.pow(2);/*虚数部分中平方后变成实数的部分，需要减去*/
-                Zi=Zr.mul(Zi).mul(2).add(Ci);/*新的虚数部分*/
-                Zr=Tr.sub(Ti).add(Cr);/*新的实数部分*/
+                Tr=Zr*Zr;
+                Ti=Zi*Zi;/*虚数部分中平方后变成实数的部分，需要减去*/
+
+                Zi=2*Zr*Zi+Ci;/*新的虚数部分*/
+                Zr=Tr-Ti+Cr;/*新的实数部分*/
 
                 k++;
-            }while((Tr.add(Ti).lessThanOrEqualTo(ITERATION_LIMIT)) && (k<KMAX));
+            }while(((Tr+Ti)<=ITERATION_LIMIT) && (k<KMAX));
+
+            //var Zr=zero_decimal;
+            //var Zi=zero_decimal;
+            //do{
+            //    Tr=Zr.pow(2);
+            //    Ti=Zi.pow(2);/*虚数部分中平方后变成实数的部分，需要减去*/
+            //    Zi=Zr.mul(Zi).mul(2).add(Ci);/*新的虚数部分*/
+            //    Zr=Tr.sub(Ti).add(Cr);/*新的实数部分*/
+            //
+            //    k++;
+            //}while((Tr.add(Ti).lessThanOrEqualTo(ITERATION_LIMIT)) && (k<KMAX));
 
 
             if(k>=KMAX){
