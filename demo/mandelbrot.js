@@ -40,16 +40,22 @@ var renderId = 0; // To zoom before current render is finished
 var canvas_width=800;
 var canvas_height=500;
 var canvas_x=-340;
-var canvas = d('canvasMandelbrot');
-canvas.width  = canvas_width;
-canvas.height = canvas_height;
-//
-var ccanvas = d('canvasControls');
-ccanvas.width  = canvas_width;
-ccanvas.height = canvas_height;
-//
-var ctx = canvas.getContext('2d');
-var img = ctx.createImageData(canvas.width, 1);
+var canvas,ccanvas;
+var ctx,img;
+function InitCanvas(){
+    canvas = d('canvasMandelbrot');
+    canvas.width  = canvas_width;
+    canvas.height = canvas_height;
+
+    ccanvas = d('canvasControls');
+    ccanvas.width  = canvas_width;
+    ccanvas.height = canvas_height;
+
+    ctx = canvas.getContext('2d');
+    img = ctx.createImageData(canvas.width, 1);
+
+}
+
 
 /*
  * Just a shorthand function: Fetch given element, jQuery-style
@@ -62,6 +68,77 @@ function focusOnSubmit(){
   var e = d('submitButton');
   if ( e ) e.focus();
 }
+
+// Some constants used with smoothColor
+var logBase = 1.0 / Math.log(2.0);
+var logHalfBase = Math.log(0.5)*logBase;
+function smoothColor(steps, n, Tr, Ti){
+    /*
+     * Original smoothing equation is
+     *
+     * var v = 1 + n - Math.log(Math.log(Math.sqrt(Zr*Zr+Zi*Zi)))/Math.log(2.0);
+     *
+     * but can be simplified using some elementary logarithm rules to
+     */
+    return 5 + n - logHalfBase - Math.log(Math.log(Tr+Ti))*logBase;
+    //return 5 + n - logHalfBase - Tr.add(Ti).ln().ln().toNumber()*logBase;
+}
+var pickColorList={
+    HSV1:function(steps, n, Tr, Ti){
+        if ( n == steps ) // converged?
+            return interiorColor;
+
+        var v = smoothColor(steps, n, Tr, Ti);
+        var c = hsv_to_rgb(360.0*v/steps, 1.0, 1.0);
+        c.push(255); // alpha
+        return c;
+    },
+    HSV2:function (steps, n, Tr, Ti){
+        if ( n == steps ) // converged?
+            return interiorColor;
+
+        var v = smoothColor(steps, n, Tr, Ti);
+        var c = hsv_to_rgb(360.0*v/steps, 1.0, 10.0*v/steps);
+        c.push(255); // alpha
+        return c;
+    },
+    HSV3:function (steps, n, Tr, Ti){
+        if ( n == steps ) // converged?
+            return interiorColor;
+
+        var v = smoothColor(steps, n, Tr, Ti);
+        var c = hsv_to_rgb(360.0*v/steps, 1.0, 10.0*v/steps);
+
+        // swap red and blue
+        var t = c[0];
+        c[0] = c[2];
+        c[2] = t;
+
+        c.push(255); // alpha
+        return c;
+    },
+    Grayscale:function (steps, n, Tr, Ti){
+        if ( n == steps ) // converged?
+            return interiorColor;
+
+        var v = smoothColor(steps, n, Tr, Ti);
+        v = Math.floor(512.0*v/steps);
+
+        if ( v > 255 ) v -= 255;
+        if ( v > 255 ) v = 255;
+        return [v, v, v, 255];
+    },
+    Grayscale2:function (steps, n, Tr, Ti){
+        if ( n == steps ){ // converged?
+            var c = 255 - Math.floor(255.0*Math.sqrt(Tr+Ti)) % 255;
+            if ( c < 0 ) c = 0;
+            if ( c > 255 ) c = 255;
+            return [c, c, c, 255];
+        }
+
+        return pickColorList.Grayscale(steps, n, Tr, Ti);
+    }
+};
 
 function getColorPicker(){
     var p = d("colorScheme").value;
@@ -95,32 +172,88 @@ function getSamples(){
  * current pixel we're rendering, but K could be based on the "look at"
  * coordinate, or by letting the user select a point on the screen.
  */
+var phi=(Math.sqrt(5)+1)/2;
 function iterateEquation(Cr, Ci, escapeRadius, iterations){
-  var Zr = 0;
-  var Zi = 0;
-  var Tr = 0;
-  var Ti = 0;
-  var n  = 0;
+    var Zr = Cr;
+    var Zi = Ci;
+    var Tr = 0;
+    var Ti = 0;
+    var n  = 0;
+    var Z=0;
 
-  for ( ; n<iterations && (Tr+Ti)<=escapeRadius; ++n ){
-    Zi = 2 * Zr * Zi + Ci;
-    Zr = Tr - Ti + Cr;
-    Tr = Zr * Zr;
-    Ti = Zi * Zi;
-  }
 
-  /*
-   * Four more iterations to decrease error term;
-   * see http://linas.org/art-gallery/escape/escape.html
-   */
-  for ( var e=0; e<4; ++e ){
-    Zi = 2 * Zr * Zi + Ci;
-    Zr = Tr - Ti + Cr;
-    Tr = Zr * Zr;
-    Ti = Zi * Zi;
-  }
+    for ( ; n<iterations && (Tr+Ti)<=escapeRadius; ++n ){
 
-  return [n, Tr, Ti];
+        Tr = Zr * Zr;
+        Ti = Zi * Zi;/*实数部分中虚数平方后需要减去的数*/
+        //
+        ////Tr=Zr*Zr+Zi*Zi+Cr;
+        ////Ti=2*Zr*Zi+Ci;
+        //Zr=Tr;
+        //Zi=Ti;
+        //Tr=Zr*Zr+Zi*Zi+Cr;
+        //Ti=2*Zr*Zi+Ci;
+        //if((Tr+Ti)<=escapeRadius) break;/*只判断实数部分*/
+
+        Zi = 2* Zr *Zi  + Ci;/*虚数部分*/
+        Zr = Tr - Ti + Cr;/*实数部分*/
+
+        //Z = Zr*Zr+2*Zr*Zi+Zi*Zi+ Cr+Ci;
+        //Z=Math.pow(Z,2)+Cr+Ci;
+        //if(Z<=escapeRadius) break;
+
+
+    }
+
+    /*
+    * Four more iterations to decrease error term;
+    * see http://linas.org/art-gallery/escape/escape.html
+    */
+    for ( var e=0; e<4; ++e ){
+        Zi = Zi * Zr *2 + Ci;
+        Zr = Tr - Ti + Cr;
+        Tr = Zr * Zr;
+        Ti = Zi * Zi;
+    }
+
+    return [n, Tr, Ti];
+}
+
+function candelbrot_calc(re,Cr,Ci){
+    re[1] = re[0].mul(re[1]).mul(2).add(Ci);//re[0]*re[1]*2 + Ci;
+    re[0] = re[2].sub(re[3]).add(Cr);
+    re[2] = re[0].pow(2);
+    re[3] = re[1].pow(2);
+}
+/*
+Zr = re[0];
+Zi = re[1];
+Tr = re[2];
+Ti = re[3];
+* */
+function iterateEquation2(Cr, Ci, escapeRadius, iterations){
+    var Zr = 0;
+    var Zi = 0;
+    var Tr = 0;
+    var Ti = 0;
+    var re=[new Decimal(0),new Decimal(0),new Decimal(0),new Decimal(0)];
+    var n  = 0;
+
+    Ci=Ci.toString();
+    Cr=Cr.toString();
+    for ( ; n<iterations && re[2].add(re[3]).lessThanOrEqualTo(escapeRadius); ++n ){
+        candelbrot_calc(re,Cr,Ci);
+    }
+
+    /*
+     * Four more iterations to decrease error term;
+     * see http://linas.org/art-gallery/escape/escape.html
+     */
+    for ( var e=0; e<4; ++e ){
+        candelbrot_calc(re,Cr,Ci);
+    }
+
+    return [n, re[2],re[3]];
 }
 
 /*
@@ -199,8 +332,7 @@ function readHashTag(){
     }
   }
 
-  if ( redraw )
-    reInitCanvas = true;
+  if ( redraw ) reInitCanvas = true;
 
   return redraw;
 }
@@ -223,8 +355,10 @@ function metric_units(number){
  *   V = [0.0, 1.0] (float)
  */
 function hsv_to_rgb(h, s, v){
-  if ( v > 1.0 ) v = 1.0;
-  var hp = h/60.0;
+  if ( v > 1.0 ) v -= 1.0;
+    if ( v > 1.0 ) v = 1.0;
+
+    var hp = h/60.0;
   var c = v * s;
   var x = c*(1 - Math.abs((hp % 2) - 1));
   var rgb = [0,0,0];
@@ -285,248 +419,176 @@ function divRGB(v, div){
 /*
  * Render the Mandelbrot set
  */
-function draw(pickColor, superSamples){
-  if ( lookAt === null ) lookAt = [-0.6, 0];
-  if ( zoom === null ) zoom = [zoomStart, zoomStart];
+function draw(){
+    var pickColor=getColorPicker();
+    var superSamples=getSamples();
+    if ( lookAt === null ) lookAt = [-0.6, 0];
+    if ( zoom === null ) zoom = [zoomStart, zoomStart];
 
-  xRange = [lookAt[0]-zoom[0]/2, lookAt[0]+zoom[0]/2];
-  yRange = [lookAt[1]-zoom[1]/2, lookAt[1]+zoom[1]/2];
+    xRange = [lookAt[0]-zoom[0]/2, lookAt[0]+zoom[0]/2];
+    yRange = [lookAt[1]-zoom[1]/2, lookAt[1]+zoom[1]/2];
 
-  if ( reInitCanvas ){
-    reInitCanvas = false;
-
-    canvas = d('canvasMandelbrot');
-    canvas.width  = canvas_width;
-    canvas.height = canvas_height;
-
-    ccanvas = d('canvasControls');
-    ccanvas.width  = canvas_width;
-    ccanvas.height = canvas_height;
-
-    ctx = canvas.getContext('2d');
-    img = ctx.createImageData(canvas.width, 1);
-
-    adjustAspectRatio(xRange, yRange, canvas);
-  }
-
-  var steps = parseInt(d('steps').value, 10);
-
-  if ( d('autoIterations').checked ){
-    var f = Math.sqrt(
-            0.001+2.0 * Math.min(
-              Math.abs(xRange[0]-xRange[1]),
-              Math.abs(yRange[0]-yRange[1])));
-
-    steps = Math.floor(223.0/f);
-    d('steps').value = String(steps);
-  }
-
-  var escapeRadius = Math.pow(parseFloat(d('escapeRadius').value), 2.0);
-  var dx = (xRange[1] - xRange[0]) / (0.5 + (canvas.width-1));
-  var dy = (yRange[1] - yRange[0]) / (0.5 + (canvas.height-1));
-  var Ci_step = (yRange[1] - yRange[0]) / (0.5 + (canvas.height-1));
-
-  updateHashTag(superSamples, steps);
-  updateInfoBox();
-
-  // Only enable one render at a time
-  renderId += 1;
-
-  function drawLineSuperSampled(Ci, off, Cr_init, Cr_step){
-    var Cr = Cr_init;
-
-    for ( var x=0; x<canvas.width; ++x, Cr += Cr_step ){
-      var color = [0, 0, 0, 255];
-
-      for ( var s=0; s<superSamples; ++s ){
-        var rx = Math.random()*Cr_step;
-        var ry = Math.random()*Ci_step;
-        var p = iterateEquation(Cr - rx/2, Ci - ry/2, escapeRadius, steps);
-        color = addRGB(color, pickColor(steps, p[0], p[1], p[2]));
-      }
-
-      color = divRGB(color, superSamples);
-
-      img.data[off++] = color[0];
-      img.data[off++] = color[1];
-      img.data[off++] = color[2];
-      img.data[off++] = 255;
+    if ( reInitCanvas ){
+        reInitCanvas = false;
+        InitCanvas();
+        adjustAspectRatio(xRange, yRange, canvas);
     }
-  }
 
-  function drawLine(Ci, off, Cr_init, Cr_step){
-    var Cr = Cr_init;
+    var steps = parseInt(d('steps').value, 10);
 
-    for ( var x=0; x<canvas.width; ++x, Cr += Cr_step ){
-      var p = iterateEquation(Cr, Ci, escapeRadius, steps);
-      var color = pickColor(steps, p[0], p[1], p[2]);
-      img.data[off++] = color[0];
-      img.data[off++] = color[1];
-      img.data[off++] = color[2];
-      img.data[off++] = 255;
+    if ( d('autoIterations').checked ){
+        var f = Math.sqrt(
+                0.001+2.0 * Math.min(
+                  Math.abs(xRange[0]-xRange[1]),
+                  Math.abs(yRange[0]-yRange[1])));
+
+        steps = Math.floor(223.0/f);
+        d('steps').value = String(steps);
     }
-  }
 
-  function drawSolidLine(y, color){
-    var off = y*canvas.width;
+    var escapeRadius = Math.pow(parseFloat(d('escapeRadius').value), 2.0);
+    var dx = (xRange[1] - xRange[0]) / (0.5 + (canvas.width-1));
+    var dy = (yRange[1] - yRange[0]) / (0.5 + (canvas.height-1));
+    var Ci_step = (yRange[1] - yRange[0]) / (0.5 + (canvas.height-1));
 
-    for ( var x=0; x<canvas.width; ++x ){
-      img.data[off++] = color[0];
-      img.data[off++] = color[1];
-      img.data[off++] = color[2];
-      img.data[off++] = color[3];
-    }
-  }
+    updateHashTag(superSamples, steps);
+    updateInfoBox();
 
-  function render(){
-    var start  = (new Date).getTime();
-    var startHeight = canvas.height;
-    var startWidth = canvas.width;
-    var lastUpdate = start;
-    var updateTimeout = parseFloat(d('updateTimeout').value);
-    var pixels = 0;
-    var Ci = yRange[0];
-    var sy = 0;
-    var drawLineFunc = superSamples>1? drawLineSuperSampled : drawLine;
-    var ourRenderId = renderId;
-
-    var scanline = function(){
-      if (    renderId != ourRenderId ||
-           startHeight != canvas.height ||
-            startWidth != canvas.width )
-      {
-        // Stop drawing
-        return;
-      }
-
-      drawLineFunc(Ci, 0, xRange[0], dx);
-      Ci += Ci_step;
-      pixels += canvas.width;
-      ctx.putImageData(img, 0, sy);
-
-      var now = (new Date).getTime();
-
-      /*
-       * Javascript is inherently single-threaded, and the way
-       * you yield thread control back to the browser is MYSTERIOUS.
-       *
-       * People seem to use setTimeout() to yield, which lets us
-       * make sure the canvas is updated, so that we can do animations.
-       *
-       * But if we do that for every scanline, it will take 100x longer
-       * to render everything, because of overhead.  So therefore, we'll
-       * do something in between.
-       */
-      if ( sy++ < canvas.height ){
-        if ( (now - lastUpdate) >= updateTimeout ){
-          // show the user where we're rendering
-          drawSolidLine(0, [255,59,3,255]);
-          ctx.putImageData(img, 0, sy);
-
-          // Update speed and time taken
-          var elapsedMS = now - start;
-          d('renderTime').innerHTML = (elapsedMS/1000.0).toFixed(1); // 1 comma
-
-          var speed = Math.floor(pixels / elapsedMS);
-
-          if ( metric_units(speed).substr(0,3)=="NaN" ){
-            speed = Math.floor(60.0*pixels / elapsedMS);
-            d('renderSpeedUnit').innerHTML = 'minute';
-          } else
-            d('renderSpeedUnit').innerHTML = 'second';
-
-          d('renderSpeed').innerHTML = metric_units(speed);
-
-          // yield control back to browser, so that canvas is updated
-          lastUpdate = now;
-          setTimeout(scanline, 0);
-        } else
-          scanline();
-      }
-    };
-
-    // Disallow redrawing while rendering
-    scanline();
-  }
-
-  render();
-}
-
-// Some constants used with smoothColor
-var logBase = 1.0 / Math.log(2.0);
-var logHalfBase = Math.log(0.5)*logBase;
-
-function smoothColor(steps, n, Tr, Ti){
-  /*
-   * Original smoothing equation is
-   *
-   * var v = 1 + n - Math.log(Math.log(Math.sqrt(Zr*Zr+Zi*Zi)))/Math.log(2.0);
-   *
-   * but can be simplified using some elementary logarithm rules to
-   */
-  return 5 + n - logHalfBase - Math.log(Math.log(Tr+Ti))*logBase;
-}
+    // Only enable one render at a time
+    renderId += 1;
 
 
 
+    function drawLineSuperSampled(Cr_init,Ci,  Cr_step, off){
+        var Cr = Cr_init;
 
+        for ( var x=0; x<canvas.width; ++x, Cr += Cr_step ){
+            var color = [0, 0, 0, 255];
 
+            for ( var s=0; s<superSamples; ++s ){
+            var rx = Math.random()*Cr_step;
+            var ry = Math.random()*Ci_step;
+            var p = iterateEquation(Cr - rx/2, Ci - ry/2, escapeRadius, steps);
+                color = addRGB(color, pickColor(steps, p[0], p[1], p[2]));
+            }
 
+            color = divRGB(color, superSamples);
 
-var pickColorList={
-    HSV1:function(steps, n, Tr, Ti){
-        if ( n == steps ) // converged?
-            return interiorColor;
-
-        var v = smoothColor(steps, n, Tr, Ti);
-        var c = hsv_to_rgb(360.0*v/steps, 1.0, 1.0);
-        c.push(255); // alpha
-        return c;
-    },
-    HSV2:function (steps, n, Tr, Ti){
-        if ( n == steps ) // converged?
-            return interiorColor;
-
-        var v = smoothColor(steps, n, Tr, Ti);
-        var c = hsv_to_rgb(360.0*v/steps, 1.0, 10.0*v/steps);
-        c.push(255); // alpha
-        return c;
-    },
-    HSV3:function (steps, n, Tr, Ti){
-        if ( n == steps ) // converged?
-            return interiorColor;
-
-        var v = smoothColor(steps, n, Tr, Ti);
-        var c = hsv_to_rgb(360.0*v/steps, 1.0, 10.0*v/steps);
-
-        // swap red and blue
-        var t = c[0];
-        c[0] = c[2];
-        c[2] = t;
-
-        c.push(255); // alpha
-        return c;
-    },
-    Grayscale:function (steps, n, Tr, Ti){
-        if ( n == steps ) // converged?
-            return interiorColor;
-
-        var v = smoothColor(steps, n, Tr, Ti);
-        v = Math.floor(512.0*v/steps);
-        if ( v > 255 ) v = 255;
-        return [v, v, v, 255];
-    },
-    Grayscale2:function (steps, n, Tr, Ti){
-        if ( n == steps ){ // converged?
-            var c = 255 - Math.floor(255.0*Math.sqrt(Tr+Ti)) % 255;
-            if ( c < 0 ) c = 0;
-            if ( c > 255 ) c = 255;
-            return [c, c, c, 255];
+            img.data[off++] = color[0];
+            img.data[off++] = color[1];
+            img.data[off++] = color[2];
+            img.data[off++] = 255;
         }
-
-        return pickColorList.Grayscale(steps, n, Tr, Ti);
     }
-};
+    function drawLine( Cr_init,Ci, Cr_step, off){
+        var Cr = Cr_init;
+
+        for ( var x=0; x<canvas.width; ++x, Cr += Cr_step ){
+          var p = iterateEquation(Cr, Ci, escapeRadius, steps);
+          var color = pickColor(steps, p[0], p[1], p[2]);
+
+          img.data[off++] = color[0];
+          img.data[off++] = color[1];
+          img.data[off++] = color[2];
+          img.data[off++] = 255;
+        }
+    }
+
+    function drawSolidLine(y, color){
+        var off = y*canvas.width;
+
+        for ( var x=0; x<canvas.width; ++x ){
+          img.data[off++] = color[0];
+          img.data[off++] = color[1];
+          img.data[off++] = color[2];
+          img.data[off++] = color[3];
+        }
+    }
+
+    function render(){
+        var start  = (new Date).getTime();
+        var startHeight = canvas.height;
+        var startWidth = canvas.width;
+        var lastUpdate = start;
+        var updateTimeout = parseFloat(d('updateTimeout').value);
+        var pixels = 0;
+        var Ci = yRange[0];
+        var sy = 0;
+        var drawLineFunc = superSamples>1? drawLineSuperSampled : drawLine;
+        var ourRenderId = renderId;
+
+        var scanline =function(){
+            if(renderId != ourRenderId ||
+               startHeight != canvas.height ||
+                startWidth != canvas.width ){
+                // Stop drawing
+                return;
+            }
+
+            drawLineFunc( xRange[0],Ci, dx, 0);
+            Ci += Ci_step;
+            pixels += canvas.width;
+            ctx.putImageData(img, 0, sy);
+
+            var now = (new Date).getTime();
+
+            /*
+            * Javascript is inherently single-threaded, and the way
+            * you yield thread control back to the browser is MYSTERIOUS.
+            *
+            * People seem to use setTimeout() to yield, which lets us
+            * make sure the canvas is updated, so that we can do animations.
+            *
+            * But if we do that for every scanline, it will take 100x longer
+            * to render everything, because of overhead.  So therefore, we'll
+            * do something in between.
+            */
+            if ( sy++ < canvas.height ){
+                if ( (now - lastUpdate) >= updateTimeout ){
+                    // show the user where we're rendering
+                    drawSolidLine(0, [255,59,3,255]);
+                    ctx.putImageData(img, 0, sy);
+
+                    // Update speed and time taken
+                    var elapsedMS = now - start;
+                    d('renderTime').innerHTML = (elapsedMS/1000.0).toFixed(1); // 1 comma
+
+                    var speed = Math.floor(pixels / elapsedMS);
+
+                    if ( metric_units(speed).substr(0,3)=="NaN" ){
+                    speed = Math.floor(60.0*pixels / elapsedMS);
+                    d('renderSpeedUnit').innerHTML = 'minute';
+                    } else
+                    d('renderSpeedUnit').innerHTML = 'second';
+
+                    d('renderSpeed').innerHTML = metric_units(speed);
+
+                    // yield control back to browser, so that canvas is updated
+                    lastUpdate = now;
+                    setTimeout(scanline, 0);
+                } else{
+                    scanline();
+                }
+            }
+        };
+
+        // Disallow redrawing while rendering
+        scanline();
+    }
+
+    render();
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -548,7 +610,7 @@ function main(){
     zoom = [zoomStart, zoomStart];
     lookAt = lookAtDefault;
     reInitCanvas = true;
-    draw(getColorPicker(), getSamples());
+    draw();
   };
 
   if ( dragToZoom == true ){
@@ -557,7 +619,6 @@ function main(){
     d('canvasControls').onmousedown = function(e){
       if ( box == null )
         box = [e.clientX+canvas_x, e.clientY, 0, 0];
-        console.log(box);
     };
 
     d('canvasControls').onmousemove = function(e){
@@ -596,7 +657,7 @@ function main(){
         zoom[1] /= 0.5;
       }
 
-      draw(getColorPicker(), getSamples());
+      draw();
     };
 
     d('canvasControls').onmouseup = function(e){
@@ -639,7 +700,7 @@ function main(){
         zoom[1] *= Math.max(xf, yf);
 
         box = null;
-        draw(getColorPicker(), getSamples());
+        draw();
       }
     }
   }
@@ -671,7 +732,7 @@ function main(){
         zoom[1] *= 0.5;
       }
 
-      draw(getColorPicker(), getSamples());
+      draw();
     };
   }
 
@@ -701,8 +762,8 @@ function main(){
    * Yeah, I know, the code is a total mess at the moment.  I'll get back
    * to that.
    */
-  //draw(getColorPicker(), getSamples());
-  draw(getColorPicker(), getSamples());
+  //draw();
+  draw();
 
 }
 
