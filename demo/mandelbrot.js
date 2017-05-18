@@ -39,7 +39,7 @@ var renderId = 0; // To zoom before current render is finished
  */
 var canvas_width=800;
 var canvas_height=500;
-var canvas_x=-340;
+var canvas_x=-350;
 var canvas,ccanvas;
 var ctx,img;
 function InitCanvas(){
@@ -83,6 +83,8 @@ function smoothColor(steps, n, Tr, Ti){
     return 5 + n - logHalfBase - Math.log(Math.log(Tr+Ti))*logBase;
     //return 5 + n - logHalfBase - Tr.add(Ti).ln().ln().toNumber()*logBase;
 }
+
+var _cct=0;
 var pickColorList={
     HSV1:function(steps, n, Tr, Ti){
         if ( n == steps ) // converged?
@@ -118,14 +120,42 @@ var pickColorList={
         return c;
     },
     Grayscale:function (steps, n, Tr, Ti){
-        if ( n == steps ) // converged?
-            return interiorColor;
+        if ( n == steps ) {
+            //return interiorColor;
+            var v=Tr+Ti;
+        }else{
+            var v = smoothColor(steps, n, Tr, Ti);
+            v = 512.0*v/steps;
+        }
 
-        var v = smoothColor(steps, n, Tr, Ti);
-        v = Math.floor(512.0*v/steps);
+        v=Math.abs(v);
 
-        if ( v > 255 ) v -= 255;
-        if ( v > 255 ) v = 255;
+        if(v<26){
+            v=v/26;
+            v=Math.sqrt(v);
+            v=26/v;
+        }
+        if ( v > 62500 ){
+            v=Math.sqrt(v);
+        }
+        if(v>250){
+            v=v%250;
+        }
+
+        //if ( v > 230 ){
+        //    v=Math.pow(1+1/v,v)*84;
+        //}
+        //if ( v > 230 ){
+        //    v=Math.abs(Math.tan(v));
+        //}
+        //if ( v > 230 ){
+        //    v=Math.pow(1+1/v,v)*84;
+        //}
+        if(_cct<10){
+            _cct++;
+            console.log(v);
+        }
+        v=Math.floor(v);
         return [v, v, v, 255];
     },
     Grayscale2:function (steps, n, Tr, Ti){
@@ -183,26 +213,10 @@ function iterateEquation(Cr, Ci, escapeRadius, iterations){
 
 
     for ( ; n<iterations && (Tr+Ti)<=escapeRadius; ++n ){
-
         Tr = Zr * Zr;
         Ti = Zi * Zi;/*实数部分中虚数平方后需要减去的数*/
-        //
-        ////Tr=Zr*Zr+Zi*Zi+Cr;
-        ////Ti=2*Zr*Zi+Ci;
-        //Zr=Tr;
-        //Zi=Ti;
-        //Tr=Zr*Zr+Zi*Zi+Cr;
-        //Ti=2*Zr*Zi+Ci;
-        //if((Tr+Ti)<=escapeRadius) break;/*只判断实数部分*/
-
         Zi = 2* Zr *Zi  + Ci;/*虚数部分*/
         Zr = Tr - Ti + Cr;/*实数部分*/
-
-        //Z = Zr*Zr+2*Zr*Zi+Zi*Zi+ Cr+Ci;
-        //Z=Math.pow(Z,2)+Cr+Ci;
-        //if(Z<=escapeRadius) break;
-
-
     }
 
     /*
@@ -260,15 +274,20 @@ function iterateEquation2(Cr, Ci, escapeRadius, iterations){
  * Update URL's hash with render parameters so we can pass it around.
  */
 function updateHashTag(samples, iterations){
-  var radius = d('escapeRadius').value;
-  var scheme = d('colorScheme').value;
+    var radius = d('escapeRadius').value;
+    var scheme = d('colorScheme').value;
+    $('#lookAtX').val(lookAt[0]);
+    $('#lookAtY').val(lookAt[1]);
+    $('#zoomX').val(zoom[0]);
+    $('#zoomY').val(zoom[1]);
 
-  location.hash = 'zoom=' + zoom + '&' +
-                  'lookAt=' + lookAt + '&' +
-                  'iterations=' + iterations + '&' +
-                  'superSamples=' + samples + '&' +
-                  'escapeRadius=' + radius + '&' +
-                  'colorScheme=' + scheme;
+    location.hash = 'zoom=' + zoom + '&' +
+        'lookAt=' + lookAt + '&' +
+        'iterations=' + iterations + '&' +
+        'superSamples=' + samples + '&' +
+        'escapeRadius=' + radius + '&' +
+        'colorScheme=' + scheme;
+
 }
 
 /*
@@ -355,30 +374,35 @@ function metric_units(number){
  *   V = [0.0, 1.0] (float)
  */
 function hsv_to_rgb(h, s, v){
-  if ( v > 1.0 ) v -= 1.0;
+    if(v<0.5){
+        v=v/0.5;
+        v=Math.sqrt(v);
+        v=0.5/v;
+    }
+    if ( v > 1.0 ) v -= 1.0;
     if ( v > 1.0 ) v = 1.0;
 
     var hp = h/60.0;
-  var c = v * s;
-  var x = c*(1 - Math.abs((hp % 2) - 1));
-  var rgb = [0,0,0];
+    var c = v * s;
+    var x = c*(1 - Math.abs((hp % 2) - 1));
+    var rgb = [0,0,0];
 
-  if ( 0<=hp && hp<1 ) rgb = [c, x, 0];
-  if ( 1<=hp && hp<2 ) rgb = [x, c, 0];
-  if ( 2<=hp && hp<3 ) rgb = [0, c, x];
-  if ( 3<=hp && hp<4 ) rgb = [0, x, c];
-  if ( 4<=hp && hp<5 ) rgb = [x, 0, c];
-  if ( 5<=hp && hp<6 ) rgb = [c, 0, x];
+    if ( 0<=hp && hp<1 ) rgb = [c, x, 0];
+    if ( 1<=hp && hp<2 ) rgb = [x, c, 0];
+    if ( 2<=hp && hp<3 ) rgb = [0, c, x];
+    if ( 3<=hp && hp<4 ) rgb = [0, x, c];
+    if ( 4<=hp && hp<5 ) rgb = [x, 0, c];
+    if ( 5<=hp && hp<6 ) rgb = [c, 0, x];
 
-  var m = v - c;
-  rgb[0] += m;
-  rgb[1] += m;
-  rgb[2] += m;
+    var m = v - c;
+    rgb[0] += m;
+    rgb[1] += m;
+    rgb[2] += m;
 
-  rgb[0] *= 255;
-  rgb[1] *= 255;
-  rgb[2] *= 255;
-  return rgb;
+    rgb[0] *= 255;
+    rgb[1] *= 255;
+    rgb[2] *= 255;
+    return rgb;
 }
 
 /*
@@ -424,7 +448,6 @@ function draw(){
     var superSamples=getSamples();
     if ( lookAt === null ) lookAt = [-0.6, 0];
     if ( zoom === null ) zoom = [zoomStart, zoomStart];
-
     xRange = [lookAt[0]-zoom[0]/2, lookAt[0]+zoom[0]/2];
     yRange = [lookAt[1]-zoom[1]/2, lookAt[1]+zoom[1]/2];
 
@@ -441,8 +464,8 @@ function draw(){
                 0.001+2.0 * Math.min(
                   Math.abs(xRange[0]-xRange[1]),
                   Math.abs(yRange[0]-yRange[1])));
-
         steps = Math.floor(223.0/f);
+        if(steps%2!=0) steps++;
         d('steps').value = String(steps);
     }
 

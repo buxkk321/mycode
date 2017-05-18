@@ -57,7 +57,7 @@
                 margin: 0px;
             }
             #canvasContainer{
-                margin-left:340px;
+                margin-left:350px;
                 position: relative;
                 width: auto;
                 height:100%;
@@ -85,21 +85,18 @@
             }
 
             #infoBox:hover {
-                background-color: rgba(30, 30, 30, 0.3);
-                color: #444;
-                border: #222 1px solid;
+
             }
 
             #infoBox {
                 text-align:right;
                 z-index: 10;
-                position: absolute;
-                right: 5px;
-                bottom: 5px;
                 padding: 5px;
 
-                background: transparent;
-                color: rgba(51,51,51,0.1);
+                background-color: rgba(30, 30, 30, 0.3);
+                color: #444;
+                border: #222 1px solid;
+
                 text-shadow: none;
 
                 font-family: sans-serif;
@@ -162,7 +159,7 @@
                 </div>
             </header>
 
-            <form id="settingsForm" action="javascript:draw(getColorPicker(), getSamples());">
+            <form id="settingsForm" action="javascript:draw();">
                 <table>
                     <tr>
                         <td>Rendering time</td>
@@ -204,7 +201,7 @@
                     </tr>
                     <tr>
                         <td>Supersamples</td>
-                        <td><input class="textInput" size="4" type="text" id="superSamples" value="2" /></td>
+                        <td><input class="textInput" size="4" type="text" id="superSamples" value="1" /></td>
                     </tr>
                     <tr>
                         <td>Scanline update (ms)</td>
@@ -229,6 +226,43 @@
             <hr/>
 
             <div id="bottom">
+                <table>
+                   <tr>
+                        <td>look at x</td>
+                        <td>
+                            <input class="textInput" type="text" id="lookAtX" value="" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>look at y</td>
+                        <td>
+                            <input class="textInput" type="text" id="lookAtY" value="" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <input type="button" onclick="lookAt=[parseFloat($('#lookAtX').val()),parseFloat($('#lookAtY').val())];draw();" value="update"  />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>zoom x</td>
+                        <td>
+                            <input class="textInput" type="text" id="zoomX" value="" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>zoom at y</td>
+                        <td>
+                            <input class="textInput" type="text" id="zoomY" value="" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <input type="button" onclick="zoom=[parseFloat($('#zoomX').val()),parseFloat($('#zoomY').val())];draw();" value="update"  />
+                        </td>
+                    </tr>
+
+                </table>
                 <small>
                     Made by <a href="https://csl.name">Christian Stigen Larsen</a> &mdash;
                     <a href="https://github.com/cslarsen/mandelbrot-js">Code on Github</a>
@@ -237,6 +271,13 @@
                     You can change the settings above and hit <i>Draw</i> to render
                     anew.
                 </small>
+                <div id="infoBox">
+                    <span id="infoText"></span>
+                </div>
+
+                <div>
+
+                </div>
             </div>
         </div>
 
@@ -245,10 +286,7 @@
             <canvas id="canvasControls" width="0" height="0"> </canvas>
         </div>
 
-        <div id="infoBox">
-            <span id="infoText"></span>
-        </div>
-        <script type="text/javascript" src='decimal.min.js'></script>
+        <script src="jquery-1.10.2.min.js"></script>
         <script type="text/javascript" src="mandelbrot.js"></script>
     </body>
 </html>
