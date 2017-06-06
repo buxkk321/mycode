@@ -40,6 +40,7 @@
                 margin: 0px;
             }
             #canvasContainer{
+				background-color: #eee;
                 margin-left:340px;
                 position: relative;
                 width: auto;
@@ -263,6 +264,30 @@
     <script type="text/javascript" src='jquery-1.10.2.min.js'></script>
     <script>
         var 天干=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+		var 天干相冲={
+			'甲':'庚',
+			'乙':'辛',
+			'丙':'壬',
+			'丁':'癸',
+			'戊':'',
+			'己':'',
+			'庚':'甲',
+			'辛':'乙',
+			'壬':'丙',
+			'癸':'丁'
+		};
+		var 天干相合={
+			'甲':['己','土'],
+			'乙':['庚','金'],
+			'丙':['辛','水'],
+			'丁':['壬','木'],
+			'戊':['癸','火'],
+			'己':['甲','土'],
+			'庚':['乙','金'],
+			'辛':['丙','水'],
+			'壬':['丁','木'],
+			'癸':['戊','火']
+		};
         var 地支=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
         var 地支藏干={
             '子':['癸'],
@@ -280,7 +305,11 @@
         };
 
         function get_stems_relation(s1,s2){
-
+			if(天干相冲[s1]==s2){
+				return '---相冲---';
+			}else if(天干相合[s1][0]==s2){
+				return '---相合,化'+天干相合[s1][1]+'---';
+			}
         }
         function get_branches_relation(b1,b2){
 
@@ -289,10 +318,11 @@
 
         }
         function get_relation(w1,w2){
-            var type1=$.inArray(w1,天干);
-            var type2=$.inArray(w2,天干);
+            var type1=$.inArray(w1,天干)>-1;
+            var type2=$.inArray(w2,天干)>-1;
+			
             if(type1==type2){
-                if(type1>-1){
+                if(type1){
                     return get_stems_relation(w1,w2);
                 }else{
                     return get_branches_relation(w1,w2);
