@@ -278,8 +278,28 @@
             '戌':['戊','辛','丁'],
             '亥':['壬','甲']
         };
-        function get_relation(w1,w2,type){
 
+        function get_stems_relation(s1,s2){
+
+        }
+        function get_branches_relation(b1,b2){
+
+        }
+        function get_cross_relation(w1,w2){
+
+        }
+        function get_relation(w1,w2){
+            var type1=$.inArray(w1,天干);
+            var type2=$.inArray(w2,天干);
+            if(type1==type2){
+                if(type1>-1){
+                    return get_stems_relation(w1,w2);
+                }else{
+                    return get_branches_relation(w1,w2);
+                }
+            }else{
+                return get_cross_relation(w1,w2);
+            }
         }
         $(function(){
             var hs_str=天干.map(function(v){return '<option>'+v+'</option>';});
