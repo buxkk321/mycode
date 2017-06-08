@@ -263,7 +263,19 @@
     </body>
     <script type="text/javascript" src='jquery-1.10.2.min.js'></script>
     <script>
-        var 天干=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+
+        var 天干五行={
+            '甲':['木','阳'],
+            '乙':['木','阴'],
+            '丙':['火','阳'],
+            '丁':['火','阴'],
+            '戊':['土','阳'],
+            '己':['土','阴'],
+            '庚':['金','阳'],
+            '辛':['金','阴'],
+            '壬':['水','阳'],
+            '癸':['水','阴']
+        };
 		var 天干相冲={
 			'甲庚':1,
 			'乙辛':1,
@@ -277,6 +289,12 @@
 			'丁壬':'木',
 			'戊癸':'火'
 		};
+        var 天干相生={
+            '甲':1,
+            '乙':1,
+            '丙':1,
+            '丁':1
+        };
         var 地支=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
         var 地支藏干={
             '子':['癸'],
@@ -313,9 +331,8 @@
 
         }
         function get_relation(w1,w2){
-            var type1=$.inArray(w1,天干)>-1;
-            var type2=$.inArray(w2,天干)>-1;
-			
+            var type1=天干五行[w1];
+            var type2=天干五行[w2];
             if(type1==type2){
                 if(type1){
                     return get_stems_relation(w1,w2);
@@ -327,7 +344,10 @@
             }
         }
         $(function(){
-            var hs_str=天干.map(function(v){return '<option>'+v+'</option>';});
+            var hs_str='';
+            for(var i in 天干五行){
+                hs_str+='<option>'+i+'</option>';
+            }
             $('.select_stems').each(function(){
                 $(this).html(hs_str);
             });
@@ -343,7 +363,15 @@
                     八字[v+'干']=$('#'+v+'干').val();
                     八字[v+'支']=$('#'+v+'支').val();
                 });
-                var content=$('<div></div>');
+                var content=$('<div>' +
+                '' +
+                '' +
+                '' +
+                '' +
+                '' +
+                '' +
+                '' +
+                '</div>');
                 content.append($('<span>'+八字.年干+'</span>'));
 
                 content.append($('<span>'+get_relation(八字.年干,八字.月干)+'</span>'));
