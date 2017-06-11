@@ -39,13 +39,7 @@
                 padding: 0px;
                 margin: 0px;
             }
-            #canvasContainer{
-				background-color: #eee;
-                margin-left:340px;
-                position: relative;
-                width: auto;
-                height:100%;
-            }
+
 
             #description {
                 float:left;
@@ -133,19 +127,24 @@
             hr {
                 border-color: #222;
             }
+
+            #canvasContainer{
+                background-color: #eee;
+                margin-left:340px;
+                position: relative;
+                width: auto;
+                height:100%;
+            }
+            #canvasContainer td{
+                width:110px;
+                height:110px;
+            }
+
+
         </style>
     </head>
     <body >
         <div id="description">
-            <header>
-                <div style="text-align: center;">
-                    <hr />
-                    <h1>The Mandelbrot Set</h1>
-                    <p class="headerText">In HTML5 Canvas and JavaScript</p>
-                    <hr />
-                </div>
-            </header>
-
             <form id="settingsForm" action="javascript:draw(getColorPicker(), getSamples());">
                 <table>
                     <tr>
@@ -164,36 +163,36 @@
                     <tr>
                         <td>年柱</td>
                         <td>
-                            <select class="select_stems" name="" id="年干">
+                            <select class="select_stems" name="s1" id="年干">
                             </select>
-                            <select class="select_branches" name="" id="年支">
+                            <select class="select_branches" name="b1" id="年支">
                             </select>
                         </td>
                     </tr>
                     <tr>
                         <td>月柱</td>
                         <td>
-                            <select class="select_stems" name="" id="月干">
+                            <select class="select_stems" name="s2" id="月干">
                             </select>
-                            <select class="select_branches" name="" id="月支">
+                            <select class="select_branches" name="b2" id="月支">
                             </select>
                         </td>
                     </tr>
                     <tr>
                         <td>日柱</td>
                         <td>
-                            <select class="select_stems" name="" id="日干">
+                            <select class="select_stems" name="s3" id="日干">
                             </select>
-                            <select class="select_branches" name="" id="日支">
+                            <select class="select_branches" name="b3" id="日支">
                             </select>
                         </td>
                     </tr>
                     <tr>
                         <td>时柱</td>
                         <td>
-                            <select class="select_stems" name="" id="时干">
+                            <select class="select_stems" name="s4" id="时干">
                             </select>
-                            <select class="select_branches" name="" id="时支">
+                            <select class="select_branches" name="b4" id="时支">
                             </select>
                         </td>
                     </tr>
@@ -253,8 +252,7 @@
         </div>
 
         <div id="canvasContainer">
-
-
+            <table border="1" cellpadding="0" cellspacing="0"></table>
         </div>
 
         <div id="infoBox">
@@ -263,6 +261,28 @@
     </body>
     <script type="text/javascript" src='jquery-1.10.2.min.js'></script>
     <script>
+
+        function updateHashTag(){
+            var data=$('#settingsForm :input').serializeArray();
+            console.log(data);
+
+//            location.hash =
+//            's1=' + zoom + '&' +
+//            'b1=' + lookAt + '&' +
+//            's2=' + iterations + '&' +
+//            'b2=' + samples + '&' +
+//            's3=' + radius + '&' +
+//            'b3=' + samples + '&' +
+//            's4=' + radius + '&' +
+//            'b4=' + scheme;
+
+        }
+
+        var 五行={'土':0,'金':1,'水':2,'木':3,'火':4};
+        var 五行关系=['同我','我生','我克','克我','生我'];
+        var 五行关系2=['','生','克','克','生'];
+
+
 
         var 天干五行={
             '甲':['木','阳'],
@@ -289,11 +309,12 @@
 			'丁壬':'木',
 			'戊癸':'火'
 		};
-        var 天干相生={
-            '甲':1,
-            '乙':1,
-            '丙':1,
-            '丁':1
+        var 天干十神={
+            '同我':['比肩','劫财'],
+            '我生':['食神','伤官'],
+            '我克':['偏财','正财'],
+            '克我':['七杀','正官'],
+            '生我':['偏印','正印']
         };
         var 地支=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
         var 地支藏干={
@@ -310,19 +331,60 @@
             '戌':['戊','辛','丁'],
             '亥':['壬','甲']
         };
+        function get_5e_relation(t,s){
+            var diff=五行[t]-五行[s];
+            if(diff<0) diff=5+diff;
+            return diff;
+        }
 
+        function get_stems_5e(s){
+            var self_info=天干五行[s];
+            return 天干五行[s][1]+天干五行[s][0];
+        }
+        function get_stems_10G(t,s){
+            var self_info=天干五行[s];
+            var target_info=天干五行[t];
 
+            var diff=get_5e_relation(target_info[0],self_info[0]);
+            var relation=五行关系[Math.abs(diff)];
+            var type=self_info[1]==target_info[1]?0:1;
+
+//            var notes='自己:'+self_info[0]+'('+五行[self_info[0]]+') '+
+//                    '当前:'+target_info[0]+'('+五行[target_info[0]]+') '+
+//                    '结果:'+relation+'('+diff+')';
+            var notes='';
+
+            return 天干十神[relation][type]+notes;
+        }
 
         function get_stems_relation(s1,s2){
             var asc=s1+s2,desc=s2+s1;
+
+            var re='';
 			if(天干相冲[asc] || 天干相冲[desc]){
-				return '---相冲---';
+
+                re+='<div>---相冲---</div>';
 			}else{
                 var f=天干相合[asc] || 天干相合[desc];
                 if(f){
-                    return '---相合,化'+f+'---';
+                    re+='<div>---相合,化'+f+'---</div>';
                 }
 			}
+
+            var s1_info=天干五行[s1];
+            var s2_info=天干五行[s2];
+
+            var diff=get_5e_relation(s2_info[0],s1_info[0]);
+            if(diff>0){
+                var relation=五行关系2[diff];
+                if(diff>2){
+                    re+='<div>&lt;--'+relation+'--</div>';
+                }else{
+                    re+='<div>--'+relation+'--&gt;</div>';
+                }
+
+            }
+            return re;
         }
         function get_branches_relation(b1,b2){
 
@@ -331,13 +393,13 @@
 
         }
         function get_relation(w1,w2){
-            var type1=天干五行[w1];
-            var type2=天干五行[w2];
+            var type1=!天干五行[w1];
+            var type2=!天干五行[w2];
             if(type1==type2){
                 if(type1){
-                    return get_stems_relation(w1,w2);
-                }else{
                     return get_branches_relation(w1,w2);
+                }else{
+                    return get_stems_relation(w1,w2);
                 }
             }else{
                 return get_cross_relation(w1,w2);
@@ -357,60 +419,77 @@
             });
 
 
+            var content=$('#canvasContainer>table');
+            for(var i=1;i<10;i++){
+                var tr=$('<tr></tr>');
+                for(var k=1;k<10;k++){
+                    tr.append('<td class="word_info_cell" id="c_'+i+'_'+k+'"></td>');
+                }
+                content.append(tr);
+            }
             $('#submit_all').click(function(){
+                updateHashTag();
                 var 八字={};
                 $.each(['年','月','日','时'],function(k,v){
                     八字[v+'干']=$('#'+v+'干').val();
                     八字[v+'支']=$('#'+v+'支').val();
                 });
-                var content=$('<div>' +
-                '' +
-                '' +
-                '' +
-                '' +
-                '' +
-                '' +
-                '' +
-                '</div>');
-                content.append($('<span>'+八字.年干+'</span>'));
+                $('.word_info_cell').html('');
 
-                content.append($('<span>'+get_relation(八字.年干,八字.月干)+'</span>'));
+                /*十神*/
+                $('#c_1_2').html(get_stems_10G(八字.年干,八字.日干));
+                $('#c_1_4').html(get_stems_10G(八字.月干,八字.日干));
+                $('#c_1_6').html('日主');
+                $('#c_1_8').html(get_stems_10G(八字.时干,八字.日干));
 
-                content.append($('<span>'+八字.月干+'</span>'));
+                /*八字天干*/
+                $('#c_2_2').html(八字.年干+'('+get_stems_5e(八字.年干)+')');
+                $('#c_2_3').html(get_relation(八字.年干,八字.月干));
+                $('#c_2_4').html(八字.月干+'('+get_stems_5e(八字.月干)+')');
+                $('#c_2_5').html(get_relation(八字.月干,八字.日干));
+                $('#c_2_6').html(八字.日干+'('+get_stems_5e(八字.日干)+')');
+                $('#c_2_7').html(get_relation(八字.日干,八字.时干));
+                $('#c_2_8').html(八字.时干+'('+get_stems_5e(八字.时干)+')');
 
-                content.append($('<span>'+get_relation(八字.月干,八字.日干)+'</span>'));
 
-                content.append($('<span>'+八字.日干+'</span>'));
+                /*八字地支*/
 
-                content.append($('<span>'+get_relation(八字.日干,八字.时干)+'</span>'));
 
-                content.append($('<span>'+八字.时干+'</span>'));
-
-                content.append($('<br/>'));
-
-                content.append($('<span>'+get_relation(八字.年干,八字.年支)+'</span>'));
-
-                content.append($('<span>'+get_relation(八字.年干,八字.月支)+'</span>'));
-
-                content.append($('<span>'+get_relation(八字.月干,八字.年支)+'</span>'));
-
-                content.append($('<span>'+get_relation(八字.月干,八字.月支)+'</span>'));
-
-                content.append($('<span>'+get_relation(八字.月干,八字.日支)+'</span>'));
-
-                content.append($('<span>'+get_relation(八字.日干,八字.月支)+'</span>'));
-
-                content.append($('<span>'+get_relation(八字.日干,八字.日支)+'</span>'));
-
-                content.append($('<span>'+get_relation(八字.日干,八字.时支)+'</span>'));
-
-                content.append($('<span>'+get_relation(八字.时干,八字.日支)+'</span>'));
-
-                content.append($('<span>'+get_relation(八字.时干,八字.时支)+'</span>'));
-
-                $('#canvasContainer').html('');
-
-                $('#canvasContainer').append(content);
+//                content.append($('<span>'+八字.年干+'</span>'));
+//
+//                content.append($('<span>'+get_relation(八字.年干,八字.月干)+'</span>'));
+//
+//                content.append($('<span>'+八字.月干+'</span>'));
+//
+//                content.append($('<span>'+get_relation(八字.月干,八字.日干)+'</span>'));
+//
+//                content.append($('<span>'+八字.日干+'</span>'));
+//
+//                content.append($('<span>'+get_relation(八字.日干,八字.时干)+'</span>'));
+//
+//                content.append($('<span>'+八字.时干+'</span>'));
+//
+//                content.append($('<br/>'));
+//
+//                content.append($('<span>'+get_relation(八字.年干,八字.年支)+'</span>'));
+//
+//                content.append($('<span>'+get_relation(八字.年干,八字.月支)+'</span>'));
+//
+//                content.append($('<span>'+get_relation(八字.月干,八字.年支)+'</span>'));
+//
+//                content.append($('<span>'+get_relation(八字.月干,八字.月支)+'</span>'));
+//
+//                content.append($('<span>'+get_relation(八字.月干,八字.日支)+'</span>'));
+//
+//                content.append($('<span>'+get_relation(八字.日干,八字.月支)+'</span>'));
+//
+//                content.append($('<span>'+get_relation(八字.日干,八字.日支)+'</span>'));
+//
+//                content.append($('<span>'+get_relation(八字.日干,八字.时支)+'</span>'));
+//
+//                content.append($('<span>'+get_relation(八字.时干,八字.日支)+'</span>'));
+//
+//                content.append($('<span>'+get_relation(八字.时干,八字.时支)+'</span>'));
 
             });
         });
