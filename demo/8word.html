@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8" />
         <title> </title>
-         
+		<link rel="stylesheet" type="text/css" href="jedate/skin/jedate.css"/>
         <style type="text/css">
             body {
                 background-color: black;
@@ -148,9 +148,9 @@
             <form id="settingsForm" action="javascript:draw(getColorPicker(), getSamples());">
                 <table>
                     <tr>
-                        <td>Rendering time</td>
-                        <td>
-                            <span id='renderTime'>0.0</span> seconds
+                        <td>选择时间</td>
+                        <td> 
+							<input type='text' id='input_date' />
                         </td>
                     </tr>
                     <tr>
@@ -260,8 +260,17 @@
         </div> 
     </body>
     <script type="text/javascript" src='jquery-1.10.2.min.js'></script>
+	<script type="text/javascript" src='jedate/jquery.jedate-3.7.min.js'></script>
     <script>
-
+		
+		function igetv(obj,index,start){
+			if(typeof(start)=='undefined') start=0;
+			var c=start;
+			for(var i in obj){
+				if(c==index) return obj[i];
+				c++
+			}
+		}
         function updateHashTag(){
             var data=$('#settingsForm :input').serializeArray();
             console.log(data);
@@ -283,18 +292,18 @@
         var 五行关系2=['','生','克','克','生'];
 
 
-
+		 
         var 天干五行={
-            '甲':['木','阳'],
-            '乙':['木','阴'],
-            '丙':['火','阳'],
-            '丁':['火','阴'],
-            '戊':['土','阳'],
-            '己':['土','阴'],
-            '庚':['金','阳'],
-            '辛':['金','阴'],
-            '壬':['水','阳'],
-            '癸':['水','阴']
+            '甲':['阳','木'],
+            '乙':['阴','木'],
+            '丙':['阳','火'],
+            '丁':['阴','火'],
+            '戊':['阳','土'],
+            '己':['阴','土'],
+            '庚':['阳','金'],
+            '辛':['阴','金'],
+            '壬':['阳','水'],
+            '癸':['阴','水']
         };
 		var 天干相冲={
 			'甲庚':1,
@@ -316,7 +325,20 @@
             '克我':['七杀','正官'],
             '生我':['偏印','正印']
         };
-        var 地支=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+        var 地支五行={
+            '子':['阳','水'],
+            '丑':['阴','土'],
+            '寅':['阳','木'],
+            '卯':['阴','木'],
+            '辰':['阳','土'],
+            '巳':['阴','火'],
+            '午':['阳','火'],
+            '未':['阴','土'],
+            '申':['阳','金'],
+			'酉':['阴','金'],
+			'戌':['阳','土'],
+            '亥':['阴','水']
+        };
         var 地支藏干={
             '子':['癸'],
             '丑':['己','癸','辛'],
@@ -335,19 +357,36 @@
             var diff=五行[t]-五行[s];
             if(diff<0) diff=5+diff;
             return diff;
-        }
-
+        } 
+		function get_stem_word(index){
+			var c=1;
+			for(var i in 天干五行){
+				if(c==index) return i;
+				c++
+			}
+		}
+		function get_branche_word(index){
+			var c=1;
+			for(var i in 地支五行){
+				if(c==index) return i;
+				c++
+			}
+		}
         function get_stems_5e(s){
             var self_info=天干五行[s];
-            return 天干五行[s][1]+天干五行[s][0];
+            return 天干五行[s][0]+天干五行[s][1];
+        }
+		function get_branches_5e(s){
+            var self_info=地支五行[s];
+            return 地支五行[s][0]+地支五行[s][1];
         }
         function get_stems_10G(t,s){
             var self_info=天干五行[s];
             var target_info=天干五行[t];
 
-            var diff=get_5e_relation(target_info[0],self_info[0]);
+            var diff=get_5e_relation(target_info[1],self_info[1]);
             var relation=五行关系[Math.abs(diff)];
-            var type=self_info[1]==target_info[1]?0:1;
+            var type=self_info[0]==target_info[0]?0:1;
 
 //            var notes='自己:'+self_info[0]+'('+五行[self_info[0]]+') '+
 //                    '当前:'+target_info[0]+'('+五行[target_info[0]]+') '+
@@ -374,7 +413,7 @@
             var s1_info=天干五行[s1];
             var s2_info=天干五行[s2];
 
-            var diff=get_5e_relation(s2_info[0],s1_info[0]);
+            var diff=get_5e_relation(s2_info[1],s1_info[1]);
             if(diff>0){
                 var relation=五行关系2[diff];
                 if(diff>2){
@@ -406,16 +445,22 @@
             }
         }
         $(function(){
-            var hs_str='';
+          
+			$(document).on('change','.select_stems',function(){
+				var eb_str='';
+				var s_info=天干五行[$(this).val()];
+				$.each(地支五行,function(k,v){
+					if(s_info[0]==v[0]) eb_str+='<option>'+k+'</option>';
+				}); 
+				$(this).next().html(eb_str);
+			});
+			var hs_str='';
             for(var i in 天干五行){
                 hs_str+='<option>'+i+'</option>';
             }
             $('.select_stems').each(function(){
                 $(this).html(hs_str);
-            });
-            var eb_str=地支.map(function(v){return '<option>'+v+'</option>';});
-            $('.select_branches').each(function(){
-                $(this).html(eb_str);
+				$(this).change();
             });
 
 
@@ -437,12 +482,14 @@
                 $('.word_info_cell').html('');
 
                 /*十神*/
+				$('#c_1_1').html('十神');
                 $('#c_1_2').html(get_stems_10G(八字.年干,八字.日干));
                 $('#c_1_4').html(get_stems_10G(八字.月干,八字.日干));
                 $('#c_1_6').html('日主');
                 $('#c_1_8').html(get_stems_10G(八字.时干,八字.日干));
 
                 /*八字天干*/
+				$('#c_2_1').html('天干');
                 $('#c_2_2').html(八字.年干+'('+get_stems_5e(八字.年干)+')');
                 $('#c_2_3').html(get_relation(八字.年干,八字.月干));
                 $('#c_2_4').html(八字.月干+'('+get_stems_5e(八字.月干)+')');
@@ -453,7 +500,14 @@
 
 
                 /*八字地支*/
-
+				$('#c_4_1').html('地支');
+                $('#c_4_2').html(八字.年支+'('+get_branches_5e(八字.年支)+')');
+                $('#c_4_3').html(get_relation(八字.年支,八字.月支));
+                $('#c_4_4').html(八字.月支+'('+get_branches_5e(八字.月支)+')');
+                $('#c_4_5').html(get_relation(八字.月支,八字.日支));
+                $('#c_4_6').html(八字.日支+'('+get_branches_5e(八字.日支)+')');
+                $('#c_4_7').html(get_relation(八字.日支,八字.时支));
+                $('#c_4_8').html(八字.时支+'('+get_branches_5e(八字.时支)+')');
 
 //                content.append($('<span>'+八字.年干+'</span>'));
 //
@@ -493,5 +547,93 @@
 
             });
         });
+		
+		function fix_num(b,length){
+			if(b<1) b+=length;
+			if(b>length) b-=length;
+			return b;		
+		}
+		var day_2000_1_1=[5,7];
+		function get_date_word(str){
+			var date_arr=str.split(' ');
+			date_arr[0]=date_arr[0].split('/');
+			date_arr[1]=date_arr[1].split(':');
+			var year=date_arr[0][0];
+			var month=date_arr[0][1];
+			var day=date_arr[0][2];
+			var hour=date_arr[1][0];
+			
+			
+			
+			var date_obj=new Date(str);
+		
+			var timestamp=date_obj.getTime()/1000;
+			var timestamp_fix=new Date('2000/01/01');
+			timestamp_fix=timestamp_fix.getTime()/1000;
+			
+			var timestamp_diff=timestamp-timestamp_fix;
+			var day_count=parseInt(timestamp_diff/(3600*24));
+			
+			var day_stem=day_count%10-5;
+			day_stem=fix_num(day_stem,10);
+		 
+			var day_branche=day_count%12-5;
+			day_branche=fix_num(day_branche,12);
+			 
+			
+			var hour_branche=hour>=23?1:Math.ceil(hour/2)+1;
+			
+			var hour_stem_fix=(day_stem>5?day_stem-5:day_stem)*2;
+			if(hour_stem_fix>10) hour_stem_fix-=10;
+			 
+			var hour_stem=hour_stem_fix+hour_branche-2;
+			hour_stem=fix_num(hour_stem,10);
+			 
+		  
+	
+			
+			
+			var year_stem=year%10-3;
+			year_stem=fix_num(year_stem,10);
+				
+			var year_branche=year%12-3;
+			year_branche=fix_num(year_branche,12);
+			 
+			
+			var month_stem_fix=(year_stem>5?year_stem-5:year_stem)*2+1;
+			if(month_stem_fix>10) month_stem_fix-=10;
+			var month_stem=month_stem_fix-(-month);
+			month_stem=fix_num(month_stem,10);
+
+			var month_branche=fix_num(month-11,12);
+			
+		
+			
+			
+			year_stem=get_stem_word(year_stem);
+			year_branche=get_branche_word(year_branche);
+			 
+			month_stem=get_stem_word(month_stem);
+			month_branche=get_branche_word(month_branche);
+			
+			day_stem=get_stem_word(day_stem);
+			day_branche=get_branche_word(day_branche);
+			 
+			hour_stem=get_stem_word(hour_stem);
+			hour_branche=get_branche_word(hour_branche);
+			
+			return [year_stem,year_branche,month_stem,month_branche,day_stem,day_branche,hour_stem,hour_branche];
+		}
+		$(function(){
+			/*通用时间日期选择框*/
+			$('#input_date').jeDate({
+				format:'YYYY/MM/DD hh:mm:ss',
+				choosefun:function(elem,val){
+					var date_word=get_date_word(val);
+					
+					console.log(date_word);
+				}
+			});
+		});
 	</script>
 </html>
