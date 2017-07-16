@@ -1,0 +1,402 @@
+function fix_num(b,length){
+    if(b<1) b+=length;
+    if(b>length) b-=length;
+    return b;
+}
+
+var 五行={'土':0,'金':1,'水':2,'木':3,'火':4};
+var 五行关系=['同我','我生','我克','克我','生我'];
+var 五行关系2=['','生','克','克','生'];
+
+
+
+var 天干五行={
+    '甲':['阳','木'],
+    '乙':['阴','木'],
+    '丙':['阳','火'],
+    '丁':['阴','火'],
+    '戊':['阳','土'],
+    '己':['阴','土'],
+    '庚':['阳','金'],
+    '辛':['阴','金'],
+    '壬':['阳','水'],
+    '癸':['阴','水']
+};
+var 天干相冲={
+    '甲庚':1,
+    '乙辛':1,
+    '丙壬':1,
+    '丁癸':1
+};
+var 天干相合={
+    '甲己':'土',
+    '乙庚':'金',
+    '丙辛':'水',
+    '丁壬':'木',
+    '戊癸':'火'
+};
+var 天干十神={
+    '同我':['比肩','劫财'],
+    '我生':['食神','伤官'],
+    '我克':['偏财','正财'],
+    '克我':['七杀','正官'],
+    '生我':['偏印','正印']
+};
+var 地支五行={
+    '子':['阳','水'],
+    '丑':['阴','土'],
+    '寅':['阳','木'],
+    '卯':['阴','木'],
+    '辰':['阳','土'],
+    '巳':['阴','火'],
+    '午':['阳','火'],
+    '未':['阴','土'],
+    '申':['阳','金'],
+    '酉':['阴','金'],
+    '戌':['阳','土'],
+    '亥':['阴','水']
+};
+var 地支相冲={
+    '子午':1,
+    '卯酉':1,
+    '寅申':1,
+    '巳亥':1,
+    '辰戌':1,
+    '丑未':1
+};
+var 地支相合={
+    '六合':{
+        '子丑':'土',
+        '寅亥':'木',
+        '卯戌':'火',
+        '辰酉':'金',
+        '巳申':'水',
+        '午未':'土'
+    },
+    '三合':{
+        '寅午戌':'火',
+        '申子辰':'水',
+        '亥卯未':'木',
+        '巳酉丑':'金'
+    },
+    '半合':{
+
+
+
+    }
+
+};
+var 地支相刑={
+    '寅巳':'恃势之刑',
+    '巳申':'恃势之刑',
+    '申寅':'恃势之刑',
+    '未丑':'无恩之刑',
+    '丑戌':'无恩之刑',
+    '戌未':'无恩之刑',
+    '子卯':'无礼之刑',
+    '辰辰':'自刑',
+    '午午':'自刑',
+    '酉酉':'自刑',
+    '亥亥':'自刑'
+};
+var 地支藏干={
+    '子':['癸'],
+    '丑':['己','癸','辛'],//
+    '寅':['甲','丙','戊'],
+    '卯':['乙'],
+    '辰':['戊','乙','癸'],//
+    '巳':['丙','庚','戊'],
+    '午':['丁','己'],
+    '未':['己','丁','乙'],//
+    '申':['庚','壬','戊'],
+    '酉':['辛'],
+    '戌':['戊','辛','丁'],//
+    '亥':['壬','甲']
+};
+function get_5e_relation(t,s){
+    var diff=五行[t]-五行[s];
+    if(diff<0) diff=5+diff;
+    return diff;
+}
+function get_stem_word(index){
+    var c=1;
+    for(var i in 天干五行){
+        if(c==index) return i;
+        c++
+    }
+}
+function get_branche_word(index){
+    var c=1;
+    for(var i in 地支五行){
+        if(c==index) return i;
+        c++
+    }
+}
+function get_stems_5e(s){
+    var self_info=天干五行[s];
+    return 天干五行[s][0]+天干五行[s][1];
+}
+function get_branches_5e(s){
+    var self_info=地支五行[s];
+    return 地支五行[s][0]+地支五行[s][1];
+}
+function get_stems_10G(t,s){
+    var self_info=天干五行[s];
+    var target_info=天干五行[t];
+
+    var diff=get_5e_relation(target_info[1],self_info[1]);
+    var relation=五行关系[Math.abs(diff)];
+    var type=self_info[0]==target_info[0]?0:1;
+
+//            var notes='自己:'+self_info[0]+'('+五行[self_info[0]]+') '+
+//                    '当前:'+target_info[0]+'('+五行[target_info[0]]+') '+
+//                    '结果:'+relation+'('+diff+')';
+    var notes='';
+
+    return 天干十神[relation][type]+notes;
+}
+
+function get_stems_relation(s1,s2){
+    var re='';
+    var asc=s1+s2,desc=s2+s1;
+
+    var 冲=天干相冲[asc] || 天干相冲[desc];
+
+    if(冲){
+        re+='<div>---相冲---</div>';
+    }
+
+    var 合=天干相合[asc] || 天干相合[desc];
+    if(合){
+        re+='<div>---相合,化'+合+'---</div>';
+    }
+
+
+    var s1_info=天干五行[s1];
+    var s2_info=天干五行[s2];
+
+    var diff=get_5e_relation(s2_info[1],s1_info[1]);
+    if(diff>0){
+        var relation=五行关系2[diff];
+        if(diff>2){
+            re+='<div>&lt;--'+relation+'--</div>';
+        }else{
+            re+='<div>--'+relation+'--&gt;</div>';
+        }
+
+    }
+    return re;
+}
+function get_branches_relation(b1,b2){
+    var re='';
+    var asc=b1+b2,desc=b2+b1;
+
+    var 冲=地支相冲[asc] || 地支相冲[desc];
+    if(冲){
+        re+='<div>---相冲---</div>';
+    }
+
+    var 刑=地支相刑[asc] || 地支相刑[desc];
+    if(刑){
+        re+='<div>---'+刑+'---</div>';
+    }
+
+    var 六合=地支相合.六合[asc] || 地支相合.六合[desc];
+    if(六合){
+        re+='<div>---六合,化'+六合+'---</div>';
+    }
+    return re;
+}
+function get_cross_relation(w1,w2){
+
+}
+function get_relation(w1,w2){
+    var type1=!天干五行[w1];
+    var type2=!天干五行[w2];
+    if(type1==type2){
+        if(type1){
+            return get_branches_relation(w1,w2);
+        }else{
+            return get_stems_relation(w1,w2);
+        }
+    }else{
+        return get_cross_relation(w1,w2);
+    }
+}
+function get_lunar_month_node(year,cb){
+
+}
+var lunar_month_start_point_list={
+
+};
+var sb_calc={
+    start_date:'2000/01/01',
+    start_stem_num:5,
+    start_branche_num:7,
+    lunar_month_num:{
+        '正':1,
+        '一':1,
+        '二':2,
+        '三':3,
+        '四':4,
+        '五':5,
+        '六':6,
+        '七':7,
+        '八':8,
+        '九':9,
+        '十':10,
+        '冬':11,
+        '腊':12
+    },
+    get_date_arr:function(str){
+        /*获取阳历年月日时的数值*/
+        if(typeof(str)!='string') return str;
+
+        var date_arr=str.split(' ');
+        var delimiter_year='/';
+        date_arr[0]=date_arr[0].split(delimiter_year);
+        date_arr[1]=date_arr[1].split(':');
+        return [date_arr[0][0],date_arr[0][1],date_arr[0][2],date_arr[1][0]];
+    },
+    get_lunar_month:function(str,cb){
+        var date_arr=sb_calc.get_date_arr(str);
+        var year=date_arr[0];
+
+        var next=function(err,split_info){
+            if(err){
+                cb(err);
+                return ;
+            }
+            var month=parseInt(date_arr[1]);
+            var month_lunar_info=split_info.month_node[month];
+
+            //var catcht;
+            //for(var x in month_lunar_info){
+            //    var luna_info=month_lunar_info[x].split('_');/*此处格式为[农历初一的阳历日号,农历月号]*/
+            //    if(date_arr[2]>=luna_info[0]){
+            //        catcht=luna_info;
+            //    }
+            //}
+            //if(catcht){
+            //    console.log('当前日期:',date_arr[2],'  进入农历'+catcht[1]+'月,初一阳历为:'+catcht[0]);
+            //    catcht=sb_calc.lunar_month_num[catcht[1]];
+            //}else{
+            //    /*本月没有匹配到的农历起始月份*/
+            //    if(month==1){/*阳历是一月*/
+            //        /*找本年第一个农历月，匹配其前一个月*/
+            //        month_lunar_info[0].split('_');
+            //        console.log('当前日期:',date_arr[2],' 未进入本年农历第一个月,'+luna_info[1]+'月初一阳历为:'+luna_info[0],',计算取前一个月');
+            //        catcht=sb_calc.lunar_month_num[luna_info[1]];
+            //        catcht-=1;
+            //        if(catcht==0) catcht=12;
+            //    }else{
+            //        catcht=split_info.month_node[month-1];
+            //        catcht=catcht[catcht.length-1];
+            //        catcht=catcht.split('_');
+            //        console.log('当前日期:',date_arr[2],' 未进入农历'+luna_info[1]+'月,初一阳历为:'+luna_info[0],
+            //            ',计算取农历'+catcht[1]+'月,初一阳历为:'+catcht[0]);
+            //        catcht=sb_calc.lunar_month_num[catcht[1]];
+            //    }
+            //}
+            //cb('',catcht);
+        };
+        if(lunar_month_start_point_list[year]){
+            next('',lunar_month_start_point_list[year]);
+        }else{
+            $.ajax({
+                url:"public/lunar_month_node_"+year+".json",
+                dataType: "json",
+                success: function(re){
+                    lunar_month_start_point_list[year]=re;
+                    next('',lunar_month_start_point_list[year]);
+                },
+                error:function(){
+                    next('ajax fail');
+                }
+            });
+        }
+    },
+
+    get_stem_word:function(){
+
+    },
+    get_date_info:function(str,cb){
+        var date_arr=sb_calc.get_date_arr(str);
+
+        var date_obj=new Date(date_arr[0]+'/'+date_arr[1]+'/'+date_arr[2]+' '+date_arr[3]+':00:00');
+        var timestamp=date_obj.getTime()/1000;/*当前时间戳的秒数*/
+        var timestamp_fix=new Date(sb_calc.start_date);/*开始计算的日期*/
+        timestamp_fix=timestamp_fix.getTime()/1000;/*开始时间的秒数*/
+
+        var timestamp_diff=timestamp-timestamp_fix;/*当前时间距离开始时间的秒数*/
+        var day_count=parseInt(timestamp_diff/(3600*24));/*当前时间距离开始时间的天数*/
+        /*日天干*/
+        var day_stem=day_count%10-sb_calc.start_stem_num;
+        day_stem=fix_num(day_stem,10);
+        /*日地支*/
+        var day_branche=day_count%12-sb_calc.start_branche_num+2;
+        day_branche=fix_num(day_branche,12);
+
+        /*时地支*/
+        var hour_branche=date_arr[3]>=23?1:Math.ceil(date_arr[3]/2)+1;
+        /*时天干*/
+        var hour_stem_fix=(day_stem>5?day_stem-5:day_stem)*2;
+        if(hour_stem_fix>10) hour_stem_fix-=10;
+        var hour_stem=hour_stem_fix+hour_branche-2;
+        hour_stem=fix_num(hour_stem,10);
+
+        /*年天干*/
+        var year_stem=date_arr[0]%10-3;
+        year_stem=fix_num(year_stem,10);
+        /*年地支*/
+        var year_branche=date_arr[0]%12-3;
+        year_branche=fix_num(year_branche,12);
+
+        /*获取农历月数*/
+        sb_calc.get_lunar_month(date_arr,function(err,lunar_month){
+            if(err){
+                cb(err);
+                return;
+            }
+            console.log('lunar_month:',lunar_month);
+
+
+            /*月天干*/
+            var month_stem_fix=(year_stem>5?year_stem-5:year_stem)*2+1;
+            if(month_stem_fix>10) month_stem_fix-=10;
+            var month_stem=month_stem_fix-(-lunar_month);
+            month_stem=fix_num(month_stem,10);
+            /*月地支*/
+            var month_branche=fix_num(lunar_month-11,12);
+
+
+            var re=[];
+            re[0]=get_stem_word(year_stem);
+            re[1]=get_branche_word(year_branche);
+
+            re[2]=get_stem_word(month_stem);
+            re[3]=get_branche_word(month_branche);
+
+            re[4]=get_stem_word(day_stem);
+            re[5]=get_branche_word(day_branche);
+
+            re[6]=get_stem_word(hour_stem);
+            re[7]=get_branche_word(hour_branche);
+
+
+            var 八字={};
+            $.each(['年','月','日','时'],function(k,v){
+                八字[v+'干']=re[k*2];
+                八字[v+'支']=re[k*2+1];
+            });
+
+            cb('',八字);
+        });
+
+
+
+    },
+    get_8word_info:function(word_arr){
+
+    }
+};

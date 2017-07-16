@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title> </title>
+		<link rel="stylesheet" type="text/css" href="public/jedate/skin/jedate.css"/>
+        <style type="text/css">
+            body {
+                background-color: black;
+                padding: 0px;
+                margin: 0px;
+                font-size: 10pt;
+                text-shadow: 0px 1px 0px rgb(40, 40, 40);
+            }
+
+            a { color: #ccc; text-decoration: none; }
+            a:hover { color: #FF3B03; }
+
+            #bottom { color: #666; }
+            #bottom a { color: #666; }
+            #bottom a:hover { color: #FF3B03; }
+
+            #canvasMandelbrot {
+                background-color: black;
+                position: absolute;
+                left: 0px;
+                top: 0px;
+                z-index: 0;
+                padding: 0px;
+                margin: 0px;
+            }
+
+            #canvasControls {
+                background-color: transparent;
+                position: absolute;
+                left: 0px;
+                top: 0px;
+                z-index: 5;
+                padding: 0px;
+                margin: 0px;
+            }
+
+
+            #description {
+                float:left;
+                z-index: 10;
+                position: relative;
+                background-color: rgba(30, 30, 30, 0.6);
+                font-family: sans-serif;
+                padding: 20px;
+                margin: 0;
+                border: 2px solid rgba(20, 20, 20, 0.6);
+                color: #FF3B03;
+                text-shadow: 0px 1px 0px rgb(40, 40, 40);
+                width: 300px;
+
+                /* Make text non-selecatble */
+                user-select: none;
+                -moz-user-select: none;
+                -khtml-user-select: none;
+                -webkit-user-select: none;
+                -o-user-select: none;
+            }
+
+            #infoBox:hover {
+                background-color: rgba(30, 30, 30, 0.3);
+                color: #444;
+                border: #222 1px solid;
+            }
+
+            #infoBox {
+                text-align:right;
+                z-index: 10;
+                position: absolute;
+                right: 5px;
+                bottom: 5px;
+                padding: 5px;
+
+                background: transparent;
+                color: rgba(51,51,51,0.1);
+                text-shadow: none;
+
+                font-family: sans-serif;
+                font-size:8pt;
+            }
+
+            #description table {
+                color: #ccc;
+            }
+
+            #description input {
+                color: #ccc;
+                outline: none;
+                background-color: rgba(48,48,48,0.3);
+                border-width: 1px;
+                border-color: #444;
+            }
+
+            #description select {
+                border: #444 1px solid;
+                color: #ccc;
+                outline: none;
+                background-color: #333;
+                -webkit-appearance: none;
+                font-size: 10pt;
+            }
+
+            #autoIterations {
+                border: #444 1px solid;
+                color: #ccc;
+                outline: none;
+                background-color: #333;
+                font-size: 10pt;
+            }
+
+            .headerText {
+                color: #666;
+            }
+
+            #description .textInput {
+                text-align: right;
+                background-color: transparent;
+                border: #444 1px solid;
+                font-size: 10pt;
+            }
+
+            hr {
+                border-color: #222;
+            }
+
+            #canvasContainer{
+                background-color: #eee;
+                margin-left:340px;
+                position: relative;
+                width: auto;
+                height:100%;
+            }
+            #canvasContainer td{
+                width:110px;
+                height:110px;
+            }
+
+
+            .word_info_cell{
+                text-align: center;
+            }
+        </style>
+    </head>
+    <body >
+        <div id="description">
+            <form id="settingsForm" action="javascript:draw(getColorPicker(), getSamples());">
+                <table>
+                    <tr>
+                        <td>选择时间</td>
+                        <td> 
+							<input type='text' id='input_date' />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Speed</td>
+                        <td>
+                            <span id='renderSpeed'>0.00</span> pixels /
+                            <span id='renderSpeedUnit'>second</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>年柱</td>
+                        <td>
+                            <select class="select_stems" name="s1" id="年干">
+                            </select>
+                            <select class="select_branches" name="b1" id="年支">
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>月柱</td>
+                        <td>
+                            <select class="select_stems" name="s2" id="月干">
+                            </select>
+                            <select class="select_branches" name="b2" id="月支">
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>日柱</td>
+                        <td>
+                            <select class="select_stems" name="s3" id="日干">
+                            </select>
+                            <select class="select_branches" name="b3" id="日支">
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>时柱</td>
+                        <td>
+                            <select class="select_stems" name="s4" id="时干">
+                            </select>
+                            <select class="select_branches" name="b4" id="时支">
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Escape radius</td>
+                        <td> <input class="textInput" size="4" type="text"
+                        id="escapeRadius" value="10.0" /> </td>
+                    </tr>
+                    <tr>
+                        <td>Color scheme</td>
+                        <td>
+                            <select id="colorScheme">
+                                <option value="Grayscale">Grayscale #1</option>
+                                <option value="Grayscale2">Grayscale #2</option>
+                                <option value="HSV1">HSV #1</option>
+                                <option value="HSV2">HSV #2 Red</option>
+                                <option value="HSV3">HSV #2 Blue</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Supersamples</td>
+                        <td><input class="textInput" size="4" type="text" id="superSamples" value="2" /></td>
+                    </tr>
+                    <tr>
+                        <td>Scanline update (ms)</td>
+                        <td><input class="textInput" size="4" type="text"
+                        id="updateTimeout" value="200" /></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <input type="button" id="submit_all" value="calc" />
+                            &nbsp;
+                            <input type="reset" id="resetButton" value="Reset" />
+                            &nbsp;
+                            <input type="button" id="viewPNG" value="View as PNG" />
+                        </td>
+                    </tr>
+                </table>
+            </form>
+
+            <hr/>
+
+            <div id="bottom">
+                <small>
+                    <br/> &nbsp; <br/>
+                    Click + drag to zoom in, shift +click to zoom out.
+                    You can change the settings above and hit <i>Draw</i> to render
+                    anew.
+                </small>
+            </div>
+        </div>
+
+        <div id="canvasContainer">
+            <table border="1" cellpadding="0" cellspacing="0"></table>
+        </div>
+
+        <div id="infoBox">
+            <span id="infoText"></span>
+        </div> 
+    </body>
+    <script type="text/javascript" src='public/jquery-1.10.2.min.js'></script>
+	<script type="text/javascript" src='public/jedate/jquery.jedate-3.7.min.js'></script>
+    <script type="text/javascript" src='public/8word_calc.js'></script>
+
+    <script>
+		
+		function igetv(obj,index,start){
+			if(typeof(start)=='undefined') start=0;
+			var c=start;
+			for(var i in obj){
+				if(c==index) return obj[i];
+				c++
+			}
+		}
+        function updateHashTag(){
+            var data=$('#settingsForm :input').serializeArray();
+            console.log(data);
+
+//            location.hash =
+//            's1=' + zoom + '&' +
+//            'b1=' + lookAt + '&' +
+//            's2=' + iterations + '&' +
+//            'b2=' + samples + '&' +
+//            's3=' + radius + '&' +
+//            'b3=' + samples + '&' +
+//            's4=' + radius + '&' +
+//            'b4=' + scheme;
+
+        }
+
+
+
+
+
+        $(function(){
+            /*初始化手动选择下拉框列表*/
+            $(document).on('change','.select_stems',function(){
+                var eb_str='';
+                var s_info=天干五行[$(this).val()];
+                $.each(地支五行,function(k,v){
+                    if(s_info[0]==v[0]) eb_str+='<option value="'+k+'">'+k+'</option>';
+                });
+                $(this).next().html(eb_str);
+            });
+            var hs_opt_html='';
+            for(var i in 天干五行){
+                hs_opt_html+='<option value="'+i+'">'+i+'</option>';
+            }
+            $('.select_stems').each(function(){
+                $(this).html(hs_opt_html);
+                $(this).change();
+            });
+        });
+
+
+
+
+		$(function(){
+            /*通用时间日期选择框*/
+            $('#input_date').jeDate({
+                format:'YYYY/MM/DD hh:mm:ss',
+                choosefun:function(elem,val){
+                    sb_calc.get_date_info(val,function(date_word){
+                        $.each(['干','支'],function(k1,fix){
+                            $.each(['年','月','日','时'],function(k,v){
+                                var val=date_word[v+fix];
+                                var select=$('#'+v+fix);
+
+                                var tofind=$('option[value="'+val+'"]',select);
+                                console.log(val,select,tofind);
+
+                                if(tofind.length>0){
+                                    tofind.prop('selected',true);
+                                }
+                                if(k1==0) select.change();
+                            });
+                        });
+                    });
+                }
+            });
+
+
+            /*初始化输出信息表格*/
+            var content=$('#canvasContainer>table');
+            for(var i=1;i<10;i++){
+                var tr=$('<tr></tr>');
+                for(var k=1;k<10;k++){
+                    tr.append('<td class="word_info_cell" id="c_'+i+'_'+k+'"></td>');
+                }
+                content.append(tr);
+            }
+
+            $('#submit_all').click(function(){
+                updateHashTag();
+                var 八字={};
+                $.each(['年','月','日','时'],function(k,v){
+                    八字[v+'干']=$('#'+v+'干').val();
+                    八字[v+'支']=$('#'+v+'支').val();
+                });
+                $('.word_info_cell').html('');
+
+                var result=sb_calc.get_8word_info(八字,function(){
+
+
+
+                });
+//                /*十神*/
+//				$('#c_1_1').html('十神');
+//                $('#c_1_2').html(get_stems_10G(八字.年干,八字.日干));
+//                $('#c_1_4').html(get_stems_10G(八字.月干,八字.日干));
+//                $('#c_1_6').html('日主');
+//                $('#c_1_8').html(get_stems_10G(八字.时干,八字.日干));
+//
+//                /*八字天干*/
+//				$('#c_2_1').html('天干');
+//                $('#c_2_2').html(八字.年干+'('+get_stems_5e(八字.年干)+')');
+//                $('#c_2_3').html(get_stems_relation(八字.年干,八字.月干));
+//                $('#c_2_4').html(八字.月干+'('+get_stems_5e(八字.月干)+')');
+//                $('#c_2_5').html(get_stems_relation(八字.月干,八字.日干));
+//                $('#c_2_6').html(八字.日干+'('+get_stems_5e(八字.日干)+')');
+//                $('#c_2_7').html(get_stems_relation(八字.日干,八字.时干));
+//                $('#c_2_8').html(八字.时干+'('+get_stems_5e(八字.时干)+')');
+//
+//
+//                /*八字地支*/
+//				$('#c_4_1').html('地支');
+//                $('#c_4_2').html(八字.年支+'('+get_branches_5e(八字.年支)+')');
+//                $('#c_4_3').html(get_branches_relation(八字.年支,八字.月支));
+//                $('#c_4_4').html(八字.月支+'('+get_branches_5e(八字.月支)+')');
+//                $('#c_4_5').html(get_branches_relation(八字.月支,八字.日支));
+//                $('#c_4_6').html(八字.日支+'('+get_branches_5e(八字.日支)+')');
+//                $('#c_4_7').html(get_branches_relation(八字.日支,八字.时支));
+//                $('#c_4_8').html(八字.时支+'('+get_branches_5e(八字.时支)+')');
+//
+//
+//                /*地支藏干*/
+//                $('#c_5_1').html('地支藏干');
+//
+//
+//                var cg;
+//
+//                cg=地支藏干[八字.年支];
+//                cg='<span>'+cg.join('<span/><span>')+'<span/>';
+//                $('#c_5_2').html(cg);
+//
+//                cg=地支藏干[八字.月支];
+//                cg='<span>'+cg.join('<span/><span>')+'<span/>';
+//                $('#c_5_4').html(cg);
+//
+//                cg=地支藏干[八字.日支];
+//                cg='<span>'+cg.join('<span/><span>')+'<span/>';
+//                $('#c_5_6').html(cg);
+//
+//                cg=地支藏干[八字.时支];
+//                cg='<span>'+cg.join('<span/><span>')+'<span/>';
+//                $('#c_5_8').html(cg);
+
+            });
+        });
+
+	</script>
+</html>
