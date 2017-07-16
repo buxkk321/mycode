@@ -264,16 +264,19 @@ var loopg={
                 var v=data[x];
                 var _time= v.time.split('-');
                 var m=parseInt(_time[1]);
+                if(!month_node[m]){
+                    month_node[m]=[]
+                }
                 if(v.jieqiid%2==1){
-                    month_node[m]={
+                    month_node[m].push({
                         name: v.name,
                         time: v.time
-                    };
+                    });
                 }
             }
             var wdata={month_node:month_node};
 
-            fs.writeFileSync(temp_path+'/public/lunar_month_node_'+year+'.json',JSON.stringify(wdata));
+            fs.writeFileSync(temp_path+'/public/month_jieqi_'+year+'.json',JSON.stringify(wdata));
             console.log('end!!!',data);
 
         };
@@ -289,4 +292,4 @@ var loopg={
         });
     }
 };
-//loopg.start(2019);
+//loopg.start(2018);

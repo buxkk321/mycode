@@ -256,7 +256,10 @@ var sb_calc={
         var delimiter_year='/';
         date_arr[0]=date_arr[0].split(delimiter_year);
         date_arr[1]=date_arr[1].split(':');
-        return [date_arr[0][0],date_arr[0][1],date_arr[0][2],date_arr[1][0]];
+
+        var timestamp=new Date(str);/*TODO::处理精确到分的节气分界点*/
+
+        return [date_arr[0][0],date_arr[0][1],date_arr[0][2],date_arr[1][0],timestamp,str];
     },
     get_lunar_month:function(str,cb){
         var date_arr=sb_calc.get_date_arr(str);
@@ -268,43 +271,38 @@ var sb_calc={
                 return ;
             }
             var month=parseInt(date_arr[1]);
-            var month_lunar_info=split_info.month_node[month];
+            var month_jieqi_info=split_info.month_node[month];
 
-            //var catcht;
-            //for(var x in month_lunar_info){
-            //    var luna_info=month_lunar_info[x].split('_');/*此处格式为[农历初一的阳历日号,农历月号]*/
-            //    if(date_arr[2]>=luna_info[0]){
-            //        catcht=luna_info;
-            //    }
-            //}
-            //if(catcht){
-            //    console.log('当前日期:',date_arr[2],'  进入农历'+catcht[1]+'月,初一阳历为:'+catcht[0]);
-            //    catcht=sb_calc.lunar_month_num[catcht[1]];
-            //}else{
-            //    /*本月没有匹配到的农历起始月份*/
-            //    if(month==1){/*阳历是一月*/
-            //        /*找本年第一个农历月，匹配其前一个月*/
-            //        month_lunar_info[0].split('_');
-            //        console.log('当前日期:',date_arr[2],' 未进入本年农历第一个月,'+luna_info[1]+'月初一阳历为:'+luna_info[0],',计算取前一个月');
-            //        catcht=sb_calc.lunar_month_num[luna_info[1]];
-            //        catcht-=1;
-            //        if(catcht==0) catcht=12;
-            //    }else{
-            //        catcht=split_info.month_node[month-1];
-            //        catcht=catcht[catcht.length-1];
-            //        catcht=catcht.split('_');
-            //        console.log('当前日期:',date_arr[2],' 未进入农历'+luna_info[1]+'月,初一阳历为:'+luna_info[0],
-            //            ',计算取农历'+catcht[1]+'月,初一阳历为:'+catcht[0]);
-            //        catcht=sb_calc.lunar_month_num[catcht[1]];
-            //    }
-            //}
-            //cb('',catcht);
+            var catcht;
+            for(var x in month_jieqi_info){
+                var luna_info=month_jieqi_info[x];/*此处格式为{name:xxx,time:xxx}*/
+                var _time=new Date(luna_info.time);
+
+                if(date_arr[4]>=_time.getTime()){
+                    catcht=luna_info;
+                    console.log('进入节气:',luna_info);
+
+                }
+            }
+            if(catcht){
+                console.log('当前时间:',date_arr[5],'  进入节气:'+catcht.name+';分界时间:'+catcht.time);
+
+                catcht=month;
+
+            }else{
+                /*本月没有匹配到的节气起始点,取前一个月的数据*/
+                console.log('当前时间:',date_arr[5],' 未进入本月节气:'+luna_info.name+';分界时间:'+luna_info.time,',计算取前一个月:',month-1);
+
+                catcht=month-1;
+                //if(catcht==0) catcht=12;
+            }
+            cb('',catcht);
         };
         if(lunar_month_start_point_list[year]){
             next('',lunar_month_start_point_list[year]);
         }else{
             $.ajax({
-                url:"public/lunar_month_node_"+year+".json",
+                url:"public/month_jieqi_"+year+".json",
                 dataType: "json",
                 success: function(re){
                     lunar_month_start_point_list[year]=re;
@@ -323,8 +321,7 @@ var sb_calc={
     get_date_info:function(str,cb){
         var date_arr=sb_calc.get_date_arr(str);
 
-        var date_obj=new Date(date_arr[0]+'/'+date_arr[1]+'/'+date_arr[2]+' '+date_arr[3]+':00:00');
-        var timestamp=date_obj.getTime()/1000;/*当前时间戳的秒数*/
+        var timestamp=date_arr[4]/1000;/*当前时间戳的秒数*/
         var timestamp_fix=new Date(sb_calc.start_date);/*开始计算的日期*/
         timestamp_fix=timestamp_fix.getTime()/1000;/*开始时间的秒数*/
 
@@ -358,17 +355,15 @@ var sb_calc={
                 cb(err);
                 return;
             }
-            console.log('lunar_month:',lunar_month);
-
 
             /*月天干*/
-            var month_stem_fix=(year_stem>5?year_stem-5:year_stem)*2+1;
+            var month_stem_fix=(year_stem>5?year_stem-5:year_stem)*2-1;
             if(month_stem_fix>10) month_stem_fix-=10;
             var month_stem=month_stem_fix-(-lunar_month);
             month_stem=fix_num(month_stem,10);
+
             /*月地支*/
             var month_branche=fix_num(lunar_month-11,12);
-
 
             var re=[];
             re[0]=get_stem_word(year_stem);
@@ -396,7 +391,29 @@ var sb_calc={
 
 
     },
-    get_8word_info:function(word_arr){
+    parse_all:function(八字,show_5e){
+        var zzzz= $.extend({},八字);
 
+        $.each(['年','月','日','时'],function(k,v){
+            var 天干=zzzz[v+'干'];
+            zzzz[v+'干五行']=天干+(show_5e?('('+get_stems_5e(天干)+')'):'');
+
+            var 地支=zzzz[v+'支'];
+            zzzz[v+'支五行']=地支+(show_5e?('('+get_branches_5e(地支)+')'):'');
+
+            var cg=地支藏干[地支];
+
+            $.each(['本','中','余'],function(k2,v2) {
+                if(cg[k2]){
+                    zzzz[v+'支'+v2+'气']=cg[k2];
+                    zzzz[v+'支'+v2+'气五行']=cg[k2]+(show_5e?('('+get_stems_5e(cg[k2])+')'):'');
+                }else{
+                    zzzz[v+'支'+v2+'气']='';
+                    zzzz[v+'支'+v2+'气五行']='';
+                }
+            });
+        });
+
+        return zzzz;
     }
 };

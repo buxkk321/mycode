@@ -128,21 +128,21 @@
                 border-color: #222;
             }
 
-            #canvasContainer{
+            #word_info_box{
                 background-color: #eee;
                 margin-left:340px;
                 position: relative;
                 width: auto;
                 height:100%;
             }
-            #canvasContainer td{
-                width:110px;
-                height:110px;
-            }
-
 
             .word_info_cell{
                 text-align: center;
+                width:110px;
+                height:110px;
+            }
+            #c_5{
+                height:200px;
             }
         </style>
     </head>
@@ -200,9 +200,12 @@
                         </td>
                     </tr>
                     <tr>
-                        <td>Escape radius</td>
-                        <td> <input class="textInput" size="4" type="text"
-                        id="escapeRadius" value="10.0" /> </td>
+                        <td>Iterations</td>
+                        <td>
+                            <input class="textInput" size="4" type="text" id="steps" value="50" />
+                            <input type="checkbox" id="show_5e" checked="checked"/>
+                            <small>show 5e</small>
+                        </td>
                     </tr>
                     <tr>
                         <td>Color scheme</td>
@@ -252,7 +255,7 @@
             </div>
         </div>
 
-        <div id="canvasContainer">
+        <div id="word_info_box">
             <table border="1" cellpadding="0" cellspacing="0"></table>
         </div>
 
@@ -322,7 +325,8 @@
             $('#input_date').jeDate({
                 format:'YYYY/MM/DD hh:mm:ss',
                 choosefun:function(elem,val){
-                    sb_calc.get_date_info(val,function(date_word){
+                    sb_calc.get_date_info(val,function(err,date_word){
+
                         $.each(['干','支'],function(k1,fix){
                             $.each(['年','月','日','时'],function(k,v){
                                 var val=date_word[v+fix];
@@ -343,13 +347,20 @@
 
 
             /*初始化输出信息表格*/
-            var content=$('#canvasContainer>table');
+            var content=$('#word_info_box>table');
             for(var i=1;i<10;i++){
-                var tr=$('<tr></tr>');
+                var tr=$('<tr id="c_'+i+'"></tr>');
                 for(var k=1;k<10;k++){
                     tr.append('<td class="word_info_cell" id="c_'+i+'_'+k+'"></td>');
                 }
                 content.append(tr);
+            }
+            function build_cg_box(b,part){
+                var cg_el='';
+                $.each(['本','中','余'],function(k2,v2) {
+                    cg_el+='<div>'+(b[part+'支'+v2+'气五行'] || '&nbsp;')+'</div>';
+                });
+                return cg_el;
             }
 
             $('#submit_all').click(function(){
@@ -361,61 +372,63 @@
                 });
                 $('.word_info_cell').html('');
 
-                var result=sb_calc.get_8word_info(八字,function(){
+                var show_5e=$('#show_5e').is(':checked');
+                var word_info=sb_calc.parse_all(八字,show_5e);
+                console.log(word_info);
+                /*十神*/
+				$('#c_1_1').html('十神');
+                $('#c_1_2').html(get_stems_10G(八字.年干,八字.日干));
+                $('#c_1_4').html(get_stems_10G(八字.月干,八字.日干));
+                $('#c_1_6').html('日主');
+                $('#c_1_8').html(get_stems_10G(八字.时干,八字.日干));
 
 
+                /*八字天干*/
+				$('#c_2_1').html('天干');
+                $('#c_2_2').html(word_info.年干五行);
+                $('#c_2_3').html(get_stems_relation(八字.年干,八字.月干));
+                $('#c_2_4').html(word_info.月干五行);
+                $('#c_2_5').html(get_stems_relation(八字.月干,八字.日干));
+                $('#c_2_6').html(word_info.日干五行);
+                $('#c_2_7').html(get_stems_relation(八字.日干,八字.时干));
+                $('#c_2_8').html(word_info.时干五行);
 
-                });
-//                /*十神*/
-//				$('#c_1_1').html('十神');
-//                $('#c_1_2').html(get_stems_10G(八字.年干,八字.日干));
-//                $('#c_1_4').html(get_stems_10G(八字.月干,八字.日干));
-//                $('#c_1_6').html('日主');
-//                $('#c_1_8').html(get_stems_10G(八字.时干,八字.日干));
-//
-//                /*八字天干*/
-//				$('#c_2_1').html('天干');
-//                $('#c_2_2').html(八字.年干+'('+get_stems_5e(八字.年干)+')');
-//                $('#c_2_3').html(get_stems_relation(八字.年干,八字.月干));
-//                $('#c_2_4').html(八字.月干+'('+get_stems_5e(八字.月干)+')');
-//                $('#c_2_5').html(get_stems_relation(八字.月干,八字.日干));
-//                $('#c_2_6').html(八字.日干+'('+get_stems_5e(八字.日干)+')');
-//                $('#c_2_7').html(get_stems_relation(八字.日干,八字.时干));
-//                $('#c_2_8').html(八字.时干+'('+get_stems_5e(八字.时干)+')');
-//
-//
-//                /*八字地支*/
-//				$('#c_4_1').html('地支');
-//                $('#c_4_2').html(八字.年支+'('+get_branches_5e(八字.年支)+')');
-//                $('#c_4_3').html(get_branches_relation(八字.年支,八字.月支));
-//                $('#c_4_4').html(八字.月支+'('+get_branches_5e(八字.月支)+')');
-//                $('#c_4_5').html(get_branches_relation(八字.月支,八字.日支));
-//                $('#c_4_6').html(八字.日支+'('+get_branches_5e(八字.日支)+')');
-//                $('#c_4_7').html(get_branches_relation(八字.日支,八字.时支));
-//                $('#c_4_8').html(八字.时支+'('+get_branches_5e(八字.时支)+')');
-//
-//
-//                /*地支藏干*/
-//                $('#c_5_1').html('地支藏干');
-//
-//
-//                var cg;
-//
-//                cg=地支藏干[八字.年支];
-//                cg='<span>'+cg.join('<span/><span>')+'<span/>';
-//                $('#c_5_2').html(cg);
-//
-//                cg=地支藏干[八字.月支];
-//                cg='<span>'+cg.join('<span/><span>')+'<span/>';
-//                $('#c_5_4').html(cg);
-//
-//                cg=地支藏干[八字.日支];
-//                cg='<span>'+cg.join('<span/><span>')+'<span/>';
-//                $('#c_5_6').html(cg);
-//
-//                cg=地支藏干[八字.时支];
-//                cg='<span>'+cg.join('<span/><span>')+'<span/>';
-//                $('#c_5_8').html(cg);
+
+                /*八字地支*/
+				$('#c_4_1').html('地支');
+                $('#c_4_2').html(word_info.年支五行);
+                $('#c_4_3').html(get_branches_relation(八字.年支,八字.月支));
+                $('#c_4_4').html(word_info.月支五行);
+                $('#c_4_5').html(get_branches_relation(八字.月支,八字.日支));
+                $('#c_4_6').html(word_info.日支五行);
+                $('#c_4_7').html(get_branches_relation(八字.日支,八字.时支));
+                $('#c_4_8').html(word_info.时支五行);
+
+
+                /*地支藏干*/
+                $('#c_5_1').html(
+                    '<table>' +
+                        '<tr>' +
+                            '<td rowspan="3">地支藏干</td>' +
+                            '<td>本气:</td>' +
+                        '</tr>' +
+                        '<tr>' +
+                            '<td>中气:</td>' +
+                        '</tr>' +
+                        '<tr>' +
+                            '<td>余气:</td>' +
+                        '</tr>' +
+                    '</table>'
+                );
+
+
+                $('#c_5_2').html(build_cg_box(word_info,'年'));
+
+                $('#c_5_4').html(build_cg_box(word_info,'月'));
+
+                $('#c_5_6').html(build_cg_box(word_info,'日'));
+
+                $('#c_5_8').html(build_cg_box(word_info,'时'));
 
             });
         });
