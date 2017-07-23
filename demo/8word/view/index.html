@@ -5,10 +5,17 @@
         <title> </title>
 		<link rel="stylesheet" type="text/css" href="public/jedate/skin/jedate.css"/>
         <style type="text/css">
+            body, html {
+                height: 100%;
+                width: 100%;
+                overflow: hidden;
+                margin: 0;
+                padding: 0;
+                min-width: 500px;
+            }
+
             body {
                 background-color: black;
-                padding: 0px;
-                margin: 0px;
                 font-size: 10pt;
                 text-shadow: 0px 1px 0px rgb(40, 40, 40);
             }
@@ -47,7 +54,7 @@
                 position: relative;
                 background-color: rgba(30, 30, 30, 0.6);
                 font-family: sans-serif;
-                padding: 20px;
+                padding: 15px;
                 margin: 0;
                 border: 2px solid rgba(20, 20, 20, 0.6);
                 color: #FF3B03;
@@ -60,28 +67,6 @@
                 -khtml-user-select: none;
                 -webkit-user-select: none;
                 -o-user-select: none;
-            }
-
-            #infoBox:hover {
-                background-color: rgba(30, 30, 30, 0.3);
-                color: #444;
-                border: #222 1px solid;
-            }
-
-            #infoBox {
-                text-align:right;
-                z-index: 10;
-                position: absolute;
-                right: 5px;
-                bottom: 5px;
-                padding: 5px;
-
-                background: transparent;
-                color: rgba(51,51,51,0.1);
-                text-shadow: none;
-
-                font-family: sans-serif;
-                font-size:8pt;
             }
 
             #description table {
@@ -134,15 +119,22 @@
                 position: relative;
                 width: auto;
                 height:100%;
+                overflow: hidden;
             }
-
+            #word_info_box .box_block{
+                width: 100%
+            }
             .word_info_cell{
                 text-align: center;
                 width:110px;
                 height:110px;
             }
             #c_5{
-                height:200px;
+                height:170px;
+            }
+            .next_btn,.prev_btn{
+                position: absolute; left: 0; top: 0; right: 0; bottom: 0;margin:auto;
+                width:50px;height:50px;border:1px solid blue;cursor: pointer
             }
         </style>
     </head>
@@ -233,11 +225,22 @@
                     </tr>
                     <tr>
                         <td colspan="2">
-                            <input type="button" id="submit_all" value="calc" />
+                            <input type="button" id="submit_all" value="calc_now" />
+                            &nbsp;
+                            <input type="button" id="calc_next_30day" value="calc_next_30day" />
                             &nbsp;
                             <input type="reset" id="resetButton" value="Reset" />
-                            &nbsp;
-                            <input type="button" id="viewPNG" value="View as PNG" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>比较开始时间</td>
+                        <td>
+                            <input type='text' id='start_date' />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <input type="button" id="compare_next_30day" value="compare_next_30day" />
                         </td>
                     </tr>
                 </table>
@@ -256,17 +259,40 @@
         </div>
 
         <div id="word_info_box">
-            <table border="1" cellpadding="0" cellspacing="0"></table>
-        </div>
+            <table class="box_block">
+                <tr>
+                    <td style="width:600px">
+                        <table border="1" cellpadding="0" cellspacing="0" id="word_info_table"></table>
+                    </td>
+                    <td style="width:100px;position: relative">
+                        <div class='next_btn'>
+                            <<<
+                        </div>
+                    </td>
+                </tr>
+            </table>
+            <table class="box_block" style="display: none">
+                <tr>
+                    <td style="width:100px;position: relative">
+                        <div class='prev_btn'>
+                            >>>
+                        </div>
+                    </td>
+                    <td style="width:600px">
+                        <div id="main" style="width: 600px;height:400px;">
 
-        <div id="infoBox">
-            <span id="infoText"></span>
-        </div> 
+                        </div>
+                        <div id="branche_box" style="position: relative">
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
     </body>
     <script type="text/javascript" src='public/jquery-1.10.2.min.js'></script>
 	<script type="text/javascript" src='public/jedate/jquery.jedate-3.7.min.js'></script>
+    <script type="text/javascript" src='public/echarts.simple.min.js'></script>
     <script type="text/javascript" src='public/8word_calc.js'></script>
-
     <script>
 		
 		function igetv(obj,index,start){
@@ -298,6 +324,7 @@
 
 
         $(function(){
+
             /*初始化手动选择下拉框列表*/
             $(document).on('change','.select_stems',function(){
                 var eb_str='';
@@ -315,25 +342,43 @@
                 $(this).html(hs_opt_html);
                 $(this).change();
             });
-        });
 
 
+            /*初始化输出信息表格*/
+            var content=$('#word_info_table');
+            for(var i=1;i<8;i++){
+                var tr=$('<tr id="c_'+i+'"></tr>');
+                for(var k=1;k<10;k++){
+                    tr.append('<td class="word_info_cell" id="c_'+i+'_'+k+'"></td>');
+                }
+                content.append(tr);
+            }
+
+            /*初始化天干地支图*/
+            var ct=[100,100];
+            var r=100;
+
+            $.each(地支五行,function(k,v){
+                var ang=(v[2]+2)*Math.PI/6;
+                var left  =   ct[0]   +   r   *   Math.cos(ang);
+                var top   =   ct[1]   +   r   *   Math.sin(ang);
+                var ap=$('<div style="position:absolute;display: inline-block">'+k+'</div>');
+                ap.css({'top':top,'left':left});
+                $('#branche_box').append(ap);
+            });
 
 
-		$(function(){
-            /*通用时间日期选择框*/
+            /*第一个时间日期选择框*/
             $('#input_date').jeDate({
                 format:'YYYY/MM/DD hh:mm:ss',
-                choosefun:function(elem,val){
-                    sb_calc.get_date_info(val,function(err,date_word){
-
+                choosefun:function(elem,timestr){
+                    sb_calc.get_date_info(timestr,function(err,date_word){
                         $.each(['干','支'],function(k1,fix){
                             $.each(['年','月','日','时'],function(k,v){
                                 var val=date_word[v+fix];
                                 var select=$('#'+v+fix);
 
                                 var tofind=$('option[value="'+val+'"]',select);
-                                console.log(val,select,tofind);
 
                                 if(tofind.length>0){
                                     tofind.prop('selected',true);
@@ -344,24 +389,91 @@
                     });
                 }
             });
+            /*比较开始时间*/
+            $('#start_date').jeDate({
+                format:'YYYY/MM/DD hh:mm:ss'
+            });
+            /*图表*/
+            var myChart = echarts.init(document.getElementById('main'));
+            // 指定图表的配置项和数据
+            var option = {
+                title: {
+                    text: '折线图堆叠'
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                legend: {
+                    data:['邮件营销','联盟广告','视频广告','直接访问','搜索引擎']
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                toolbox: {
+                    feature: {
+                        saveAsImage: {}
+                    }
+                },
+                xAxis: {
+                    type: 'category',
+                    boundaryGap: false,
+                    data: ['周一','周二','周三','周四','周五','周六','周日']
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: [
+                    {
+                        name:'邮件营销',
+                        type:'line',
+                        stack: '总量',
+                        data:[120, 132, 101, 134, 90, 230, 210]
+                    },
+                    {
+                        name:'联盟广告',
+                        type:'line',
+                        stack: '总量',
+                        data:[220, 182, 191, 234, 290, 330, 310]
+                    },
+                    {
+                        name:'视频广告',
+                        type:'line',
+                        stack: '总量',
+                        data:[150, 232, 201, 154, 190, 330, 410]
+                    },
+                    {
+                        name:'直接访问',
+                        type:'line',
+                        stack: '总量',
+                        data:[320, 332, 301, 334, 390, 330, 320]
+                    },
+                    {
+                        name:'搜索引擎',
+                        type:'line',
+                        stack: '总量',
+                        data:[820, 932, 901, 934, 1290, 1330, 1320]
+                    }
+                ]
+            };
+            // 使用刚指定的配置项和数据显示图表。
+            myChart.setOption(option);
+
+            /*翻页*/
+            $('.next_btn').click(function(){
+                $(this).closest('.box_block').hide().next().show();
+            });
+            $('.prev_btn').click(function(){
+                $(this).closest('.box_block').hide().prev().show();
+            })
+        });
 
 
-            /*初始化输出信息表格*/
-            var content=$('#word_info_box>table');
-            for(var i=1;i<10;i++){
-                var tr=$('<tr id="c_'+i+'"></tr>');
-                for(var k=1;k<10;k++){
-                    tr.append('<td class="word_info_cell" id="c_'+i+'_'+k+'"></td>');
-                }
-                content.append(tr);
-            }
-            function build_cg_box(b,part){
-                var cg_el='';
-                $.each(['本','中','余'],function(k2,v2) {
-                    cg_el+='<div>'+(b[part+'支'+v2+'气五行'] || '&nbsp;')+'</div>';
-                });
-                return cg_el;
-            }
+
+
+		$(function(){
 
             $('#submit_all').click(function(){
                 updateHashTag();
@@ -374,7 +486,7 @@
 
                 var show_5e=$('#show_5e').is(':checked');
                 var word_info=sb_calc.parse_all(八字,show_5e);
-                console.log(word_info);
+                console.log('综合计算结果:',word_info);
                 /*十神*/
 				$('#c_1_1').html('十神');
                 $('#c_1_2').html(get_stems_10G(八字.年干,八字.日干));
@@ -382,28 +494,67 @@
                 $('#c_1_6').html('日主');
                 $('#c_1_8').html(get_stems_10G(八字.时干,八字.日干));
 
-
                 /*八字天干*/
-				$('#c_2_1').html('天干');
-                $('#c_2_2').html(word_info.年干五行);
+				$('#c_2_1').html('<div>天干</div><div>本气通根:</div>');
+                function tg_info(part){
+                    var re='<div>'+word_info[part+'干']+'</div>';
+                    var tg=word_info[part+'干强弱'].本气通根;
+                    var padh={年:0,月:0,日:0,时:0};
+                    $.each(tg,function(k,v){
+                        padh[v]=1;
+                    });
+                    re+='<div>';
+                    $.each(padh,function(k,v){
+                        re+='<span class="bqtg_item">'+(v?k:'')+'</span>';
+                    });
+                    re+='</div>';
+
+                    return re;
+                }
+                $('#c_2_2').html(tg_info('年'));
                 $('#c_2_3').html(get_stems_relation(八字.年干,八字.月干));
-                $('#c_2_4').html(word_info.月干五行);
+                $('#c_2_4').html(tg_info('月'));
                 $('#c_2_5').html(get_stems_relation(八字.月干,八字.日干));
-                $('#c_2_6').html(word_info.日干五行);
+                $('#c_2_6').html(tg_info('日'));
                 $('#c_2_7').html(get_stems_relation(八字.日干,八字.时干));
-                $('#c_2_8').html(word_info.时干五行);
+                $('#c_2_8').html(tg_info('时'));
+
+                /*干支*/
+                function gz_rela(info){
+                    if(!info[0]) return '';
+                    var ht='<div>'+info[0]+'</div>';
+                    if(info[1]){
+                        ht+='<div>↓</div>';
+                    }else{
+                        ht='<div>↑</div>'+ht;
+                    }
+                    return ht;
+                }
+
+                $('#c_3_2').html(gz_rela(word_info.年干支));
+
+                $('#c_3_4').html(gz_rela(word_info.月干支));
+
+                $('#c_3_6').html(gz_rela(word_info.日干支));
+
+                $('#c_3_8').html(gz_rela(word_info.时干支));
 
 
                 /*八字地支*/
 				$('#c_4_1').html('地支');
-                $('#c_4_2').html(word_info.年支五行);
+                $('#c_4_2').html(word_info.年支);
                 $('#c_4_3').html(get_branches_relation(八字.年支,八字.月支));
-                $('#c_4_4').html(word_info.月支五行);
+                $('#c_4_4').html(word_info.月支);
                 $('#c_4_5').html(get_branches_relation(八字.月支,八字.日支));
-                $('#c_4_6').html(word_info.日支五行);
+                $('#c_4_6').html(word_info.日支);
                 $('#c_4_7').html(get_branches_relation(八字.日支,八字.时支));
-                $('#c_4_8').html(word_info.时支五行);
+                $('#c_4_8').html(word_info.时支);
 
+                var sh='';
+                $.each(word_info.地支三合,function(k,v){
+                    sh+=v[0].join('')+' 三合 '+v[1]+'局;';
+                });
+                $('#c_4_9').html(sh);
 
                 /*地支藏干*/
                 $('#c_5_1').html(
@@ -420,7 +571,17 @@
                         '</tr>' +
                     '</table>'
                 );
+                function build_cg_box(info,part){
+                    var cg_el='';
 
+                    $.each(['本','中','余'],function(k2,v2) {
+                        var tg=info[part+'支'+v2+'气透干'];
+//                        if(v2=='本' && tg.length>0) tg='透干:'+tg;
+                        tg='';
+                        cg_el+='<div>'+(info[part+'支'+v2+'气'] || '&nbsp;')+' '+tg+'</div>';
+                    });
+                    return cg_el;
+                }
 
                 $('#c_5_2').html(build_cg_box(word_info,'年'));
 
@@ -429,6 +590,22 @@
                 $('#c_5_6').html(build_cg_box(word_info,'日'));
 
                 $('#c_5_8').html(build_cg_box(word_info,'时'));
+
+            });
+
+            $('#calc_next_30day').click(function(){
+                var start=$('#input_date').val();
+                if(!start) return;
+                start=new Date(start);/*TODO::处理精确到分的节气分界点*/
+                start=start.getTime();
+                console.log(start);
+
+//                var end_time=start+2*24*3600*1000;
+//                for(var s=end_time;s>=start;s-=2*3600*1000){
+//                    sb_calc.get_date_info(s,function(err,date_word){
+//                        console.log(date_word);
+//                    });
+//                }
 
             });
         });
