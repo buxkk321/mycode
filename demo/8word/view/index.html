@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8" />
         <title> </title>
-		<link rel="stylesheet" type="text/css" href="public/jedate/skin/jedate.css"/>
+		<link rel="stylesheet" type="text/css" href="../public/jedate/skin/jedate.css"/>
         <style type="text/css">
             body, html {
                 height: 100%;
@@ -212,13 +212,10 @@
                         </td>
                     </tr>
                     <tr>
-                        <td>Supersamples</td>
-                        <td><input class="textInput" size="4" type="text" id="superSamples" value="2" /></td>
-                    </tr>
-                    <tr>
                         <td>Scanline update (ms)</td>
-                        <td><input class="textInput" size="4" type="text"
-                        id="updateTimeout" value="200" /></td>
+                        <td>
+                            <input class="textInput" size="4" type="text" id="updateTimeout" value="200" />
+                        </td>
                     </tr>
                     <tr>
                         <td colspan="2">&nbsp;</td>
@@ -227,9 +224,16 @@
                         <td colspan="2">
                             <input type="button" id="submit_all" value="calc_now" />
                             &nbsp;
-                            <input type="button" id="calc_next_30day" value="calc_next_30day" />
-                            &nbsp;
                             <input type="reset" id="resetButton" value="Reset" />
+                        </td>
+
+                    </tr>
+                    <tr>
+                        <td>
+                            计算时长<input class="textInput" size="4" type="text" id="calc_next_length" value="3" />(天)
+                        </td>
+                        <td>
+                            <input type="button" id="calc_next" value="calc_next" />
                         </td>
                     </tr>
                     <tr>
@@ -266,7 +270,7 @@
                     </td>
                     <td style="width:100px;position: relative">
                         <div class='next_btn'>
-                            <<<
+                            >>>
                         </div>
                     </td>
                 </tr>
@@ -275,11 +279,11 @@
                 <tr>
                     <td style="width:100px;position: relative">
                         <div class='prev_btn'>
-                            >>>
+                            <<<
                         </div>
                     </td>
                     <td style="width:600px">
-                        <div id="main" style="width: 600px;height:400px;">
+                        <div id="main" style="width:100%;min-height: 600px">
 
                         </div>
                         <div id="branche_box" style="position: relative">
@@ -289,10 +293,14 @@
             </table>
         </div>
     </body>
-    <script type="text/javascript" src='public/jquery-1.10.2.min.js'></script>
-	<script type="text/javascript" src='public/jedate/jquery.jedate-3.7.min.js'></script>
-    <script type="text/javascript" src='public/echarts.simple.min.js'></script>
-    <script type="text/javascript" src='public/8word_calc.js'></script>
+    <script type="text/javascript" src='../public/jquery-1.10.2.min.js'></script>
+	<script type="text/javascript" src='../public/jedate/jquery.jedate-3.7.min.js'></script>
+    <script type="text/javascript" src='../public/echarts.simple.min.js'></script>
+    <!--<script type="text/javascript" src='../public/echarts.dataTool.min.js'></script>-->
+    <script type="text/javascript" src='../public/dataTool.js'></script>
+
+
+    <script type="text/javascript" src='../public/8word_calc.js'></script>
     <script>
 		
 		function igetv(obj,index,start){
@@ -318,8 +326,48 @@
 //            'b4=' + scheme;
 
         }
-
-
+        /*图表*/
+        var myChart = echarts.init(document.getElementById('main'));
+        // 指定图表的配置项和数据
+        // 使用刚指定的配置项和数据显示图表。
+        myChart.setOption({
+            title: {
+                text: '折线图堆叠'
+            },
+            tooltip: {
+                trigger: 'axis',
+                formatter: function (params) {
+                    console.log('formatter:',params);
+                    return ''
+                }
+            },
+            legend: {
+                data:['土','金','水','木','火']
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            toolbox: {
+                show: true,
+                feature: {
+                    saveAsImage: {}
+                }
+            },
+            xAxis: {
+                type: 'time',
+                data: []
+            },
+            yAxis: {
+                type: 'value'
+            },
+            series:[]
+        });
+        myChart.on('restore',function(){
+            console.log(765765765);
+        });
 
 
 
@@ -393,77 +441,13 @@
             $('#start_date').jeDate({
                 format:'YYYY/MM/DD hh:mm:ss'
             });
-            /*图表*/
-            var myChart = echarts.init(document.getElementById('main'));
-            // 指定图表的配置项和数据
-            var option = {
-                title: {
-                    text: '折线图堆叠'
-                },
-                tooltip: {
-                    trigger: 'axis'
-                },
-                legend: {
-                    data:['邮件营销','联盟广告','视频广告','直接访问','搜索引擎']
-                },
-                grid: {
-                    left: '3%',
-                    right: '4%',
-                    bottom: '3%',
-                    containLabel: true
-                },
-                toolbox: {
-                    feature: {
-                        saveAsImage: {}
-                    }
-                },
-                xAxis: {
-                    type: 'category',
-                    boundaryGap: false,
-                    data: ['周一','周二','周三','周四','周五','周六','周日']
-                },
-                yAxis: {
-                    type: 'value'
-                },
-                series: [
-                    {
-                        name:'邮件营销',
-                        type:'line',
-                        stack: '总量',
-                        data:[120, 132, 101, 134, 90, 230, 210]
-                    },
-                    {
-                        name:'联盟广告',
-                        type:'line',
-                        stack: '总量',
-                        data:[220, 182, 191, 234, 290, 330, 310]
-                    },
-                    {
-                        name:'视频广告',
-                        type:'line',
-                        stack: '总量',
-                        data:[150, 232, 201, 154, 190, 330, 410]
-                    },
-                    {
-                        name:'直接访问',
-                        type:'line',
-                        stack: '总量',
-                        data:[320, 332, 301, 334, 390, 330, 320]
-                    },
-                    {
-                        name:'搜索引擎',
-                        type:'line',
-                        stack: '总量',
-                        data:[820, 932, 901, 934, 1290, 1330, 1320]
-                    }
-                ]
-            };
-            // 使用刚指定的配置项和数据显示图表。
-            myChart.setOption(option);
+
+
 
             /*翻页*/
             $('.next_btn').click(function(){
                 $(this).closest('.box_block').hide().next().show();
+                myChart.resize();
             });
             $('.prev_btn').click(function(){
                 $(this).closest('.box_block').hide().prev().show();
@@ -477,8 +461,9 @@
 
             $('#submit_all').click(function(){
                 updateHashTag();
+                var t_arr=['年','月','日','时'];
                 var 八字={};
-                $.each(['年','月','日','时'],function(k,v){
+                $.each(t_arr,function(k,v){
                     八字[v+'干']=$('#'+v+'干').val();
                     八字[v+'支']=$('#'+v+'支').val();
                 });
@@ -531,24 +516,50 @@
                     return ht;
                 }
 
-                $('#c_3_2').html(gz_rela(word_info.年干支));
+                $('#c_3_2').html(gz_rela(word_info.年干支关系));
 
-                $('#c_3_4').html(gz_rela(word_info.月干支));
+                $('#c_3_4').html(gz_rela(word_info.月干支关系));
 
-                $('#c_3_6').html(gz_rela(word_info.日干支));
+                $('#c_3_6').html(gz_rela(word_info.日干支关系));
 
-                $('#c_3_8').html(gz_rela(word_info.时干支));
+                $('#c_3_8').html(gz_rela(word_info.时干支关系));
 
 
                 /*八字地支*/
+                function build_br_rela(rela){
+                    var re='';
+                    if(rela.冲){
+                        re+='<div>---相冲---</div>';
+                    }
+                    if(rela.刑){
+                        re+='<div>---'+rela.刑+'---</div>';
+                    }
+                    if(rela.六合){
+                        re+='<div>---六合,化'+rela.六合+'---</div>';
+                    }
+                    if(rela.半合){
+                        re+='<div>-半合,缺'+rela.半合[1]+',化'+rela.半合[0]+'-</div>';
+                    }
+
+                    var diff=rela.五行关系;
+                    if(diff[0]>0){
+                        if(diff[2]){
+                            re+='<div>'+diff[1]+'→</div>';
+                        }else{
+                            re+='<div>←'+diff[1]+'</div>';
+                        }
+                    }
+                    return re;
+                }
 				$('#c_4_1').html('地支');
                 $('#c_4_2').html(word_info.年支);
-                $('#c_4_3').html(get_branches_relation(八字.年支,八字.月支));
+                $('#c_4_3').html(build_br_rela(word_info.年支月支));
                 $('#c_4_4').html(word_info.月支);
-                $('#c_4_5').html(get_branches_relation(八字.月支,八字.日支));
+                $('#c_4_5').html(build_br_rela(word_info.月支日支));
                 $('#c_4_6').html(word_info.日支);
-                $('#c_4_7').html(get_branches_relation(八字.日支,八字.时支));
+                $('#c_4_7').html(build_br_rela(word_info.日支时支));
                 $('#c_4_8').html(word_info.时支);
+                console.log();
 
                 var sh='';
                 $.each(word_info.地支三合,function(k,v){
@@ -584,28 +595,144 @@
                 }
 
                 $('#c_5_2').html(build_cg_box(word_info,'年'));
-
                 $('#c_5_4').html(build_cg_box(word_info,'月'));
-
                 $('#c_5_6').html(build_cg_box(word_info,'日'));
-
                 $('#c_5_8').html(build_cg_box(word_info,'时'));
+
+                $('#c_6_1').html('合计:');
+
+
+
+                var hj_txt='';
+                $.each(word_info.五行统计,function(k,v){
+                    hj_txt+='<div>'+k+':'+v+'</div>';
+                });
+                $('#c_6_2').html(hj_txt);
 
             });
 
-            $('#calc_next_30day').click(function(){
+            $('#calc_next').click(function(){
                 var start=$('#input_date').val();
                 if(!start) return;
                 start=new Date(start);/*TODO::处理精确到分的节气分界点*/
                 start=start.getTime();
-                console.log(start);
+                myChart.showLoading();
+                var word_info_list={};
 
-//                var end_time=start+2*24*3600*1000;
-//                for(var s=end_time;s>=start;s-=2*3600*1000){
-//                    sb_calc.get_date_info(s,function(err,date_word){
-//                        console.log(date_word);
-//                    });
-//                }
+                var _task={
+                    finish:function(num){
+                        delete _task.pool[num];
+                        for(var x in _task.pool){
+                            return;
+                        }
+                        _task.end();
+                    },
+                    end:function(){
+                        var xaxis=[];
+                        var series=[
+                            {
+                                type:'line',
+                                name:'土',
+                                lineStyle:{
+                                    normal:{
+                                        color: "#B88A00"  //连线颜色
+                                    }
+                                },
+                                data:[]
+                            },
+                            {
+                                type:'line',
+                                name:'金',
+                                lineStyle:{
+                                    normal:{
+                                        color: "#FFFFCC"  //连线颜色
+                                    }
+                                },
+                                data:[]
+                            },
+                            {
+                                type:'line',
+                                name:'水',
+                                lineStyle:{
+                                    normal:{
+                                        color: "#000066"  //连线颜色
+                                    }
+                                },
+                                data:[]
+                            },
+                            {
+                                type:'line',
+                                name:'木',
+                                lineStyle:{
+                                    normal:{
+                                        color: "#00F5C7"  //连线颜色
+                                    }
+                                },
+                                data:[]
+                            },
+                            {
+                                type:'line',
+                                name:'火',
+                                lineStyle:{
+                                    normal:{
+                                        color: "#FF0F0F"  //连线颜色
+                                    }
+                                },
+                                data:[]
+                            }
+                        ];
+                        $.each(word_info_list,function(k,v){
+                            var dated=sb_calc.get_date_arr(parseInt(k));
+
+                            xaxis.push(dated[5]);
+
+                            series[0].data.push(v.五行统计.土);
+                            series[1].data.push(v.五行统计.金);
+                            series[2].data.push(v.五行统计.水);
+                            series[3].data.push(v.五行统计.木);
+                            series[4].data.push(v.五行统计.火);
+                        });
+                        console.log(xaxis,series);
+
+                        // 指定图表的配置项和数据
+                        var option = {
+                            xAxis: {
+                                type: 'category',
+                                boundaryGap: false,
+                                data: xaxis
+                            },
+                            series: series
+                        };
+                        // 使用刚指定的配置项和数据显示图表。
+                        myChart.setOption(option);
+                        myChart.hideLoading();
+                    },
+                    pool:{
+
+                    }
+                };
+
+                var calc_next_length=$('#calc_next_length').val();
+                var end_time=start+calc_next_length*24*3600*1000;
+                for(var s=start;s<end_time;s+=2*3600*1000){
+                    _task.pool[s]=1;
+                    word_info_list[s]={};
+                }
+
+                for(var x in word_info_list){
+                    (function(input_date){
+                        sb_calc.get_date_info(parseInt(input_date),function(err,date_word){
+                            if(err) return ;
+//                            console.log(input_date);
+                            var word_info=sb_calc.parse_all(date_word);
+//                            console.log(word_info);
+
+                            word_info_list[input_date]=word_info;
+
+                            _task.finish(input_date);
+                        });
+                    })(x);
+                }
 
             });
         });

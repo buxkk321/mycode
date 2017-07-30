@@ -153,6 +153,7 @@ var http_serv={
                     res.end();
                 }else{
                     var $_GET=url.parse(req.url,true);
+                    //console.log($_GET);
                     var path_info=$_GET.pathname.split('/');
                     //console.log('get is',$_GET.query,'pathinfo is',path_info);
                     if(typeof(that.get_res[path_info[1]])=='function'){

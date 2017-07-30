@@ -15,7 +15,11 @@ function fix_num(b,length){
 var 五行={'土':0,'金':1,'水':2,'木':3,'火':4};
 var 五行关系=['同我','我生','我克','克我','生我'];
 var 五行关系2=['','生','克','克','生'];
-
+function get_5e_relation(now,target){
+    var diff=五行[now]-五行[target];
+    if(diff<0) diff=5+diff;
+    return [diff,五行关系2[diff],diff>2];
+}
 
 
 var 天干五行={
@@ -88,14 +92,14 @@ var 地支相合={
         '巳酉丑':'金'
     },
     '半合':{
-		'寅午':['戌','火'],
-		'午戌':['寅','火'],
-		'申子':['辰','水'],
-		'子辰':['申','水'],
-		'亥卯':['未','木'],
-		'卯未':['亥','木'],
-		'巳酉':['丑','金'],
-		'酉丑':['巳','金']
+		'寅午':['火','戌'],
+		'午戌':['火','寅'],
+		'申子':['水','辰'],
+		'子辰':['水','申'],
+		'亥卯':['木','未'],
+		'卯未':['木','亥'],
+		'巳酉':['金','丑'],
+		'酉丑':['金','巳']
     }
 
 };
@@ -122,11 +126,7 @@ var 地支藏干={
     '戌':['戊','辛','丁'],//
     '亥':['壬','甲']
 };
-function get_5e_relation(t,s){
-    var diff=五行[t]-五行[s];
-    if(diff<0) diff=5+diff;
-    return diff;
-}
+
 function get_stem_word(index){
     var c=1;
     for(var i in 天干五行){
@@ -155,7 +155,7 @@ function get_stems_10G(t,s){
     var target_info=天干五行[t];
 
     var diff=get_5e_relation(target_info[1],self_info[1]);
-    var relation=五行关系[Math.abs(diff)];
+    var relation=五行关系[Math.abs(diff[0])];
     var type=self_info[0]==target_info[0]?0:1;
 
 //            var notes='自己:'+self_info[0]+'('+五行[self_info[0]]+') '+
@@ -186,12 +186,11 @@ function get_stems_relation(s1,s2){
     var s2_info=天干五行[s2];
 
     var diff=get_5e_relation(s2_info[1],s1_info[1]);
-    if(diff>0){
-        var relation=五行关系2[diff];
-        if(diff>2){
-            re+='<div>←'+relation+'</div>';
+    if(diff[0]>0){
+        if(diff[2]){
+            re+='<div>←'+diff[1]+'</div>';
         }else{
-            re+='<div>'+relation+'→</div>';
+            re+='<div>'+diff[1]+'→</div>';
         }
     }
     return re;
@@ -221,6 +220,28 @@ function check_word_sh(word1){
 }
 
 function get_branches_relation(b1,b2){
+    var re={};
+    var asc=b1+b2,desc=b2+b1;
+
+    re.冲=地支相冲[asc] || 地支相冲[desc];
+
+    re.刑=地支相刑[asc] || 地支相刑[desc];
+    if(b1==b2){
+        re.刑='自刑';
+    }
+
+    re.六合=地支相合.六合[asc] || 地支相合.六合[desc];
+
+	re.半合=地支相合.半合[asc] || 地支相合.半合[desc];
+
+	var b1_info=地支五行[b1];
+    var b2_info=地支五行[b2];
+    re.五行关系=get_5e_relation(b1_info[1],b2_info[1]);
+
+    return re;
+}
+
+function get_branches_relation2(b1,b2){
     var re='';
     var asc=b1+b2,desc=b2+b1;
 
@@ -233,30 +254,28 @@ function get_branches_relation(b1,b2){
     if(刑){
         re+='<div>---'+刑+'---</div>';
     }else if(b1==b2){
-		re+='<div>---自刑---</div>';
-	}
+        re+='<div>---自刑---</div>';
+    }
 
     var 六合=地支相合.六合[asc] || 地支相合.六合[desc];
     if(六合){
         re+='<div>---六合,化'+六合+'---</div>';
     }
-	
-	var 半合=地支相合.半合[asc] || 地支相合.半合[desc];
-    if(半合){
-        re+='<div>-半合,缺'+半合[0]+',化'+半合[1]+'-</div>';
-    }
-	
-	var b1_info=地支五行[b1];
-    var b2_info=地支五行[b2];
-	var diff=get_5e_relation(b2_info[1],b1_info[1]);
-    if(diff>0){
-        var relation=五行关系2[diff];
-        if(diff>2){
-            re+='<div>←'+relation+'</div>';
-        }else{
-            re+='<div>'+relation+'→</div>';
-        }
 
+    var 半合=地支相合.半合[asc] || 地支相合.半合[desc];
+    if(半合){
+        re+='<div>-半合,缺'+半合[1]+',化'+半合[0]+'-</div>';
+    }
+
+    var b1_info=地支五行[b1];
+    var b2_info=地支五行[b2];
+    var diff=get_5e_relation(b2_info[1],b1_info[1]);
+    if(diff[0]>0){
+        if(diff[2]){
+            re+='<div>←'+diff[1]+'</div>';
+        }else{
+            re+='<div>'+diff[1]+'→</div>';
+        }
     }
     return re;
 }
@@ -348,18 +367,15 @@ var sb_calc={
 
                 if(date_arr[4]>=_time.getTime()){
                     catcht=luna_info;
-                    console.log('进入节气:',luna_info);
+                    //console.log('进入节气:',luna_info);
                 }
             }
             if(catcht){
-                console.log('当前时间:',date_arr[5],'  进入节气:'+catcht.name+';分界时间:'+catcht.time);
-
+                //console.log('当前时间:',date_arr[5],'  进入节气:'+catcht.name+';分界时间:'+catcht.time);
                 catcht=month;
-
             }else{
                 /*本月没有匹配到的节气起始点,取前一个月的数据*/
-                console.log('当前时间:',date_arr[5],' 未进入本月节气:'+luna_info.name+';分界时间:'+luna_info.time,',计算取前一个月:',month-1);
-
+                //console.log('当前时间:',date_arr[5],' 未进入本月节气:'+luna_info.name+';分界时间:'+luna_info.time,',计算取前一个月:',month-1);
                 catcht=month-1;
                 //if(catcht==0) catcht=12;
             }
@@ -369,7 +385,7 @@ var sb_calc={
             next('',lunar_month_start_point_list[year]);
         }else{
             $.ajax({
-                url:"public/month_jieqi_"+year+".json",
+                url:"../public/month_jieqi_"+year+".json",
                 dataType: "json",
                 success: function(re){
                     lunar_month_start_point_list[year]=re;
@@ -462,27 +478,82 @@ var sb_calc={
         var zzz= $.extend({},八字);
 
 
+        var t_arr=['年','月','日','时'];
+        $.each(t_arr,function(k,v){
+            var prev_z=t_arr[k-1];/*前一个*/
+            var next_z=t_arr[k+1];/*后一个*/
 
-        $.each(['年','月','日','时'],function(k,v){
             var 天干=zzz[v+'干'];
             var st五行=天干五行[天干][1];
             zzz[v+'干五行']=st五行;
+
+            var diff;
+            var 天干强弱={生我:[],克我:[],我生:[],我克:[],本气通根:[]};
+            /*和前一个天干比较*/
+            if(prev_z){
+                diff=get_5e_relation(st五行,天干五行[zzz[prev_z+'干']][1]);
+                if(diff[0]>0){
+                    天干强弱[diff[2]?('我'+diff[1]):(diff[1]+'我')].push(prev_z+'干');
+                }
+            }
+            /*和后一个天干比较*/
+            if(next_z){
+                diff=get_5e_relation(st五行,天干五行[zzz[next_z+'干']][1]);
+                if(diff[0]>0){
+                    天干强弱[diff[2]?('我'+diff[1]):(diff[1]+'我')].push(next_z+'干');
+                }
+            }
+
 
             var 地支=zzz[v+'支'];
             var br五行=地支五行[地支][1];
             zzz[v+'支五行']=br五行;
 
+            var 地支强弱={生我:[],克我:[],我生:[],我克:[],本气通根:[],刑:[]};
+            /*和前一个地支比较*/
+            if(prev_z){
+                diff=get_branches_relation(地支,zzz[prev_z+'支']);
+                if(diff.刑){
+                    地支强弱.刑.push(diff.刑);
+                }
+                zzz[v+'支'+prev_z+'支']=diff;
 
-            var 天干强弱={生我:[],克我:[],我生:[],我克:[],本气通根:[]};
-            var 干支关系=[];
-            var diff=get_5e_relation(st五行,br五行);
-            if(diff>0){
-                干支关系.push(五行关系2[diff]);
-                干支关系.push(diff>2);
-                天干强弱[diff>2?('我'+干支关系[0]):(干支关系[0]+'我')].push(v+'支');
+                diff=diff.五行关系;
+                if(diff[0]>0){
+                    地支强弱[diff[2]?('我'+diff[1]):(diff[1]+'我')].push(prev_z+'支');
+                }
             }
-            zzz[v+'干支']=干支关系;
+            /*和后一个地支比较*/
+            if(next_z){
+                diff=get_branches_relation(地支,zzz[next_z+'支']);
+                if(diff.刑){
+                    地支强弱.刑.push(diff.刑);
+                }
+                zzz[v+'支'+next_z+'支']=diff;
+
+                diff=diff.五行关系;
+                if(diff[0]>0){
+                    地支强弱[diff[2]?('我'+diff[1]):(diff[1]+'我')].push(next_z+'支');
+                }
+            }
+
+
+            var 干支关系=[];
+            diff=get_5e_relation(st五行,br五行);
+            if(diff[0]>0){
+                干支关系.push(diff[1]);
+                干支关系.push(diff[2]);
+                天干强弱[diff[2]?('我'+diff[1]):(diff[1]+'我')].push(v+'支');
+            }
+            diff=get_5e_relation(br五行,st五行);
+            if(diff[0]>0){
+                地支强弱[diff[2]?('我'+diff[1]):(diff[1]+'我')].push(v+'支');
+            }
+
+
+            zzz[v+'干支关系']=干支关系;
             zzz[v+'干强弱']=天干强弱;
+            zzz[v+'支强弱']=地支强弱;
 
             var cg=地支藏干[地支];
             $.each(['本','中','余'],function(k2,v2) {
@@ -498,9 +569,9 @@ var sb_calc={
                 zzz[v+'支'+v2+'气透干']=tg;
             });
         });
-        $.each(['年','月','日','时'],function(k,v){
+        $.each(t_arr,function(k,v){
             var 天干=zzz[v+'干'];
-            $.each(['年','月','日','时'],function(kk,checkv){
+            $.each(t_arr,function(kk,checkv){
                 var 地支本气=zzz[checkv+'支本气'];
                 if(天干==地支本气){
                     zzz[v+'干强弱'].本气通根.push(checkv);
@@ -510,6 +581,31 @@ var sb_calc={
 
 
         zzz.地支三合=check_word_sh(zzz);
+
+
+
+        var hj={'土':0,'金':0,'水':0,'木':0,'火':0};
+        $.each(t_arr,function(k,v){
+            $.each(['干','支'],function(kk,vv){
+                var org=1;
+                var qr=zzz[v+vv+'强弱'];
+                org-=qr.克我.length*0.25;
+                org-=qr.我生.length*0.2;
+
+                if(vv=='支'){
+                    org-=qr.刑.length*0.2;
+                }
+
+                org+=qr.生我.length*0.2;
+                org+=qr.本气通根.length*0.1;
+                var wx=zzz[v+vv+'五行'];
+                hj[wx]+=org;
+            });
+        });
+        $.each(hj,function(k,v){
+            hj[k]=parseFloat(v.toFixed(5));
+        });
+        zzz.五行统计=hj;
         return zzz;
     }
 };
