@@ -579,11 +579,10 @@ var sb_calc={
             });
         });
 
-
         zzz.地支三合=check_word_sh(zzz);
 
 
-
+        /*最后的统计*/
         var hj={'土':0,'金':0,'水':0,'木':0,'火':0};
         $.each(t_arr,function(k,v){
             $.each(['干','支'],function(kk,vv){
@@ -602,6 +601,9 @@ var sb_calc={
                 hj[wx]+=org;
             });
         });
+		$.each(zzz.地支三合,function(k,v){
+			hj[v[1]]+=0.8;
+		});
         $.each(hj,function(k,v){
             hj[k]=parseFloat(v.toFixed(5));
         });

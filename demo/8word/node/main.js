@@ -16,74 +16,8 @@ var exec_path=path.dirname(process.execPath);/*安装文件所在目录*/
 /*---第三方-----*/
 
 var ts=require('./tools.js');
-function dlog(){
-    var arg=[ts.format_date(-1)+' ---'];
-    for(var i in arguments){
-        arg.push(arguments[i]);
-    }
-    console.log.apply(this,arg);
-}
-var dclog_style={
-    'bold'          : '\x1B[1m',
-    'italic'        : '\x1B[3m',
-    'underline'     : '\x1B[4m',
-    'inverse'       : '\x1B[7m',
-    'strikethrough' : '\x1B[9m',
-    'white'         : '\x1B[37m',
-    'grey'          : '\x1B[90m',
-    'black'         : '\x1B[30m',
-    'blue'          : '\x1B[34m',
-    'cyan'          : '\x1B[36m',
-    'green'         : '\x1B[32m',
-    'magenta'       : '\x1B[35m',
-    'red'           : '\x1B[31m',
-    'yellow'        : '\x1B[33m',
-    'whiteBG'       : '\x1B[47m',
-    'greyBG'        : '\x1B[49;5;8m',
-    'blackBG'       : '\x1B[40m',
-    'blueBG'        : '\x1B[44m',
-    'cyanBG'        : '\x1B[46m',
-    'greenBG'       : '\x1B[42m',
-    'magentaBG'     : '\x1B[45m',
-    'redBG'         : '\x1B[41m',
-    'yellowBG'      : '\x1B[43m'
-};
-function dclog(color){
-    var arg=[dclog_style[color] || dclog_style.white,ts.format_date(-1)+' ---'];
-    for(var i in arguments){
-        if(i>0) arg.push(arguments[i]);
-    }
-    arg.push('\x1B[37m');
-    console.log.apply(this,arg);
-}
-var exec_delay={
-    exec:function(name,cb,timeout){
-        var that=this;
-        if(!timeout) timeout=1;
-        if(that.task_now[name]){
-            //dclog('blue','exec_delay task now is exists!');
-            that.task_next[name]=function(){
-                delete that.task_next[name];
-                //dclog('blue','same task_next exec start');
-                cb();
-            }
-        }else{ /*首次申请删除任务*/
-            //dclog('blue','new exec_delay task!');
-            that.task_now[name]=1;
-            cb();
-            setTimeout(function(){
-                //dclog('blue','same task exec finish');
-                if(typeof(that.task_next[name])=='function'){
-                    that.task_next[name]();
-                }
-                that.task_now[name]=0;
-            },timeout);
-
-        }
-    },
-    task_now:{},
-    task_next:{}
-};
+var dlog=ts.dlog;
+var dclog=ts.dclog;
 
 function array_select(keys,input){
     if(typeof(keys)=='string') keys=keys.split(',');
