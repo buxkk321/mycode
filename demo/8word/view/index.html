@@ -192,32 +192,6 @@
                         </td>
                     </tr>
                     <tr>
-                        <td>Iterations</td>
-                        <td>
-                            <input class="textInput" size="4" type="text" id="steps" value="50" />
-                            <input type="checkbox" id="show_5e" checked="checked"/>
-                            <small>show 5e</small>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Color scheme</td>
-                        <td>
-                            <select id="colorScheme">
-                                <option value="Grayscale">Grayscale #1</option>
-                                <option value="Grayscale2">Grayscale #2</option>
-                                <option value="HSV1">HSV #1</option>
-                                <option value="HSV2">HSV #2 Red</option>
-                                <option value="HSV3">HSV #2 Blue</option>
-                            </select>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Scanline update (ms)</td>
-                        <td>
-                            <input class="textInput" size="4" type="text" id="updateTimeout" value="200" />
-                        </td>
-                    </tr>
-                    <tr>
                         <td colspan="2">&nbsp;</td>
                     </tr>
                     <tr>
@@ -229,12 +203,62 @@
 
                     </tr>
                     <tr>
+                        <td colspan="2">&nbsp;</td>
+                    </tr>
+                    <tr>
                         <td>
-                            计算时长<input class="textInput" size="4" type="text" id="calc_next_length" value="3" />(天)
+                            评分参数
+                        </td>
+                        <td>
+                            <div>
+                                克:<input class="textInput" size="4" type="text" id="calc_kewo_percent" value="-0.25" />
+                            </div>
+                            <div>
+                                生:<input class="textInput" size="4" type="text" id="calc_shengwo_percent" value="0.2" />
+                            </div>
+                            <div>
+                                泄:<input class="textInput" size="4" type="text" id="calc_wosheng_percent" value="-0.2" />
+                            </div>
+
+
+                            <div>
+                                天干相冲:<input class="textInput" size="4" type="text" id="calc_chongtg_percent" value="-0.3" />
+                            </div>
+                            <div>
+                                天干相合:<input class="textInput" size="4" type="text" id="calc_tgh_percent" value="0.2" />
+                            </div>
+                            <div>
+                                本气通根<input class="textInput" size="4" type="text" id="calc_bqtg_percent" value="0.1" />
+                            </div>
+
+
+                            <div>
+                                地支相冲:<input class="textInput" size="4" type="text" id="calc_chongdz_percent" value="-0.45" />
+                            </div>
+                            <div>
+                                刑<input class="textInput" size="4" type="text" id="calc_xing_percent" value="-0.15" />
+                            </div>
+                            <div>
+                                六合<input class="textInput" size="4" type="text" id="calc_lh_percent" value="0.25" />
+                            </div>
+                            <div>
+                                三合<input class="textInput" size="4" type="text" id="calc_sh_percent" value="0.75" />
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            计算时长
+                        </td>
+                        <td>
+                            <input class="textInput" size="4" type="text" id="calc_next_length" value="3" />(天)
                         </td>
                         <td>
                             <input type="button" id="calc_next" value="calc_next" />
                         </td>
+                    </tr>
+                    <tr>
+
                     </tr>
                     <tr>
                         <td>比较开始时间</td>
@@ -295,8 +319,7 @@
     </body>
     <script type="text/javascript" src='../public/jquery-1.10.2.min.js'></script>
 	<script type="text/javascript" src='../public/jedate/jquery.jedate-3.7.min.js'></script>
-    <script type="text/javascript" src='../public/echarts.simple.min.js'></script>
-    <!--<script type="text/javascript" src='../public/echarts.dataTool.min.js'></script>-->
+    <script type="text/javascript" src='../public/echarts.min.js'></script>
     <script type="text/javascript" src='../public/dataTool.js'></script>
 
 
@@ -336,10 +359,10 @@
             },
             tooltip: {
                 trigger: 'axis',
-                formatter: function (params) {
-                    console.log('formatter:',params);
-                    return ''
-                }
+//                formatter: function (params) {
+//                    console.log('formatter:',params);
+//                    return ''
+//                }
             },
             legend: {
                 data:['土','金','水','木','火']
@@ -559,11 +582,10 @@
                 $('#c_4_6').html(word_info.日支);
                 $('#c_4_7').html(build_br_rela(word_info.日支时支));
                 $('#c_4_8').html(word_info.时支);
-                console.log();
 
                 var sh='';
                 $.each(word_info.地支三合,function(k,v){
-                    sh+=v[0].join('')+' 三合 '+v[1]+'局;';
+                    sh+=v[1].join('')+' 三合 '+v[0]+'局;';
                 });
                 $('#c_4_9').html(sh);
 
@@ -618,7 +640,6 @@
                 start=start.getTime();
                 myChart.showLoading();
                 var word_info_list={};
-
                 var _task={
                     finish:function(num){
                         delete _task.pool[num];
@@ -719,12 +740,31 @@
                     word_info_list[s]={};
                 }
 
+                var calc_param={
+                    score:{
+                        kewo:-$('#calc_kewo_percent').val(),
+                        shengwo:$('#calc_shengwo_percent').val(),
+                        wosheng:$('#calc_wosheng_percent').val(),
+                        chongtg:$('#calc_chongtg_percent').val(),
+                        tgh:$('#calc_tgh_percent').val(),
+
+                        bqtg:$('#calc_bqtg_percent').val(),
+
+                        chongdz:$('#calc_chongdz_percent').val(),
+                        xing:$('#calc_xing_percent').val(),
+                        hai:$('#calc_hai_percent').val(),
+                        lh:$('#calc_lh_percent').val(),
+                        sh:$('#calc_sh_percent').val()
+                    }
+
+                };
+                console.log(calc_param);
                 for(var x in word_info_list){
                     (function(input_date){
                         sb_calc.get_date_info(parseInt(input_date),function(err,date_word){
                             if(err) return ;
 //                            console.log(input_date);
-                            var word_info=sb_calc.parse_all(date_word);
+                            var word_info=sb_calc.parse_all(date_word,calc_param);
 //                            console.log(word_info);
 
                             word_info_list[input_date]=word_info;
