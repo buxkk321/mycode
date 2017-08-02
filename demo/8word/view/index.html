@@ -228,7 +228,13 @@
                                 六合<input class="textInput" size="4" type="text" id="calc_lh_percent" value="0.25" />
                             </div>
                             <div>
-                                三合<input class="textInput" size="4" type="text" id="calc_sh_percent" value="0.75" />
+                                半合<input class="textInput" size="4" type="text" id="calc_banhe_percent" value="0.4" />
+                            </div>
+                            <div>
+                                三合<input class="textInput" size="4" type="text" id="calc_sanhe_percent" value="0.85" />
+                            </div>
+                            <div>
+                                三会<input class="textInput" size="4" type="text" id="calc_sanhui_percent" value="1" />
                             </div>
                         </td>
                     </tr>
@@ -488,8 +494,11 @@
                 $('.word_info_cell').html('');
 
                 var show_5e=$('#show_5e').is(':checked');
-                var word_info=sb_calc.parse_all(八字,show_5e);
+
+                var word_info=sb_calc.parse_all(八字);
+
                 console.log('综合计算结果:',word_info);
+
                 /*十神*/
 				$('#c_1_1').html('十神');
                 $('#c_1_2').html(get_stems_10G(八字.年干,八字.日干));
@@ -514,14 +523,32 @@
 
                     return re;
                 }
-                $('#c_2_2').html(tg_info('年'));
-                $('#c_2_3').html(get_stems_relation(八字.年干,八字.月干));
-                $('#c_2_4').html(tg_info('月'));
-                $('#c_2_5').html(get_stems_relation(八字.月干,八字.日干));
-                $('#c_2_6').html(tg_info('日'));
-                $('#c_2_7').html(get_stems_relation(八字.日干,八字.时干));
-                $('#c_2_8').html(tg_info('时'));
+                function tg_gx(rela){
+                    var re='';
+                    if(rela.冲){
+                        re+='<div>---相冲---</div>';
+                    }
+                    if(rela.合){
+                        re+='<div>---相合,化'+rela.合+'---</div>';
+                    }
 
+                    var diff=rela.五行关系;
+                    if(diff[0]>0){
+                        if(diff[2]){
+                            re+='<div>'+diff[1]+'→</div>';
+                        }else{
+                            re+='<div>←'+diff[1]+'</div>';
+                        }
+                    }
+                    return re;
+                }
+                $('#c_2_2').html(tg_info('年'));
+                $('#c_2_3').html(tg_gx(word_info.年干月干));
+                $('#c_2_4').html(tg_info('月'));
+                $('#c_2_5').html(tg_gx(word_info.月干日干));
+                $('#c_2_6').html(tg_info('日'));
+                $('#c_2_7').html(tg_gx(word_info.日干时干));
+                $('#c_2_8').html(tg_info('时'));
                 /*干支*/
                 function gz_rela(info){
                     if(!info[0]) return '';
@@ -581,11 +608,11 @@
                 $('#c_4_7').html(build_br_rela(word_info.日支时支));
                 $('#c_4_8').html(word_info.时支);
 
-                var sh='';
+                var sanhe='';
                 $.each(word_info.地支三合,function(k,v){
-                    sh+=v[1].join('')+' 三合 '+v[0]+'局;';
+                    sanhe+=v[1].join('')+' 三合 '+v[0]+'局;';
                 });
-                $('#c_4_9').html(sh);
+                $('#c_4_9').html(sanhe);
 
                 /*地支藏干*/
                 $('#c_5_1').html(
@@ -609,6 +636,8 @@
                         var tg=info[part+'支'+v2+'气透干'];
 //                        if(v2=='本' && tg.length>0) tg='透干:'+tg;
                         tg='';
+                        if(v2=='本') tg+=':'+get_stems_10G(info[part+'支本气'],八字.日干);
+
                         cg_el+='<div>'+(info[part+'支'+v2+'气'] || '&nbsp;')+' '+tg+'</div>';
                     });
                     return cg_el;
@@ -756,7 +785,10 @@
                         xing:$('#calc_xing_percent').val(),
                         hai:$('#calc_hai_percent').val(),
                         lh:$('#calc_lh_percent').val(),
-                        sh:$('#calc_sh_percent').val()
+                        banhe:$('#calc_banhe_percent').val(),
+                        sanhe:$('#calc_sanhe_percent').val(),
+                        sanhui:$('#calc_sanhui_percent').val()
+
                     }
                 };
                 console.log(calc_param);
