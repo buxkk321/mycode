@@ -149,43 +149,26 @@
                         </td>
                     </tr>
                     <tr>
-                        <td>Speed</td>
-                        <td>
-                            <span id='renderSpeed'>0.00</span> pixels /
-                            <span id='renderSpeedUnit'>second</span>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>年柱</td>
+                        <td>天干:</td>
                         <td>
                             <select class="select_stems" name="s1" id="年干">
                             </select>
-                            <select class="select_branches" name="b1" id="年支">
+                            <select class="select_stems" name="s2" id="月干">
+                            </select>
+                            <select class="select_stems" name="s3" id="日干">
+                            </select>
+                            <select class="select_stems" name="s4" id="时干">
                             </select>
                         </td>
                     </tr>
                     <tr>
-                        <td>月柱</td>
+                        <td>地支:</td>
                         <td>
-                            <select class="select_stems" name="s2" id="月干">
+                            <select class="select_branches" name="b1" id="年支">
                             </select>
                             <select class="select_branches" name="b2" id="月支">
                             </select>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>日柱</td>
-                        <td>
-                            <select class="select_stems" name="s3" id="日干">
-                            </select>
                             <select class="select_branches" name="b3" id="日支">
-                            </select>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>时柱</td>
-                        <td>
-                            <select class="select_stems" name="s4" id="时干">
                             </select>
                             <select class="select_branches" name="b4" id="时支">
                             </select>
@@ -237,6 +220,9 @@
                             </div>
                             <div>
                                 刑<input class="textInput" size="4" type="text" id="calc_xing_percent" value="-0.15" />
+                            </div>
+                            <div>
+                                害<input class="textInput" size="4" type="text" id="calc_hai_percent" value="-0.13" />
                             </div>
                             <div>
                                 六合<input class="textInput" size="4" type="text" id="calc_lh_percent" value="0.25" />
@@ -359,10 +345,18 @@
             },
             tooltip: {
                 trigger: 'axis',
-//                formatter: function (params) {
-//                    console.log('formatter:',params);
-//                    return ''
-//                }
+                formatter: function (params) {
+                    var str='';
+                    for(var x in params){
+                        var v=params[x];/*TODO::根据数值排序*/
+                        str+='<div>'+v.seriesName+':'+ v.data[1]+'</div>';
+                    }
+                    var word=params[0].data[2];
+                    str+='<div>'+word[0][0]+word[1][0]+word[2][0]+word[3][0]+'</div>';
+                    str+='<div>'+word[0][1]+word[1][1]+word[2][1]+word[3][1]+'</div>';
+
+                    return str;
+                }
             },
             legend: {
                 data:['土','金','水','木','火']
@@ -373,12 +367,12 @@
                 bottom: '3%',
                 containLabel: true
             },
-            toolbox: {
-                show: true,
-                feature: {
-                    saveAsImage: {}
-                }
-            },
+            dataZoom: [{
+                type: 'inside',
+                xAxisIndex:[0],
+                start: 1,
+                end: 100
+            }],
             xAxis: {
                 type: 'time',
                 data: []
@@ -403,7 +397,8 @@
                 $.each(地支五行,function(k,v){
                     if(s_info[0]==v[0]) eb_str+='<option value="'+k+'">'+k+'</option>';
                 });
-                $(this).next().html(eb_str);
+                var sp=$(this).attr('id').split('');
+                $('#'+sp[0]+'支').html(eb_str);
             });
             var hs_opt_html='';
             for(var i in 天干五行){
@@ -557,6 +552,9 @@
                     if(rela.刑){
                         re+='<div>---'+rela.刑+'---</div>';
                     }
+                    if(rela.害){
+                        re+='<div>---相害---</div>';
+                    }
                     if(rela.六合){
                         re+='<div>---六合,化'+rela.六合+'---</div>';
                     }
@@ -654,6 +652,7 @@
                             {
                                 type:'line',
                                 name:'土',
+                                smooth:true,
                                 lineStyle:{
                                     normal:{
                                         color: "#B88A00"  //连线颜色
@@ -664,6 +663,7 @@
                             {
                                 type:'line',
                                 name:'金',
+                                smooth:true,
                                 lineStyle:{
                                     normal:{
                                         color: "#FFFFCC"  //连线颜色
@@ -674,6 +674,7 @@
                             {
                                 type:'line',
                                 name:'水',
+                                smooth:true,
                                 lineStyle:{
                                     normal:{
                                         color: "#000066"  //连线颜色
@@ -684,6 +685,7 @@
                             {
                                 type:'line',
                                 name:'木',
+                                smooth:true,
                                 lineStyle:{
                                     normal:{
                                         color: "#00F5C7"  //连线颜色
@@ -694,6 +696,7 @@
                             {
                                 type:'line',
                                 name:'火',
+                                smooth:true,
                                 lineStyle:{
                                     normal:{
                                         color: "#FF0F0F"  //连线颜色
@@ -704,14 +707,13 @@
                         ];
                         $.each(word_info_list,function(k,v){
                             var dated=sb_calc.get_date_arr(parseInt(k));
-
                             xaxis.push(dated[5]);
-
-                            series[0].data.push(v.五行统计.土);
-                            series[1].data.push(v.五行统计.金);
-                            series[2].data.push(v.五行统计.水);
-                            series[3].data.push(v.五行统计.木);
-                            series[4].data.push(v.五行统计.火);
+                            var key=xaxis.length-1;
+                            series[0].data.push([key,v.五行统计.土,[[v.年干,v.年支],[v.月干,v.月支],[v.日干,v.日支],[v.时干,v.时支]]]);
+                            series[1].data.push([key,v.五行统计.金]);
+                            series[2].data.push([key,v.五行统计.水]);
+                            series[3].data.push([key,v.五行统计.木]);
+                            series[4].data.push([key,v.五行统计.火]);
                         });
                         console.log(xaxis,series);
 
@@ -756,7 +758,6 @@
                         lh:$('#calc_lh_percent').val(),
                         sh:$('#calc_sh_percent').val()
                     }
-
                 };
                 console.log(calc_param);
                 for(var x in word_info_list){

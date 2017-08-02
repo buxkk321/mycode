@@ -112,6 +112,14 @@ var 地支相刑={
     '戌未':'无恩之刑',
     '子卯':'无礼之刑'
 };
+var 地支相害={
+    '子未':'子未',
+    '丑午':'丑午',
+    '寅巳':'寅巳',
+    '卯辰':'卯辰',
+    '申亥':'申亥',
+    '酉戌':'酉戌'
+};
 var 地支藏干={
     '子':['癸'],
     '丑':['己','癸','辛'],//
@@ -243,6 +251,7 @@ function get_branches_relation(b1,b2){
     if(b1==b2){
         re.刑='自刑';
     }
+    re.害=地支相害[asc] || 地支相害[desc];
 
     re.六合=地支相合.六合[asc] || 地支相合.六合[desc];
 
@@ -539,12 +548,10 @@ var sb_calc={
             /*和前一个地支比较*/
             if(prev_z){
                 diff=get_branches_relation(地支,zzz[prev_z+'支']);
-                if(diff.刑){
-                    地支强弱.刑.push(diff.刑);
-                }
-                if(diff.冲){
-                    地支强弱.冲.push(diff.冲);
-                }
+                if(diff.刑) 地支强弱.刑.push(diff.刑);
+                if(diff.冲) 地支强弱.冲.push(diff.冲);
+                if(diff.害) 地支强弱.害.push(diff.害);
+
                 zzz[v+'支'+prev_z+'支']=diff;
 
                 diff=diff.五行关系;
@@ -555,12 +562,10 @@ var sb_calc={
             /*和后一个地支比较*/
             if(next_z){
                 diff=get_branches_relation(地支,zzz[next_z+'支']);
-                if(diff.刑){
-                    地支强弱.刑.push(diff.刑);
-                }
-                if(diff.冲){
-                    地支强弱.冲.push(diff.冲);
-                }
+                if(diff.刑) 地支强弱.刑.push(diff.刑);
+                if(diff.冲) 地支强弱.冲.push(diff.冲);
+                if(diff.害) 地支强弱.害.push(diff.害);
+
                 zzz[v+'支'+next_z+'支']=diff;
 
                 if(diff.六合){
@@ -622,7 +627,7 @@ var sb_calc={
 
         /*最后的统计*/
         var score=cfg.score || {};
-        if(!score.kewo) score.kewo=-0.25;/*TODO::天干同性相克特别凶*/
+        if(!score.kewo) score.kewo=-0.25;
         if(!score.shengwo) score.shengwo=0.2;
         if(!score.wosheng) score.wosheng=-0.2;
         if(!score.chongtg) score.chongtg=-0.3;
@@ -645,18 +650,20 @@ var sb_calc={
             $.each(['干','支'],function(kk,vv){
                 var org=1;
                 var qr=zzz[v+vv+'强弱'];
-                org+=qr.克我.length*score.kewo;
+                org+=qr.克我.length*score.kewo;/*TODO::天干同性相克力度更大,地支可天干力度更小*/
                 org+=qr.我生.length*score.wosheng;
                 org+=qr.生我.length*score.shengwo;
 
-                if(vv=='支'){/*地支特有规则*/
-                    org+=qr.冲.length*score.chongdz;
-
-                    org+=qr.刑.length*score.xing;
-                }else{/*天干特有规则*/
+                if(vv=='干'){/*天干特有规则*/
                     org+=qr.冲.length*score.chongtg;
 
                     org+=qr.本气通根.length*score.bqtg;
+
+                }else{/*地支特有规则*/
+                    org+=qr.冲.length*score.chongdz;
+
+                    org+=qr.刑.length*score.xing;
+                    org+=qr.害.length*score.hai;
                 }
 
                 var wx=zzz[v+vv+'五行'];
