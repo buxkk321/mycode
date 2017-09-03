@@ -23,17 +23,68 @@ function get_5e_relation(now,target){
 
 
 var 天干五行={
-    '甲':['阳','木'],
-    '乙':['阴','木'],
-    '丙':['阳','火'],
-    '丁':['阴','火'],
-    '戊':['阳','土'],
-    '己':['阴','土'],
-    '庚':['阳','金'],
-    '辛':['阴','金'],
-    '壬':['阳','水'],
-    '癸':['阴','水']
+    '甲':['阳','木',1],
+    '乙':['阴','木',2],
+    '丙':['阳','火',3],
+    '丁':['阴','火',4],
+    '戊':['阳','土',5],
+    '己':['阴','土',6],
+    '庚':['阳','金',7],
+    '辛':['阴','金',8],
+    '壬':['阳','水',9],
+    '癸':['阴','水',10]
 };
+
+var 地支五行={
+    '子':['阳','水',1],
+    '丑':['阴','土',2],
+    '寅':['阳','木',3],
+    '卯':['阴','木',4],
+    '辰':['阳','土',5],
+    '巳':['阴','火',6],
+    '午':['阳','火',7],
+    '未':['阴','土',8],
+    '申':['阳','金',9],
+    '酉':['阴','金',10],
+    '戌':['阳','土',11],
+    '亥':['阴','水',12]
+};
+
+var 十二长生={
+	'1':['长生',''],
+	'2':['沐浴',''],
+	'3':['冠带',''],
+	'4':['临官',''],
+	'5':['帝旺',''],
+	'6':['衰',''],
+	'7':['病',''],
+	'8':['死',''],
+	'9':['墓',''],
+	'10':['绝',''],
+	'11':['胎',''],
+	'12':['养','']
+};
+var 十二长生天干基数={
+    '甲':1,
+    '乙':6,
+    '丙':10,
+    '丁':9,
+    '戊':10,
+    '己':9,
+    '庚':7,
+    '辛':12,
+    '壬':4,
+    '癸':3
+};
+
+function get_12changsheng(st,br){
+	var cs_val=十二长生天干基数[st]+地支五行[br][2];
+	if(cs_val>12) cs_val-=12;
+	return 十二长生[cs_val];
+}
+
+
+
 var 天干十神={
     '同我':['比肩','劫财'],
     '我生':['食神','伤官'],
@@ -55,20 +106,6 @@ var 天干相合={
     '戊癸':'火'
 };
 
-var 地支五行={
-    '子':['阳','水',1],
-    '丑':['阴','土',2],
-    '寅':['阳','木',3],
-    '卯':['阴','木',4],
-    '辰':['阳','土',5],
-    '巳':['阴','火',6],
-    '午':['阳','火',7],
-    '未':['阴','土',8],
-    '申':['阳','金',9],
-    '酉':['阴','金',10],
-    '戌':['阳','土',11],
-    '亥':['阴','水',12]
-};
 var 地支相冲={
     '子午':1,
     '卯酉':1,
@@ -186,10 +223,11 @@ function get_stems_10G(t,s){
     var relation=五行关系[Math.abs(diff[0])];
     var type=self_info[0]==target_info[0]?0:1;
 
-//            var notes='自己:'+self_info[0]+'('+五行[self_info[0]]+') '+
+	var notes='';
+//            notes='自己:'+self_info[0]+'('+五行[self_info[0]]+') '+
 //                    '当前:'+target_info[0]+'('+五行[target_info[0]]+') '+
 //                    '结果:'+relation+'('+diff+')';
-    var notes='';
+    
 
     return 天干十神[relation][type]+notes;
 }
@@ -204,7 +242,7 @@ function get_stems_relation(s1,s2){
 
     var s1_info=天干五行[s1];
     var s2_info=天干五行[s2];
-
+	 
     re.五行关系=get_5e_relation(s1_info[1],s2_info[1]);
 
     return re;
@@ -267,6 +305,8 @@ function check_word_sanhui(word1){
     var re=地支三会[check_str1] || 地支三会[check_str2];
     return re;
 }
+
+
 function get_branches_relation(b1,b2){
     var re={};
     var asc=b1+b2,desc=b2+b1;
@@ -331,6 +371,7 @@ function get_branches_relation2(b1,b2){
 function get_cross_relation(w1,w2){
 
 }
+
 function get_relation(w1,w2){
     var type1=!天干五行[w1];
     var type2=!天干五行[w2];
@@ -533,6 +574,9 @@ var sb_calc={
 
         zzz.天干相合=[];
 
+		
+		
+		
         $.each(t_arr,function(k,v){
             var prev_z=t_arr[k-1];/*前一个*/
             var next_z=t_arr[k+1];/*后一个*/
@@ -568,6 +612,7 @@ var sb_calc={
                     天干强弱[diff[2]?('我'+diff[1]):(diff[1]+'我')].push(next_z+'干');
                 }
             }
+
 
             var 地支=zzz[v+'支'];
             var br五行=地支五行[地支][1];
@@ -605,9 +650,9 @@ var sb_calc={
                 if(diff[0]>0){
                     地支强弱[diff[2]?('我'+diff[1]):(diff[1]+'我')].push(next_z+'支');
                 }
-
-
             }
+
+
 
 
             var 干支关系=[];
@@ -622,10 +667,19 @@ var sb_calc={
                 地支强弱[diff[2]?('我'+diff[1]):(diff[1]+'我')].push(v+'支');
             }
 
+			if(zzz['大运干']){
+				/*和大运柱比较,大运柱均匀作用于每一柱*/
+				zzz['大运'+v+'干关系']=get_stems_relation(天干,zzz['大运干']);
+				zzz['大运'+v+'支关系']=get_branches_relation(地支,zzz['大运支']);
+			}
+          
+
 
             zzz[v+'干支关系']=干支关系;
             zzz[v+'干强弱']=天干强弱;
             zzz[v+'支强弱']=地支强弱;
+
+
 
             var cg=地支藏干[地支];
             $.each(['本','中','余'],function(k2,v2) {
@@ -642,8 +696,23 @@ var sb_calc={
             });
         });
 
+		zzz.日主={
+			'强弱':[
+				get_12changsheng(zzz.日干,zzz.月支),
+				{
+					
+				}
+			]
+			'十神':{
+				年干:get_stems_10G(zzz.年干,zzz.日干),
+				月干:get_stems_10G(zzz.月干,zzz.日干),
+				时干:get_stems_10G(zzz.时干,zzz.日干),
+			}
+		};
+		
         /**/
         $.each(t_arr,function(k,v){
+            //TODO::计算大运的影响，大运占4成
             var 天干=zzz[v+'干'];
             $.each(t_arr,function(kk,checkv){
                 var 地支本气=zzz[checkv+'支本气'];
@@ -660,13 +729,12 @@ var sb_calc={
         var hj={'土':0,'金':0,'水':0,'木':0,'火':0};
         $.each(t_arr,function(k,v){
             var next_z=t_arr[k+1];/*后一个*/
-
-            /*TODO::地支克天干的比率很小*/
+ 
             $.each(['干','支'],function(kk,vv){
                 var org=1;
                 var qr=zzz[v+vv+'强弱'];
-                org+=qr.克我.length*score.kewo;/*TODO::天干同性相克力度更大,地支可天干力度更小*/
-                org+=qr.我生.length*score.wosheng;
+                org+=qr.克我.length*score.kewo;/*TODO::天干同性相克力度更大,地支克天干力度很小*/
+                org+=qr.我生.length*score.wosheng;/*TODO::天干异性相生力度更大*/
                 org+=qr.生我.length*score.shengwo;
 
                 if(vv=='干'){/*天干特有规则*/
@@ -685,7 +753,6 @@ var sb_calc={
                     org+=qr.害.length*score.hai;
                     /*TODO::三会的力量大于一切*/
                 }
-
                 var wx=zzz[v+vv+'五行'];
                 hj[wx]+=org;
             });
@@ -703,6 +770,7 @@ var sb_calc={
 			hj[v[0]]+=parseFloat(score.sanhe);
 		});
 
+		//四土齐全??
         zzz.地支三会=check_word_sanhui(zzz);
         if(zzz.地支三会){
             hj[zzz.地支三会[0]]+=parseFloat(score.sanhui);

@@ -174,12 +174,21 @@
                             </select>
                         </td>
                     </tr>
+					<tr>
+                        <td>开始大运:</td>
+                        <td>
+							<select class="select_stems" name="s5" id="大运干" data-target="#大运支">
+                            </select>
+                            <select class="select_branches" name="b5" id="大运支">
+                            </select>
+                        </td>
+                    </tr>
                     <tr>
                         <td colspan="2">&nbsp;</td>
                     </tr>
                     <tr>
                         <td colspan="2">
-                            <input type="button" id="submit_all" value="calc_now" />
+                            <input type="button" id="calc_now" value="calc_now" />
                             &nbsp;
                             <input type="reset" id="resetButton" value="Reset" />
                         </td>
@@ -245,9 +254,16 @@
                         <td>
                             <input class="textInput" size="4" type="text" id="calc_next_length" value="3" />(天)
                         </td>
-                        <td>
-                            <input type="button" id="calc_next" value="calc_next" />
+						<td>
+                            最小时间段
+							<select id="calc_length">
+								<option value='h'>时辰</option>
+								<option value='d'>天</option>
+								<option value='m'>月</option>
+							</select>
                         </td>
+						 
+					
                     </tr>
                     <tr>
 
@@ -256,6 +272,9 @@
                         <td>比较开始时间</td>
                         <td>
                             <input type='text' id='start_date' />
+                        </td>
+						<td>
+                            <input type="button" id="calc_next" value="calc_next" />
                         </td>
                     </tr>
                     <tr>
@@ -353,14 +372,17 @@
                 trigger: 'axis',
                 formatter: function (params) {
                     var str='';
-                    for(var x in params){
-                        var v=params[x];/*TODO::根据数值排序*/
-                        str+='<div>'+v.seriesName+':'+ v.data[1]+'</div>';
-                    }
+					str+='<div>'+params[0].axisValue+'</div>';
+					
                     var word=params[0].data[2];
                     str+='<div>'+word[0][0]+word[1][0]+word[2][0]+word[3][0]+'</div>';
                     str+='<div>'+word[0][1]+word[1][1]+word[2][1]+word[3][1]+'</div>';
 
+					for(var x in params){
+                        var v=params[x];/*TODO::根据数值排序*/
+                        str+='<div>'+v.seriesName+':'+ v.data[1]+'</div>';
+                    }
+					//console.log(params);
                     return str;
                 }
             },
@@ -403,8 +425,13 @@
                 $.each(地支五行,function(k,v){
                     if(s_info[0]==v[0]) eb_str+='<option value="'+k+'">'+k+'</option>';
                 });
-                var sp=$(this).attr('id').split('');
-                $('#'+sp[0]+'支').html(eb_str);
+				var sp=$(this).data('target');
+				if(!sp){
+					sp=$(this).attr('id').split('');
+					sp='#'+sp[0]+'支';
+				}
+				 
+                $(sp).html(eb_str);
             });
             var hs_opt_html='';
             for(var i in 天干五行){
@@ -420,7 +447,7 @@
             var content=$('#word_info_table');
             for(var i=1;i<8;i++){
                 var tr=$('<tr id="c_'+i+'"></tr>');
-                for(var k=1;k<10;k++){
+                for(var k=1;k<11;k++){
                     tr.append('<td class="word_info_cell" id="c_'+i+'_'+k+'"></td>');
                 }
                 content.append(tr);
@@ -482,10 +509,31 @@
 
 
 		$(function(){
+			function get_calc_param(){
+				return {
+                    score:{
+                        kewo:-$('#calc_kewo_percent').val(),
+                        shengwo:$('#calc_shengwo_percent').val(),
+                        wosheng:$('#calc_wosheng_percent').val(),
+                        chongtg:$('#calc_chongtg_percent').val(),
+                        tgh:$('#calc_tgh_percent').val(),
 
-            $('#submit_all').click(function(){
+                        bqtg:$('#calc_bqtg_percent').val(),
+
+                        chongdz:$('#calc_chongdz_percent').val(),
+                        xing:$('#calc_xing_percent').val(),
+                        hai:$('#calc_hai_percent').val(),
+                        lh:$('#calc_lh_percent').val(),
+                        banhe:$('#calc_banhe_percent').val(),
+                        sanhe:$('#calc_sanhe_percent').val(),
+                        sanhui:$('#calc_sanhui_percent').val()
+
+                    }
+                };
+			}
+            $('#calc_now').click(function(){
                 updateHashTag();
-                var t_arr=['年','月','日','时'];
+                var t_arr=['年','月','日','时','大运'];
                 var 八字={};
                 $.each(t_arr,function(k,v){
                     八字[v+'干']=$('#'+v+'干').val();
@@ -494,8 +542,8 @@
                 $('.word_info_cell').html('');
 
                 var show_5e=$('#show_5e').is(':checked');
-
-                var word_info=sb_calc.parse_all(八字);
+				var calc_param=get_calc_param();
+                var word_info=sb_calc.parse_all(八字,calc_param);
 
                 console.log('综合计算结果:',word_info);
 
@@ -648,20 +696,81 @@
                 $('#c_5_6').html(build_cg_box(word_info,'日'));
                 $('#c_5_8').html(build_cg_box(word_info,'时'));
 
-                $('#c_6_1').html('合计:');
+                $('#c_6_9').html('合计:');
 
-
-
+				console.log(word_info.五行统计);
                 var hj_txt='';
                 $.each(word_info.五行统计,function(k,v){
                     hj_txt+='<div>'+k+':'+v+'</div>';
                 });
-                $('#c_6_2').html(hj_txt);
+                $('#c_6_10').html(hj_txt);
+
+                /*大运的信息*/
+                function build_st_dayun(rela){
+                    var re='';
+                    if(rela.冲){
+                        re+='<div>---相冲---</div>';
+                    }
+                    if(rela.合){
+                        re+='<div>---相合,化'+rela.合+'---</div>';
+                    }
+//                    var diff=rela.五行关系;
+//                    if(diff[0]>0){
+//                        if(diff[2]){
+//                            re+='<div>'+diff[1]+'→</div>';
+//                        }else{
+//                            re+='<div>←'+diff[1]+'</div>';
+//                        }
+//                    }
+                    return re;
+                }
+                function build_br_dayun(rela){
+                    var re='';
+                    if(rela.冲){
+                        re+='<div>---相冲---</div>';
+                    }
+                    if(rela.刑){
+                        re+='<div>---'+rela.刑+'---</div>';
+                    }
+                    if(rela.害){
+                        re+='<div>---相害---</div>';
+                    }
+                    if(rela.六合){
+                        re+='<div>---六合,化'+rela.六合+'---</div>';
+                    }
+                    if(rela.半合){
+                        re+='<div>-半合,缺'+rela.半合[1]+',化'+rela.半合[0]+'-</div>';
+                    }
+
+//                    var diff=rela.五行关系;
+//                    if(diff[0]>0){
+//                        if(diff[2]){
+//                            re+='<div>'+diff[1]+'→</div>';
+//                        }else{
+//                            re+='<div>←'+diff[1]+'</div>';
+//                        }
+//                    }
+                    return re;
+                }
+
+                $('#c_6_1').html('<div>大运干:</div><div>'+word_info.大运干+'</div>');
+                $('#c_6_2').html(build_st_dayun(word_info.大运年干关系));
+                $('#c_6_4').html(build_st_dayun(word_info.大运月干关系));
+                $('#c_6_6').html(build_st_dayun(word_info.大运日干关系));
+                $('#c_6_8').html(build_st_dayun(word_info.大运时干关系));
+
+                $('#c_7_1').html('<div>大运支:</div><div>'+word_info.大运支+'</div>');
+                $('#c_7_2').html(build_br_dayun(word_info.大运年支关系));
+                $('#c_7_4').html(build_br_dayun(word_info.大运月支关系));
+                $('#c_7_6').html(build_br_dayun(word_info.大运日支关系));
+                $('#c_7_8').html(build_br_dayun(word_info.大运时支关系));
+
+
 
             });
 
             $('#calc_next').click(function(){
-                var start=$('#input_date').val();
+                var start=$('#start_date').val();
                 if(!start) return;
                 start=new Date(start);/*TODO::处理精确到分的节气分界点*/
                 start=start.getTime();
@@ -734,17 +843,24 @@
                                 data:[]
                             }
                         ];
+						var calc_length=$('#calc_length').val();
                         $.each(word_info_list,function(k,v){
-                            var dated=sb_calc.get_date_arr(parseInt(k));
-                            xaxis.push(dated[5]);
-                            var key=xaxis.length-1;
-                            series[0].data.push([key,v.五行统计.土,[[v.年干,v.年支],[v.月干,v.月支],[v.日干,v.日支],[v.时干,v.时支]]]);
-                            series[1].data.push([key,v.五行统计.金]);
-                            series[2].data.push([key,v.五行统计.水]);
-                            series[3].data.push([key,v.五行统计.木]);
-                            series[4].data.push([key,v.五行统计.火]);
+							if(calc_length=='d'){
+								 
+							
+							}else{
+								var dated=sb_calc.get_date_arr(parseInt(k));
+								xaxis.push(dated[5]);
+								var key=xaxis.length-1;
+								series[0].data.push([key,v.五行统计.土,[[v.年干,v.年支],[v.月干,v.月支],[v.日干,v.日支],[v.时干,v.时支]]]);
+								series[1].data.push([key,v.五行统计.金]);
+								series[2].data.push([key,v.五行统计.水]);
+								series[3].data.push([key,v.五行统计.木]);
+								series[4].data.push([key,v.五行统计.火]);
+							}
+                           
                         });
-                        console.log(xaxis,series);
+                        //console.log(xaxis,series);
 
                         // 指定图表的配置项和数据
                         var option = {
@@ -771,32 +887,13 @@
                     word_info_list[s]={};
                 }
 
-                var calc_param={
-                    score:{
-                        kewo:-$('#calc_kewo_percent').val(),
-                        shengwo:$('#calc_shengwo_percent').val(),
-                        wosheng:$('#calc_wosheng_percent').val(),
-                        chongtg:$('#calc_chongtg_percent').val(),
-                        tgh:$('#calc_tgh_percent').val(),
-
-                        bqtg:$('#calc_bqtg_percent').val(),
-
-                        chongdz:$('#calc_chongdz_percent').val(),
-                        xing:$('#calc_xing_percent').val(),
-                        hai:$('#calc_hai_percent').val(),
-                        lh:$('#calc_lh_percent').val(),
-                        banhe:$('#calc_banhe_percent').val(),
-                        sanhe:$('#calc_sanhe_percent').val(),
-                        sanhui:$('#calc_sanhui_percent').val()
-
-                    }
-                };
+                var calc_param=get_calc_param();
                 console.log(calc_param);
                 for(var x in word_info_list){
                     (function(input_date){
                         sb_calc.get_date_info(parseInt(input_date),function(err,date_word){
                             if(err) return ;
-//                            console.log(input_date);
+//                            console.log(input_date,date_word);
                             var word_info=sb_calc.parse_all(date_word,calc_param);
 //                            console.log(word_info);
 
