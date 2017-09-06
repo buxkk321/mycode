@@ -1,4 +1,5 @@
 var fs=require('fs');
+var path=require('path');
 /*类似php的str_pad*/
 exports.str_pad=function(input,pad_length,pad_string,pad_type){
     input=String(input);
@@ -160,101 +161,103 @@ exports.getValue = function(obj, properties){
 };
 /*TODO::将任意数据输出成完整的字符串，相当于php的var_dump*/
 exports.dump = function(data){
-    var re='';
-    for(var i in data){
-        if(typeof(data[i])=='object'){
-            re+=exports.dump(data[i]);
-        }
-        re+=i;
-    }
-    return re;
+	var re='';
+	for(var i in data){
+		if(typeof(data[i])=='object'){
+			re+=exports.dump(data[i]);
+		}
+		re+=i;
+	}
+	return re;
 };
 
 
 exports.str_split=function(str, length){
-    str=String(str);
-    var str_arr = [];
-    var start = 0;
-    while(start <= str.length){
-        var end = start + length;
-        str_arr.push(str.slice(start, end));
-        start = end;
-    }
-    return str_arr;
+	str=String(str);
+	var str_arr = [];
+	var start = 0;
+	while(start <= str.length){
+		var end = start + length;
+		str_arr.push(str.slice(start, end));
+		start = end;
+	}
+	return str_arr;
 };
-exports.flog_base=function(path,msg,print,extra){
-    msg=exports.format_date(-1)+'---'+msg;
-    print=exports.toParseInt(print);
-    if(!path) path='';
-    if(print>=0){
-        fs.appendFile(
-            exports.mkdir_by_date(path,1)+'.log',msg+'\n',
-            function (err) {if (err) console.log('+++++++tools error+++++++',err);}
-        );
-    }
-    if(print!=0){
-        if(print==2 || print==-2){
-            console.log(msg,extra);
-        }else{
-            console.log(msg);
-        }
-    }
+exports.flog_base=function(input_path,msg,print,extra){
+	msg=exports.format_date(-1)+'---'+msg;
+	print=exports.toParseInt(print);
+	if(!input_path) input_path='';
+	if(print>=0){
+		fs.appendFile(
+			exports.mkdir_by_date(input_path,1)+'.log',msg+'\n',
+			function (err) {if (err) console.log('+++++++tools error+++++++',err);}
+		);
+	}
+	if(print!=0){
+		if(print==2 || print==-2){
+			console.log(msg,extra);
+		}else{
+			console.log(msg);	
+		}
+	}
 };
 exports.json_re=function(re,return_str){
-    if(!re) re={};
-    if(typeof(re)=='string') re={msg:re};
-    re.status=exports.toParseInt(re.status);
-    return return_str?JSON.stringify(re):re;
+	if(!re) re={};
+	if(typeof(re)=='string') re={msg:re};
+	re.status=exports.toParseInt(re.status);
+	return return_str?JSON.stringify(re):re;
 };
 /*创建多层目录，返回路径，结尾不含'/' */
-exports.mkdir_deep=function(path){
-    path=path.split('/');
-    var path_now='';
-    var count=0;
-    for(var i in path){
-        if(path[i]=='.' || path[i]==''){
+exports.mkdir_deep=function(input_path){
+    input_path=path.normalize(input_path);
+    input_path=input_path.split(path.sep);
 
-        }else{
-            if(count>0){
-                path_now+='/'+path[i];
-            }else{
-                path_now+=path[i];
-            }
-            count++;
-            if(path[i]=='..'){
-            }else{
-                if (!fs.existsSync(path_now)){
-                    fs.mkdirSync(path_now);
-                }
-            }
-
-        }
-    }
-    return path_now;
+	var path_now='';
+	var count=0;
+	for(var i in input_path){
+		if(input_path[i]=='.' || input_path[i]==''){
+			
+		}else{
+			if(count>0){
+				path_now+='/'+input_path[i];
+			}else{
+				path_now+=input_path[i];
+			}
+			count++;
+			if(input_path[i]=='..'){
+			}else{
+				if (!fs.existsSync(path_now)){
+					fs.mkdirSync(path_now);
+				}
+			}
+			
+		}
+	}
+	return path_now;
 };
 exports.mkdir_by_date=function(start_path,deep,h){
-
-    var Da=new Date();
-    var path=exports.mkdir_deep(start_path)+'/Y'+Da.getFullYear();
-    if (!fs.existsSync(path)){
-        fs.mkdirSync(path);
-    }
-    deep=exports.toParseInt(deep);
-    if(deep<=1){
-        var month=String(Da.getMonth()+1);
-        if(month.length<2) month='0'+month;
-        path+='/'+month+Da.getDate();
-        if(deep<=0){
-            if (!fs.existsSync(path)){
-                fs.mkdirSync(path);
-            }
-            if (h){
+	
+	var Da=new Date();
+	var repath=exports.mkdir_deep(start_path)+'/Y'+Da.getFullYear();
+	if (!fs.existsSync(repath)){
+		fs.mkdirSync(repath);
+	}
+	deep=exports.toParseInt(deep);
+	if(deep<=1){
+		var month=String(Da.getMonth()+1);
+		if(month.length<2) month='0'+month;
+        repath+='/'+month+Da.getDate();
+		if(deep<=0){
+			if (!fs.existsSync(repath)){
+				fs.mkdirSync(repath);
+			}
+			if (h){
                 var time=new Date();
-                path+='/'+exports.str_pad(time.getHours(),2,'0');
-            }
-        }
-    }
-    return path;
+                repath+='/'+exports.str_pad(time.getHours(),2,'0');
+			}
+		}
+	}
+	return repath;
 };
 /*清空目录文件*/
 exports.cleandir=function(dir){
@@ -271,13 +274,35 @@ exports.cleandir=function(dir){
     }
     return false;
 };
+exports.cleandirAll=function(dir){
+    var files;
+    try{
+        files = fs.readdirSync(dir);//读取该文件夹
+    } catch (x) {
+        return x;
+    }
+    files.forEach(function(file){
+        var stats = fs.statSync(dir+'/'+file);
+        if(stats.isDirectory()){
+            exports.cleandirAll(dir+'/'+file);
+            fs.rmdirSync(dir+'/'+file);
+        }else{
+            try{
+                fs.unlinkSync(dir+'/'+file);
+            } catch (x) {
+                return x;
+            }
+        }
+    });
+    return false;
+};
 exports.toParseInt=function(str){
-    str=String(str);
-    return parseInt(str.indexOf('-')==0?str:'0'+str);
+	str=String(str);
+	return parseInt(str.indexOf('-')==0?str:'0'+str);
 };
 exports.toParseFloat=function(str){
-    str=String(str);
-    return parseFloat(str.indexOf('-')==0?str:'0'+str);
+	str=String(str);
+	return parseFloat(str.indexOf('-')==0?str:'0'+str);
 };
 
 var initTime = setTimeout(function(){
@@ -287,20 +312,20 @@ var _init_time = Date.now();
 clearTimeout(initTime);
 
 exports.finishTimeout=function(t){
-    t._onTimeout();
-    clearTimeout(t);
+	t._onTimeout();
+	clearTimeout(t);
 };
 exports.pauseTimeout=function(t){
-    if(t._surplusTime === undefined){
-        var cb=t._onTimeout;
-        var surplusTime= (t._idleStart + t._idleTimeout - _init_sys_time) - (Date.now() - _init_time);
-        if(surplusTime<0){
-            surplusTime = 0;
-        }
-        clearTimeout(t);
-        t._onTimeout=cb;
-        t._surplusTime=surplusTime;
-    }
+	if(t._surplusTime === undefined){
+		var cb=t._onTimeout;
+	    var surplusTime= (t._idleStart + t._idleTimeout - _init_sys_time) - (Date.now() - _init_time);
+	    if(surplusTime<0){
+	        surplusTime = 0;
+	    }
+		clearTimeout(t);
+		t._onTimeout=cb;
+	    t._surplusTime=surplusTime;
+	}
 };
 
 exports.continueTimeout=function(t){
