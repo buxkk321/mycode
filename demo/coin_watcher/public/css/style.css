@@ -1,0 +1,252 @@
+html{
+	height: 100%;position: relative;
+}
+body{
+	font-size: 12px;background-color: #fff;min-width: 980px;font-family: "微软雅黑";height: 100%;position: relative;
+}
+hr{
+	height: 2px;color: #477f0d;
+}
+.wrap{
+	max-width: 1480px;min-width: 960px;height: auto;overflow: hidden;margin: 0 auto;padding: 0 10px;
+}
+.header{
+	height: 75px;
+}
+.logo{
+	float: left;
+}
+.logo span{
+	font-size: 20px;color: #fff;font-weight: 500;line-height: 75px;
+}
+.user{
+	float: right;margin-right: 25px;line-height: 75px;
+}
+.user p{
+	font-size: 13px;color: #fff;
+}
+.user p a{color:#fff;}
+.breadcrumb{
+	background: url(../images/img2.png) repeat-x;height: 30px;line-height: 30px;border-top: 1px solid #000;border-bottom: 1px solid #000;
+}
+.breadcrumb p{
+	font-family: "宋体";color: #fff;
+}
+.breadcrumb p a{
+	color: #fff;
+}
+.main{
+	height: 100%;
+}
+.sidebar{
+	float: left;width: 180px;
+}
+.sidebar ul{
+	border: 1px solid #ccc;border-top-left-radius: 3px;border-top-right-radius: 3px;
+}
+.sidebar li{
+	line-height: 30px;background: url(../images/img1.png) repeat;
+}
+.sidebar li span{
+	display: block;cursor: pointer;text-align: center;font-size: 14px;color: #fff;border-radius: 3px;
+}
+.sidebar dl{
+	background-color: #fff;
+}
+.sidebar dd{
+	padding-left: 50px;font-family: "宋体";color: #323232;cursor: pointer;border-top: 1px solid #ccc;
+}
+.sidebar dd.selected,
+.sidebar dd:hover{
+	background-color: #8fcd4c;
+}
+.sidebar li:first-child span{
+	background: url(../images/img3.png) no-repeat center;
+}
+.sidebar li:nth-child(2) span{
+	background:url(../images/img4.png) no-repeat center;
+}
+.content{
+	min-width: 760px;
+}
+.iframe-info{
+	float: left;width: calc(100% - 190px);width: -moz-calc(100% - 190px);width: -webkit-calc(100% - 190px);margin-left: 10px;height: 100%;
+}
+.content .title{
+	height: 90px;background: url(../images/img1.png) repeat;padding: 0 55px;border-radius: 3px;
+}
+.content .title h2 span{
+	font-size: 14px;color: #fff;font-weight: normal;line-height: 45px;
+}
+.content .title .tit_add,
+.content .title .tit_back{
+	display: block;margin-left: 5px;width: 65px;height: 28px;line-height: 28px;text-align: center;background-color: #5eab0d;color: #fff;border: 1px solid #50910b;font-family: "微软雅黑";border-radius: 2px;float: left;
+}
+.search{
+	margin-top: 10px;background-color: #e1ecd6;border: 1px solid #5f9129;height: auto;overflow: hidden;padding: 1px 0 1px 5px;border-radius: 1px;
+}
+.search label{
+	margin: 3px 5px 3px 5px;float: left;height: 24px;overflow: hidden;width: calc(25% - 10px);width: -webkit-calc(25% - 10px);width: -moz-calc(25% - 15px);
+}
+.search label span{
+	float: left;line-height: 24px;color: #000;font-size: 14px;
+}
+.search label select{
+	height: 24px;width: 60%;border: 1px solid #ccc;background-color: #fff;float: left;
+}
+.search label input{
+	height: 22px;border: 1px solid #ccc;margin: 0;float: left;
+}
+.search label input.text{
+	width: 60%;padding: 0 4px;background: #fff;
+}
+.search label input.text2{
+	width: 40%;
+}
+.search label input.text1{
+	width: 24%;padding:0;
+}
+.search label i{
+	float: left;color: #ccc;margin: 0 1px;line-height: 24px;
+}
+.search label input.sub{
+	width: 20%;padding: 0;border-left: none;height: 24px;color: #000;font-size: 14px;font-family: "微软雅黑";cursor: pointer;
+}
+.content table{
+	text-align: center;border: 1px solid #ccc;font-size: 14px;width: 100%;margin-top: 10px;line-height: 30px;
+}
+.content table tr:nth-child(odd){
+	background-color: #e1ecd6;
+}
+.content table th{
+	background-color: #508c0f;color: #fff;width: 25%;border-right: 1px solid #ccc;
+}
+.content .table1 th{
+	width: 20%;
+}
+.content .table2 th{
+	width: 12.5%;
+}
+.content .table3 th{
+	width: 11.11%;
+}
+.content table td{
+	border-right: 1px solid #ccc;
+}
+
+/*登录页*/
+.login-bg{
+	position: absolute;top: 0;bottom: 0;left: 0;right: 0;min-width: 980px;padding-top: 10px; text-align: center;min-height: 620px;
+}
+.login-bg h2{
+	font-size: 50px;color: #010101;
+}
+.login-bg h3{
+	font-weight: normal;font-size: 20px;color: #000;margin-top: 20px;
+}
+.login{
+	width: 490px;margin: 0 auto;margin-top: 70px;background: url(../images/img5.png) repeat;padding: 30px 0;
+}
+.login li{
+	height: auto;overflow: hidden;margin-bottom: 20px;
+}
+.login li label{
+	float: left;width: 100px;text-align: right;line-height: 34px;
+}
+.login-user{
+	float: left;width: 240px;height: 32px;border: 1px solid #aaa;background-color: #fff;padding:0 4px;
+}
+.login li span{
+	float: left;margin-left: 5px;line-height: 34px;
+}
+.login li span a{
+	font-size: 13px;color: #005609;
+}
+.login li em{
+	float: left;width: 80px;height: 34px;margin-left: 10px;
+}
+.login li em img{
+	width: 100%;height: 100%;
+}
+.login-yzm{
+	width: 150px;float: left;height: 32px;border: 1px solid #aaa;background-color: #fff;padding:0 4px;
+}
+.login li input[type=password]:hover,
+.login li input[type=password]:focus,
+.login li input[type=text]:hover,
+.login li input[type=text]:focus{
+	border: 1px solid #005609;
+}
+.login li .submit{
+	width: 250px;height: 34px;border: none;background-color: #005609;color: #fff;border-radius: 3px;font-size: 16px;font-family: "微软雅黑";float: left;cursor: pointer;
+}
+.login li .submit:hover{
+	background-color: #049513;
+}
+
+/*新增自定义检测信息*/
+.form-title{
+	height: 30px;line-height: 30px;background: url(../images/img1.png) repeat;padding: 0 15px;border-radius: 3px;
+}
+.form-title h2{
+	background: url(../images/img6.png) left center no-repeat;padding: 0 40px;color: #fff;font-size: 14px;font-weight: normal;
+}
+.form-body{
+	margin-top: 10px;
+}
+.form-body ul{
+	background-color: #e1ecd6;border: 1px solid #5f9129;padding: 1px 0;padding-top: 10px;
+}
+.form-body li{
+	height: auto;overflow: hidden;margin-bottom: 10px;
+}
+.form-body li label{
+	float: left;width: 120px;line-height: 24px;font-size: 14px;text-align: right;
+}
+.form-body li input[type=text]{
+	width: 140px;height: 22px;border: 1px solid #ccc;background-color: #fff;padding: 0 4px;
+}
+.form-body li select{
+	width: 150px;height: 24px;border: 1px solid #ccc;background-color: #fff;
+}
+.form-body li .label-check{
+	width: auto;margin-right: 10px;
+}
+.form-body li .label-check input[type=checkbox]{
+	width: 22px;height: 22px;border: 1px solid #ccc;float: left;margin: 2px 5px 0 0;
+}
+.form-body h2,
+.form-body h3,
+.form-body h4{
+	margin-top: 10px;font-weight: normal;
+}
+.form-body .baocun{
+	font-size: 14px;color: #fff;background-color: #1e995e;width: 110px;height: 30px;border: 1px solid #257007;cursor: pointer;margin-left: 10px;border-radius: 3px;
+}
+.form-body .baocun:hover{
+	background-color: #25b46f;
+}
+.form-body h3 label{
+	margin-right: 10px;font-size: 14px;
+}
+.form-body h3 label select{
+	width: 90px;height: 24px;border: 1px solid #ccc;background-color: #fff;
+}
+.form-body h3 label input[type=text]{
+	width: 90px;height: 22px;border: 1px solid #ccc;background-color: #fff;
+}
+.form-body .tijiao{
+	width: 110px;height: 30px;border-radius: 3px;border: none;cursor: pointer;font-size: 14px;color: #fff;background-color: #dd0000;margin-left: 50px;
+}
+.form-body .tijiao:hover{
+	background-color: #ea3131;
+}
+.form-body .fanhui{
+	width: 110px;height: 30px;border-radius: 3px;border: 1px solid #f39e00;cursor: pointer;font-size: 14px;color: #fff;background-color: #f49e10;margin-left: 50px;
+}
+.form-body .fanhui:hover{
+	background-color: #f0b048;
+}
+.out{
+	position: absolute;top: 115px;bottom: 0;padding: 0 0 80px 0;right: 0;left: 0;
+}
