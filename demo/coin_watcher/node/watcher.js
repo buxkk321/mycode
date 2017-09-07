@@ -186,24 +186,26 @@ analyzer.loop=function(coin,delay1,delay2){
                         (xc_c==0?"初始化 --- ":'')+
                         "in:"+re1.buy+';~~~:'+(re1.buy/2+re1.sell/2).toFixed(5)+'~~~ out:'+re1.sell,
                         " \n\r",
-                        (buy_all>0?'\x1B[32m':''),' in all:'+parseInt(buy_all)+', in avg:'+buy_avg.toFixed(5)+' ; ','\x1B[37m',
-                        (sell_all>0?'\x1B[33m':''),'out all:'+parseInt(sell_all)+', out avg:'+sell_avg.toFixed(5),'\x1B[37m'
+                        (buy_all>0?'\x1B[32m':''),' in_all:'+parseInt(buy_all)+', in_avg:'+buy_avg.toFixed(5)+' ; ','\x1B[37m',
+                        (sell_all>0?'\x1B[33m':''),'out_all:'+parseInt(sell_all)+', out_avg:'+sell_avg.toFixed(5),'\x1B[37m'
                     );
 
                     var format_time=ts.format_date(one.date*1000,0,1);
                     var year=format_time[0]+'';
-                    var month=format_time[1];
-                    var day=format_time[2];
+                    var month=format_time[1]+'';
+                    var day=format_time[2]+'';
+                    var hour=format_time[3]+'';
+
                     /*拼接保存的文本*/
                     format_time=year+'-'+month+'-'+day+' '+format_time[3]+':'+format_time[4]+':'+format_time[5];
-                    var s=(xc_c==0?"初始化 --- \n":'')+"------ "+format_time+" ------\n"+
+                    var s=(xc_c==0?"初始化 --- \n":'')+";;;--------"+format_time+"--------\n"+
                         "in:"+re1.buy+';~~~:'+(re1.buy/2+re1.sell/2).toFixed(5)+'~~~ out:'+re1.sell+';'+
                         "\n"+
-                        'in all:'+parseInt(buy_all)+'; in avg:'+buy_avg.toFixed(5)+'; '+
-                        'out all:'+parseInt(sell_all)+'; out avg:'+sell_avg.toFixed(5)+';'+
+                        'in_all:'+parseInt(buy_all)+'; in_avg:'+buy_avg.toFixed(5)+'; '+
+                        'out_all:'+parseInt(sell_all)+'; out_avg:'+sell_avg.toFixed(5)+';'+
                         "\n";
                     /*需要创建的文件路径*/
-                    var f=path.join(temp_path,'arrange_data',coin,year,month+'_'+day+'.log');
+                    var f=path.join(temp_path,'arrange_data',coin,year,month+'_'+day,hour+'.log');
                     ts.mkdir_deep(path.dirname(f));/*创建文件夹*/
                     (function(nfile_name,save_text){
                         /*TODO::如果文件过大，则自动进行分段保存*/

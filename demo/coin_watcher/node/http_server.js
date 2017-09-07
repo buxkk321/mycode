@@ -39,6 +39,16 @@ function res_error(res,msg){
         res.write(JSON.stringify({status:0,info:msg}));
     }
 }
+var match_data_rule= {
+    time:/--------(.+?)--------/i,
+    in:/in\:(.+?)\;/i,
+    avg:/~~~\:(.+?)\~~~;/i,
+    out:/out\:(.+?)\;/i,
+    in_all:/in_all\:(.+?)\;/i,
+    in_avg:/in_avg\:(.+?)\;/i,
+    out_all:/out_all\:(.+?)\;/i,
+    out_avg:/out_avg\:(.+?)\;/i
+};
 
 /*http服务器*/
 var http_serv={
@@ -63,7 +73,7 @@ var http_serv={
                     var path_info=$_GET.pathname.split('/');
                     //console.log('get is',$_GET.query,'pathinfo is',path_info);
                     if(typeof(that.get_res[path_info[1]])=='function'){
-                        that.get_res[path_info[1]](req,res,$_GET.query,path_info);
+                        that.get_res[path_info[1]](req,res,$_GET.query || {},path_info);
                     }else{
                         res.end();
                     }
@@ -106,6 +116,45 @@ var http_serv={
         }
     },
     api:{
+        get_latest_data:function(req,res,$_GET){
+            var data={};
+            if($_GET.coin){
+                var format_time=ts.format_date(-1,0,1);
+                var year=format_time[0]+'';
+                var month=format_time[1]+'';
+                var day=format_time[2]+'';
+                var hour=format_time[3]+'';
+                var content='';
+                var f=path.join(temp_path,'arrange_data',$_GET.coin,year,month+'_'+day,hour+'.log');
+                if(fs.existsSync(f)){
+                    content=fs.readFileSync(f,'utf-8');
+                }
+                if(content){
+                    content=content.split(';;;');
+                    for(var x in content){
+                        var time,tmp_data={};
+                        var child_str=content[x];
+
+                        var errf=1;
+                        for(var data_key in match_data_rule){
+                            var kw=match_data_rule[data_key];
+                            var check_data=child_str.match(kw);
+                            if(check_data){
+                                tmp_data[data_key]=check_data[1];
+                                if(data_key=='time') time=check_data[1];
+                                errf=0;
+                            }
+                        }
+                        if(!time || errf) continue;
+                        data[time]=tmp_data;
+                    }
+                    //console.log('parse data:',data);
+                }
+
+            }
+            res_success(res,data);
+            res.end();
+        }
     }
 };
 

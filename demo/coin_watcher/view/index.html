@@ -5,8 +5,8 @@
     <title></title>
     <style >
         *,:before,:after{box-sizing:border-box;-webkit-box-sizing:border-box;}
-        html{height: 100%;-webkit-font-smoothing: antialiased;-ms-text-size-adjust: 100%;-webkit-text-size-adjust:100%;font-size:62.5%;/*-webkit-tap-highlight-color:rgba(0, 0, 0, 0);*/}
-        body{margin:0;padding:0;color: #333;overflow:hidden;font-size: 16px;height: 100%;font-family: "Segoe UI","Lucida Grande",Helvetica,Arial,"Microsoft YaHei",FreeSans,Arimo,"Droid Sans","wenquanyi micro hei","Hiragino Sans GB","Hiragino Sans GB W3",sans-serif;background-color: #F9F9F9;}
+        html{width:100%;height: 100%;-webkit-font-smoothing: antialiased;-ms-text-size-adjust: 100%;-webkit-text-size-adjust:100%;font-size:62.5%;/*-webkit-tap-highlight-color:rgba(0, 0, 0, 0);*/}
+        body{width:100%;height: 100%;margin:0;padding:0;color: #333;overflow:hidden;font-size: 16px;font-family: "Segoe UI","Lucida Grande",Helvetica,Arial,"Microsoft YaHei",FreeSans,Arimo,"Droid Sans","wenquanyi micro hei","Hiragino Sans GB","Hiragino Sans GB W3",sans-serif;background-color: #F9F9F9;}
         a{position: relative;cursor: pointer;text-decoration: none;color: #333;font-size: 1.3rem;}
         body,a{
             -moz-user-select: none;
@@ -62,35 +62,10 @@
             width:15%;
             height: 40px;
         }
-        .video_box{
-            width: 80%;
-            height: 60%;
-        }
-        .group_add_box,.group_choose_box,.edit_device_box,#choose_dir_box{
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            right: 0;
-            background-color: rgba(0,0,0,0.2);
-
-        }
-        .group_form_box,.dir_box{
-            background-color: #ffffff;
-            border: 1px solid black;
-            width:350px;
-            height: 150px;
-            position: absolute;
-            left: 50%;
-            margin-left: -175px;
-            top: 50%;
-            margin-top: -180px;
-        }
-        .group_form_box li{
-            display: inline-block;
+        .chart_box{
+            min-height:600px;
         }
     </style>
-    <link rel="stylesheet" href="/public/css/style.css" />
 </head>
 <body >
 <div class="tab_control ">
@@ -101,316 +76,21 @@
     </ul>
 </div>
 <div class="video_box dis_none tab_control_box">
-    <div class="isset_device_bar" style="float: right;width:250px">
-
-    </div>
-    <div class="view_box" style="margin-right:250px">
-        <table>
-            <tr>
-                <td id="player_box">
-
-                </td>
-            </tr>
-        </table>
+    <div class="chart_box">
     </div>
 </div>
-<div id="device_list" class="tab_control_box device_list" ms-controller="device_list">
-    <div class="row_box float_box" id="unset_device">
-        <div class="tab_box">
-            <table>
-                <thead>
-                <tr>
-                    <th><input type="checkbox" class="check_all" onclick="device_list.check_all(this)"/></th>
-                    <th>ip</th>
-                    <th>端口</th>
-                    <th>访问地址</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr :for="(key,item) in unset_data"  >
-                    <td><input type="checkbox" class="check_device" :attr="{'data-key':key}"/></td>
-                    <td class="edit_col">{{item.hostname || ''}}</td>
-                    <td>{{item.port || ''}}</td>
-                    <td>{{item.path || ''}}</td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-        <div>
-            <input type="button"  value="重新搜索" onclick="discover_device();"/>
-        </div>
-    </div>
-    <div class="btn_box float_box">
-        <input class="btn add_device" type="button" value="添加" onclick="device_list.add_device()"/>
-        <input class="btn del_device" type="button" value="移除" onclick="device_list.del_device()"/>
-    </div>
-    <div class="row_box float_box" id="isset_device">
-        <div class="tab_box">
-            <table>
-                <thead>
-                <tr>
-                    <th>
-                        <input type="checkbox" class="check_all"  onclick="device_list.check_all(this)"/>
-                        编号
-                    </th>
-                    <th>ip</th>
-                    <th>端口</th>
-                    <th>访问地址</th>
-                    <th>组</th>
-                    <th>连接状态</th>
-                    <th>操作</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr :for="(key,item) in isset_data"  >
-                    <td>
-                        <input type="checkbox"  class="check_device" :attr="{'data-key':key}"/>
-                        {{item.id || ''}}
-                    </td>
-                    <td class="edit_col">{{item.hostname || ''}}</td>
-                    <td>{{item.port || ''}}</td>
-                    <td>{{item.path || ''}}</td>
-                    <td>{{item.group_name || ''}}</td>
-                    <td>{{item.status || ''}}</td>
-                    <td><a href="javascript:void(0)" class="show_device_edit" data-is_edit="1" :attr="{'data-id' : item.id}">修改</a></td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-        <div>
-            <input type="button" class="show_device_edit" value="手动添加" data-is_edit="0"/>
-            <input type="button" class="show_group_add" value="添加组"/>
-        </div>
-
-
+<div class="video_box dis_none tab_control_box">
+    <div class="chart_box">
     </div>
 </div>
-<div class="setting_box dis_none tab_control_box">
-    <div>
-        选择分组:
-        <select id="group_in_setting"  class="group_select"></select>
-    </div>
-    <div>
-        <div class="device_setting">
-            <span>设备设置</span>
-            <ul>
-                <li>
-                    开启录像设备:
-                    <div class="device_in_setting"></div>
-                </li>
-            </ul>
-
-        </div>
-        <div class="storage_setting">
-            <span>储存设置</span>
-            <ul>
-                <li>
-                    储存位置:
-                    <input type="text" name="save_site" class="save_site"/>
-                    <input type="button" id="getFilesList" value="浏览目录"/>
-                </li>
-                <li>
-                    磁盘保留大小:
-                    <input type="text" name="save_size" class="save_size"/> (MB)
-                </li>
-                <li>
-                    文件打包时间:
-                    <input type="text" name="file_time" class="file_time"/> (格式为 00:00:00)
-                </li>
-                <li>
-                    当磁盘空间满时:
-                    <input type="radio" name="save_type" class="save_type" value="stop"/>停止录像
-                    <input type="radio" name="save_type" class="save_type" value="cover"/>覆盖早起录像
-                </li>
-
-            </ul>
-
-        </div>
-        <div class="time_setting">
-            <span>时间设置</span>
-            <ul class="time_setting_list">
-                <li>
-                    <input type="checkbox" data-date="1"/>
-                    周一:
-                    <input type="text" name="start_time"/>~
-                    <input type="text" name="end_time"/>
-                </li>
-                <li>
-                    <input type="checkbox" data-date="2"/>
-                    周二:
-                    <input type="text" name="start_time"/>~
-                    <input type="text" name="end_time"/>
-                </li>
-                <li>
-                    <input type="checkbox" data-date="3"/>
-                    周三:
-                    <input type="text" name="start_time"/>~
-                    <input type="text" name="end_time"/>
-                </li>
-                <li>
-                    <input type="checkbox" data-date="4"/>
-                    周四:
-                    <input type="text" name="start_time"/>~
-                    <input type="text" name="end_time"/>
-                </li>
-                <li>
-                    <input type="checkbox" data-date="5"/>
-                    周五:
-                    <input type="text" name="start_time"/>~
-                    <input type="text" name="end_time"/>
-                </li>
-                <li>
-                    <input type="checkbox"  data-date="6"/>
-                    周六:
-                    <input type="text" name="start_time"/>~
-                    <input type="text" name="end_time"/>
-                </li>
-                <li>
-                    <input type="checkbox" data-date="7"/>
-                    周日:
-                    <input type="text" name="start_time"/>~
-                    <input type="text" name="end_time"/>
-                </li>
-            </ul>
-
-        </div>
-    </div>
-    <input type="button" id="save_setting" value="保存" />
-</div>
-<div class="upload_setting_box dis_none tab_control_box">
-    <div>
-        选择分组:
-        <select id="group_in_upload_setting"  class="group_select"></select>
-    </div>
-    <div>
-        <div class="device_upload_setting">
-            <span>设备设置</span>
-            <ul>
-                <li>
-                    开启推流设备:
-                    <div class="device_in_upload_setting"></div>
-                </li>
-            </ul>
-        </div>
-        <div class="storage_upload_setting">
-            <span>hls设置</span>
-            <ul>
-                <li>
-                    上传地址:
-                    <input type="text" name="upload_url" class="upload_url"/>
-                </li>
-                <li>
-                    分段文件时长:
-                    <input type="text" name="upload_file_time" class="upload_file_time"/> (秒)
-                </li>
-            </ul>
-        </div>
-        <div class="time_upload_setting">
-            <span>时间设置</span>
-            <ul class="time_upload_setting_list">
-                <li>
-                    <input type="checkbox" data-date="1"/>
-                    周一:
-                    <input type="text" name="start_time"/>~
-                    <input type="text" name="end_time"/>
-                </li>
-                <li>
-                    <input type="checkbox" data-date="2"/>
-                    周二:
-                    <input type="text" name="start_time"/>~
-                    <input type="text" name="end_time"/>
-                </li>
-                <li>
-                    <input type="checkbox" data-date="3"/>
-                    周三:
-                    <input type="text" name="start_time"/>~
-                    <input type="text" name="end_time"/>
-                </li>
-                <li>
-                    <input type="checkbox" data-date="4"/>
-                    周四:
-                    <input type="text" name="start_time"/>~
-                    <input type="text" name="end_time"/>
-                </li>
-                <li>
-                    <input type="checkbox" data-date="5"/>
-                    周五:
-                    <input type="text" name="start_time"/>~
-                    <input type="text" name="end_time"/>
-                </li>
-                <li>
-                    <input type="checkbox"  data-date="6"/>
-                    周六:
-                    <input type="text" name="start_time"/>~
-                    <input type="text" name="end_time"/>
-                </li>
-                <li>
-                    <input type="checkbox" data-date="7"/>
-                    周日:
-                    <input type="text" name="start_time"/>~
-                    <input type="text" name="end_time"/>
-                </li>
-            </ul>
-
-        </div>
-    </div>
-    <input type="button" id="save_upload_setting" value="保存" />
-</div>
-<div class="group_add_box edit_box dis_none">
-    <div class="group_form_box">
-        <ul>
-            <li>
-                分组名：<input type="text" name="group_name" class="group_name"/>
-                <input type="button" value="确认" class="add_group_name"/>
-                <input type="button" value="取消" class="cancel_btn"/>
-            </li>
-        </ul>
+<div class="video_box dis_none tab_control_box">
+    <div class="chart_box">
     </div>
 </div>
-<div class="edit_device_box edit_box dis_none">
-    <div class="group_form_box">
-        <div>
-            <span>域名：</span>&nbsp;&nbsp;&nbsp;
-            <input type="text" name="hostname" class="hostname"/>
-        </div>
-        <div>
-            <span>端口号：</span>&nbsp;&nbsp;&nbsp;
-            <input type="text" name="port" class="port"/>
-        </div>
-        <div>
-            <span>上传路径：</span>&nbsp;&nbsp;&nbsp;
-            <input type="text" name="path" class="path"/>
-        </div>
-        <div>
-            <span>用户名：</span>&nbsp;&nbsp;&nbsp;
-            <input type="text" name="username" class="username"/>
-        </div>
-        <div>
-            <span>密码：</span>&nbsp;&nbsp;&nbsp;
-            <input type="text" name="password" class="password"/>
-        </div>
-        <div>
-            <span>分组：</span>&nbsp;&nbsp;&nbsp;
-            <select id="group_choose_add" class="group_select"></select>
-        </div>
-        <input type="button" class="save_config" value="确认"/>
-        <input type="hidden" class="isset_id" value=""/>
-        <input type="button" value="取消" class="cancel_btn"/>
-    </div>
-</div>
-<div class="dis_none" id="choose_dir_box">
-    <div class="dir_box" style="height: 250px;overflow: scroll">
-        <div class="dir_list_box">
 
-        </div>
-        <input type="button" class="choose_file" value="确认"/>
-        <input type="button" class="back_choose" value="返回"/>
-        <input type="button" class="cancel_choose" value="取消" onclick="$('#choose_dir_box').hide();"/>
-    </div>
-</div>
 </body>
-<script src="/public/js/avalon.js"></script>
-<script src="/public/js/jquery-1.10.2.min.js"></script>
+<script type="text/javascript" src="/public/js/jquery-1.10.2.min.js"></script>
+<script type="text/javascript" src='/public/js/echarts.min.js'></script>
 
 <script>
 
@@ -436,80 +116,6 @@ function _obj_set(obj,save_data){
         obj[k]=save_data[k];
     }
 }
-/*avalon*/
-var device_list=avalon.define({
-    $id:"device_list",
-    unset_data:[],
-    isset_data:{},
-    check_all:function(e){
-        var _this= $(e);
-        var access_box= _this.closest('table').find(".check_device");
-        access_box.prop('checked',e.checked);
-    },
-    add_device:function(){
-        var device_item=$('#unset_device').find('.check_device');
-        $.each(device_item,function(k,v){
-            var _this=$(v);
-            if(v.checked){
-                var key=_this.data('key');
-                var item=device_list.unset_data[key];
-                var data_id=0;
-                item=_copy(item);
-                item['status']='未连接';
-                item['group_name']='默认组';
-                device_list.unset_data.splice(key,1);
-                var insert_data={
-                    hostname:item.hostname,
-                    username:'',
-                    password:'',
-                    port:item.port,
-                    path:item.path,
-                    group_name:'默认组',
-                    group_id:1
-                };
-                $.ajax({
-                    url:'/api/insert_device',
-                    type:'get',
-                    dataType:'JSON',
-                    data:insert_data,
-                    success:function(re){
-                        if(re.status == 1 && re.info.re == 0){
-                            data_id=re.info.id;
-                            var isset_data=_copy(device_list.isset_data);
-                            isset_data[re.info.id]=item;
-                            device_list.isset_data=isset_data;
-                            connect_device(item,data_id);
-                        }
-                    }
-                });
-            }
-        });
-    },
-    del_device:function(){
-        var device_item=$('#isset_device').find('.check_device');
-        var isset_data=_copy(device_list.isset_data);
-        $.each(device_item,function(k,v){
-            var _this=$(v);
-            if(v.checked){
-                var key=_this.data('key');
-                var item=isset_data[key];
-                $.ajax({
-                    url:'/api/del_device',
-                    type:'get',
-                    dataType:'JSON',
-                    data:{id: item.id},
-                    success:function(re){
-                        if(re.status == 1 && re.info.re == 0){
-                            delete isset_data[key];
-                            device_list.isset_data=isset_data;
-                        }
-                    }
-                });
-                _this.prop('checked',false);
-            }
-        });
-    }
-});
 
 
 function get_groups(){
@@ -618,178 +224,266 @@ function hide_loading() {
         $('.t-loading').remove();
     }
 }
+var tab_now='';
 $(function(){
-    $('.check_tab').click(function(){
-        var type=$(this).data('type');
-        $('.tab_control_box').hide();
-        $('.'+type).show();
-        switch (type){
-            case 'setting_box':
-                $('#group_in_setting').change();
-                break;
-            case 'upload_setting_box':
-                $('#group_in_upload_setting').change();
-                break;
-            case 'video_box':
-                var box=$('.'+type+' .isset_device_bar').html('');
-                var ul_data={};
-                $.each(device_list.isset_data,function(k,item){
-                    if(!ul_data[item.group_name]){
-                        ul_data[item.group_name]=$('<ul></ul>');
-                        box.append(ul_data[item.group_name]);
-                    }
-                    ul_data[item.group_name].append(
-                            '<li class="isset_device_item" data-id="'+k+'">' +
-                            '<span class="status_icon"></span>' +
-                            '<span>'+item.hostname+'</span>' +
-                            '</li>'
-                    );
-                });
-                break;
-        }
-    });
-    $(document).on('click','.isset_device_item',function(){
-        var data_id=$(this).data('id');
-        if(device_list.isset_data[data_id]){
-            $.ajax({
-                url:'/api/get_rtmp_url',
-                data:device_list.isset_data[data_id],
-                dataType:'JSON',
-                success:function(re){
-                    if(re.info == 0) {
-                        console.log('click isset_device_item',re.info);
 
-                    }else{
-                        alert('连接失败');
-                    }
-                },
-                error:function(){
-                    alert('连接失败，接口错误');
-                }
-            });
+    var upColor = '#00da3c';
+    var downColor = '#ec0000';
+
+    function splitData(rawData) {
+        var categoryData = [];
+        var values = [];
+        var volumes = [];
+        var in_all=[],out_all=[],re_all=[];
+
+        for (var i in rawData) {
+            categoryData.push(rawData[i].time);
+            in_all.push(rawData[i].in_all);
+            out_all.push(rawData[i].out_all);
+            re_all.push(rawData[i].in_all-rawData[i].out_all);
+
+//            values.push(rawData[i]);
+//            volumes.push([i, rawData[i][4], rawData[i][0] > rawData[i][1] ? 1 : -1]);
         }
-    });
-    $('.show_group_add').click(function(){/*添加分组标记框*/
-        $('.group_add_box').show();
-    });
-    $('.add_group_name').click(function(){/*确认添加*/
-        $('.group_add_box').hide();
-        var group_name= $.trim($('.group_name').val());
-        if(!group_name){
-            alert('分组名不能为空');
-        }else{
+
+        return {
+            categoryData: categoryData,
+            values: values,
+            volumes: volumes,
+            in_all:in_all,
+            out_all:out_all,
+            re_all:re_all
+        };
+    }
+    setInterval(function(){
+        if(tab_now){
+            /*获取组设备*/
             $.ajax({
-                url:'/api/insert_groups',
-                data:{group_name:group_name},
-                dataType:'JSON',
-                success:function(re){
-                    console.log('re_group',re);
-                    if(re.info == 0) {
-                        alert('新增成功');
-                        get_groups();
-                    }else{
-                        alert('新增失败');
-                    }
-                    $('.group_name').val('');
-                },
-                error:function(){
-                    alert('提交失败，接口错误');
-                }
-            });
-        }
-        get_groups();
-    });
-    $(document).on('click','.show_device_edit',function(){
-        var is_edit=$(this).data('is_edit');
-        if(is_edit){
-            var id=$(this).attr('data-id');
-            $('.save_config').data('is_edit',is_edit).data('id',id);
-            $.ajax({
-                url:'/api/get_device',
-                data:{id:id},
+                url:'/api/get_latest_data',
+                data:{coin:tab_now.data('type')},
                 dataType:'JSON',
                 type:'get',
                 success:function(re){
                     var data=re.info;
-                    $('.hostname').val(data[0].hostname);
-                    $('.port').val(data[0].port);
-                    $('.path').val(data[0].path);
-                    $('.username').val(data[0].username);
-                    $('.password').val(data[0].password);
-                    $('#group_choose_add').val(data[0].group_id).change();
-                    $('.isset_id').val(data[0].id);
+
+                    data = splitData(data);
+
+                    var myChart=tab_now.data('chart');
+                    myChart.setOption({
+                        backgroundColor: '#fff',
+                        animation: false,
+                        legend: {
+                            bottom: 10,
+                            left: 'center',
+                            data: ['Dow-Jones index']
+                        },
+                        tooltip: {
+                            trigger: 'axis',
+                            axisPointer: {
+                                type: 'cross'
+                            },
+                            backgroundColor: 'rgba(245, 245, 245, 0.8)',
+                            borderWidth: 1,
+                            borderColor: '#ccc',
+                            padding: 10,
+                            textStyle: {
+                                color: '#000'
+                            },
+                            position: function (pos, params, el, elRect, size) {
+                                var obj = {top: 10};
+                                obj[['left', 'right'][+(pos[0] < size.viewSize[0] / 2)]] = 30;
+                                return obj;
+                            },
+                            extraCssText: 'width: 170px'
+                        },
+                        axisPointer: {
+                            link: {xAxisIndex: 'all'},
+                            label: {
+                                backgroundColor: '#777'
+                            }
+                        },
+                        toolbox: {
+                            feature: {
+                                dataZoom: {
+                                    yAxisIndex: false
+                                },
+                                brush: {
+                                    type: ['lineX', 'clear']
+                                }
+                            }
+                        },
+                        brush: {
+                            xAxisIndex: 'all',
+                            brushLink: 'all',
+                            outOfBrush: {
+                                colorAlpha: 0.1
+                            }
+                        },
+                        visualMap: {
+                            show: false,
+                            seriesIndex: 5,
+                            dimension: 2,
+                            pieces: [{
+                                value: 1,
+                                color: downColor
+                            }, {
+                                value: -1,
+                                color: upColor
+                            }]
+                        },
+                        grid: [
+                            {
+                                left: '10%',
+                                right: '8%',
+                                height: '50%'
+                            },
+                            {
+                                left: '10%',
+                                right: '8%',
+                                top: '63%',
+                                height: '16%'
+                            }
+                        ],
+                        xAxis: [
+                            {
+                                type: 'category',
+                                data: data.categoryData,
+                                scale: true,
+                                boundaryGap : false,
+                                axisLine: {onZero: false},
+                                splitLine: {show: false},
+                                splitNumber: 20,
+                                min: 'dataMin',
+                                max: 'dataMax',
+                                axisPointer: {
+                                    z: 100
+                                }
+                            },
+                            {
+                                type: 'category',
+                                gridIndex: 1,
+                                data: data.categoryData,
+                                scale: true,
+                                boundaryGap : false,
+                                axisLine: {onZero: false},
+                                axisTick: {show: false},
+                                splitLine: {show: false},
+                                axisLabel: {show: false},
+                                splitNumber: 20,
+                                min: 'dataMin',
+                                max: 'dataMax',
+                                axisPointer: {
+                                    label: {
+                                        formatter: function (params) {
+                                            var seriesValue = (params.seriesData[0] || {}).value;
+                                            return params.value
+                                            + (seriesValue != null
+                                                    ? '\n' + echarts.format.addCommas(seriesValue)
+                                                    : ''
+                                            );
+                                        }
+                                    }
+                                }
+                            }
+                        ],
+                        yAxis: [
+                            {
+                                scale: true,
+                                splitArea: {
+                                    show: true
+                                }
+                            },
+                            {
+                                scale: true,
+                                gridIndex: 1,
+                                splitNumber: 2,
+                                axisLabel: {show: false},
+                                axisLine: {show: false},
+                                axisTick: {show: false},
+                                splitLine: {show: false}
+                            }
+                        ],
+                        dataZoom: [
+                            {
+                                type: 'inside',
+                                xAxisIndex: [0, 1],
+                                start: 98,
+                                end: 100
+                            },
+                            {
+                                show: true,
+                                xAxisIndex: [0, 1],
+                                type: 'slider',
+                                top: '85%',
+                                start: 98,
+                                end: 100
+                            }
+                        ],
+                        series: [
+                            {
+                                name: 'Dow-Jones index',
+                                type: 'candlestick',
+                                data: data.values,
+                                itemStyle: {
+                                    normal: {
+                                        color: upColor,
+                                        color0: downColor,
+                                        borderColor: null,
+                                        borderColor0: null
+                                    }
+                                },
+                                tooltip: {
+                                    formatter: function (param) {
+                                        param = param[0];
+                                        return [
+                                            'Date: ' + param.name + '<hr size=1 style="margin: 3px 0">',
+                                            'Open: ' + param.data[0] + '<br/>',
+                                            'Close: ' + param.data[1] + '<br/>',
+                                            'Lowest: ' + param.data[2] + '<br/>',
+                                            'Highest: ' + param.data[3] + '<br/>'
+                                        ].join('');
+                                    }
+                                }
+                            },
+                            {
+                                name: 'Volume',
+                                type: 'bar',
+                                xAxisIndex: 1,
+                                yAxisIndex: 1,
+                                data: data.re_all
+                            }
+                        ]
+                    }, true);
+                    myChart.dispatchAction({
+                        type: 'brush',
+                        areas: [
+                            {
+                                brushType: 'lineX',
+                                coordRange: ['2016-06-02', '2016-06-20'],
+                                xAxisIndex: 0
+                            }
+                        ]
+                    });
                 }
             });
         }
-        $('.edit_device_box').show();
-    });
-    /*确认添加设备*/
-    $(document).on('click','.save_config',function(){
-        var is_edit=$(this).data('is_edit');
-        var id=$(this).data('id');
-        var edit_device_box=$('.edit_device_box');
-        edit_device_box.hide();
-        var hostname=$('.hostname').val();
-        var port=$('.port').val();
-        var path=$('.path').val();
-        var group_id=$('#group_choose_add').val();
-        var group_name=$('#group_choose_add option[value="'+group_id+'"]').text();
-        var username=$('.username').val();
-        var password=$('.password').val();
-        var isset_id=$('.isset_id').val();
-        var data={
-            hostname:hostname,
-            port:port,
-            path:path,
-            group_id:group_id,
-            group_name:group_name,
-            username:username,
-            password:password,
-            status:'',
-            id:id
-        };
-        if(is_edit == 1){
-            $.ajax({
-                url:'/api/update_device',
-                data:data,
-                dataType:'JSON',
-                type:'get',
-                success:function(re){
-                    if(re.info == 0) {
-                        console.log(data);
-                        _obj_set(device_list.isset_data[isset_id],data);
-                        alert('修改成功');
-                        connect_device(data,isset_id);
-                    }else{
-                        alert('修改失败');
-                    }
-                }
-            });
-        }else{
-            data['status']='未连接';
-            $.ajax({
-                url:'/api/insert_device',
-                data:data,
-                dataType:'JSON',
-                type:'get',
-                success:function(re){
-                    if(re.status == 1 && re.info.re == 0) {
-                        var isset_data=_copy(device_list.isset_data);
-                        isset_data[re.info.id]=data;
-                        device_list.isset_data=isset_data;
-                        alert('新增成功');
-                        connect_device(data,re.info.id);
-                    }else{
-                        alert('新增失败');
-                    }
-                }
-            });
+    },7500);
+    $('.check_tab').click(function(){
+        tab_now=$(this);
+        var index=tab_now.index();
+        var tab_content=$('.tab_control_box').eq(index);
+
+        $('.tab_control_box').hide();
+        tab_content.show();
+
+        if(!tab_now.data('chart')){
+            var myChart = echarts.init(tab_content.find('.chart_box').get(0));
+            tab_now.data('chart',myChart);
         }
     });
-    $('.cancel_btn').click(function(){
-        $(this).closest('.edit_box').hide();
-    })
+
 });
+
 /*设置相关*/
 $(function(){
     var group_id;
@@ -878,21 +572,7 @@ $(function(){
         /*获取设备列表*/
         var device_in_setting=$('.device_in_upload_setting');
         device_in_setting.html('');
-        /*获取组设备*/
-        $.ajax({
-            url:'/api/get_device',
-            data:{group_id:group_id},
-            dataType:'JSON',
-            type:'get',
-            success:function(re){
-                var data=re.info;
-                var html='';
-                $.each(data,function(k,v){
-                    html+='<input class="device_start_upload_ckb" type="checkbox" value="'+ v.id+'"/>'+ v.hostname;
-                });
-                device_in_setting.html(html);
-            }
-        });
+
         /*获取原配置*/
         $.ajax({
             url:'/api/get_config',
@@ -1111,15 +791,4 @@ $(function(){
 
 </script>
 
-<script src="/public/ckplayer6.8/ckplayer/ckplayer.js"></script>
-<script>
-    $(function(){
-        var flashvars={
-            f:'',
-            c:0
-        };
-        var params={bgcolor:'#FFF',allowFullScreen:true,allowScriptAccess:'always',wmode:'transparent'};
-        CKobject.embedSWF('/public/ckplayer6.8/ckplayer/ckplayer.swf','player_box','ckplayer_a1','600','400',flashvars,params);
-    });
-</script>
 </html>
