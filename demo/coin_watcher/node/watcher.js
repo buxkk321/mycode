@@ -178,13 +178,13 @@ analyzer.loop=function(coin,delay1,delay2){
                     }
                     buy_avg=buy_avg==0?0:buy_all/buy_avg;
 
-                    //dlog(
-                    //    (xc_c==0?"初始化 --- ":'')+
-                    //    "in:"+re1.buy+';~~~:'+(re1.buy/2+re1.sell/2).toFixed(5)+'~~~ out:'+re1.sell,
-                    //    " \n\r",
-                    //    (buy_all>0?'\x1B[32m':''),' in_all:'+parseInt(buy_all)+', in_avg:'+buy_avg.toFixed(5)+' ; ','\x1B[37m',
-                    //    (sell_all>0?'\x1B[33m':''),'out_all:'+parseInt(sell_all)+', out_avg:'+sell_avg.toFixed(5),'\x1B[37m'
-                    //);
+                    dlog(
+                        (xc_c==0?"初始化 --- ":'')+
+                        "in:"+re1.buy+';~~~:'+(re1.buy/2+re1.sell/2).toFixed(5)+'~~~ out:'+re1.sell,
+                        " \n\r",
+                        (buy_all>0?'\x1B[32m':''),' in_all:'+parseInt(buy_all)+', in_avg:'+buy_avg.toFixed(5)+' ; ','\x1B[37m',
+                        (sell_all>0?'\x1B[33m':''),'out_all:'+parseInt(sell_all)+', out_avg:'+sell_avg.toFixed(5),'\x1B[37m'
+                    );
 
                     if(xc_c>0){
                         var format_time=ts.format_date(one.date*1000,0,1);
