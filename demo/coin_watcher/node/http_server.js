@@ -45,7 +45,7 @@ var http_serv={
     PORT:10080,
     server:'',
     restart:function(){
-        var that=this;
+        var that=http_serv;
         var create=function(){
             that.server=http.createServer(function(req, res) {
                 if(!req.url){
