@@ -145,8 +145,6 @@ var http_serv={
 
                 if(content){
                     content=content.split(';;;');
-                    content=content.slice(-100);
-
                     for(var x in content){
                         var time,tmp_data={};
                         var child_str=content[x];
@@ -164,6 +162,7 @@ var http_serv={
                         if(!time || errf) continue;
                         data[time]=tmp_data;
                     }
+					//data=data.slice(-100);
                     //console.log('parse data:',data);
                 }
 
