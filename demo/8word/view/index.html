@@ -549,10 +549,10 @@
 
                 /*十神*/
 				$('#c_1_1').html('十神');
-                $('#c_1_2').html(get_stems_10G(八字.年干,八字.日干));
-                $('#c_1_4').html(get_stems_10G(八字.月干,八字.日干));
+                $('#c_1_2').html(word_info.日主.十神.年干);
+                $('#c_1_4').html(word_info.日主.十神.月干);
                 $('#c_1_6').html('日主');
-                $('#c_1_8').html(get_stems_10G(八字.时干,八字.日干));
+                $('#c_1_8').html(word_info.日主.十神.时干);
 
                 /*八字天干*/
 				$('#c_2_1').html('<div>天干</div><div>本气通根:</div>');
@@ -612,6 +612,8 @@
                 $('#c_3_2').html(gz_rela(word_info.年干支关系));
 
                 $('#c_3_4').html(gz_rela(word_info.月干支关系));
+				
+				$('#c_3_5').html('<div>↗</div><div>'+word_info.日主.强弱[0]+'</div>');
 
                 $('#c_3_6').html(gz_rela(word_info.日干支关系));
 
@@ -684,7 +686,8 @@
                         var tg=info[part+'支'+v2+'气透干'];
 //                        if(v2=='本' && tg.length>0) tg='透干:'+tg;
                         tg='';
-                        if(v2=='本') tg+=':'+get_stems_10G(info[part+'支本气'],八字.日干);
+                        //if(v2=='本')  
+						tg+=':'+info.日主.十神[part+'支'+v2+'气'];
 
                         cg_el+='<div>'+(info[part+'支'+v2+'气'] || '&nbsp;')+' '+tg+'</div>';
                     });
@@ -772,10 +775,24 @@
             $('#calc_next').click(function(){
                 var start=$('#start_date').val();
                 if(!start) return;
+
+                start=start.split(' ');
+                var delimiter_year='/';
+                start[0]=start[0].split(delimiter_year);
+                start[1]=start[1].split(':');
+                if(start[1][0]%2==1){
+                    start[1][0]-=-1;/*强制使用一个时辰中间的时间作为计算时间点*/
+                }
+                start=start[0][0]+'/'+start[0][1]+'/'+start[0][2]+' '+start[1][0]+':00:00';
+
                 start=new Date(start);/*TODO::处理精确到分的节气分界点*/
                 start=start.getTime();
+
+                var calc_next_length=$('#calc_next_length').val();
+                var end_time=start+calc_next_length*24*3600*1000;
+
+
                 myChart.showLoading();
-                var word_info_list={};
                 var _task={
                     finish:function(num){
                         delete _task.pool[num];
@@ -879,16 +896,13 @@
 
                     }
                 };
-
-                var calc_next_length=$('#calc_next_length').val();
-                var end_time=start+calc_next_length*24*3600*1000;
+                var word_info_list={};
                 for(var s=start;s<end_time;s+=2*3600*1000){
                     _task.pool[s]=1;
                     word_info_list[s]={};
                 }
 
                 var calc_param=get_calc_param();
-                console.log(calc_param);
                 for(var x in word_info_list){
                     (function(input_date){
                         sb_calc.get_date_info(parseInt(input_date),function(err,date_word){
