@@ -121,102 +121,6 @@ function _obj_set(obj,save_data){
     }
 }
 
-
-function get_groups(){
-    $.ajax({
-        url:'/api/get_config',
-        data:'',
-        dataType:'JSON',
-        type:'get',
-        success:function(re){
-            var data=re.info;
-            /*将分组加入下拉框*/
-            var group_select=$('.group_select');
-            group_select.html('');
-            var html_group='';
-            $.each(data,function(k,v){
-                html_group+='<option value="'+ v.id +'">'+ v.group_name +'</option>';
-            });
-            group_select.html(html_group);
-            $('#group_in_setting').change();
-            $('#group_in_upload_setting').change();
-        }
-    });
-}
-get_groups();
-/*查找设备,并刷新未添加设备列表*/
-function discover_device(){
-    $.ajax({
-        url:'/api/discover_device',
-        dataType:'JSON',
-        type:'get',
-        success:function(re){
-            re=re.info;
-            var isset_hostname={};
-            device_list.unset_data=[];
-            $.each(device_list.isset_data,function(k,v){
-                isset_hostname[v.hostname]=1;
-            });
-            $.each(re,function(k,v){
-                if(!isset_hostname[v.hostname]){
-                    device_list.unset_data.push(v);
-                }
-            });
-        }
-    })
-}
-discover_device();
-/*连接所有已添加的设备*/
-function select_device(group_name){
-    if(!group_name) group_name='all';
-    $.ajax({
-        url:'/api/get_device',
-        data:{group_name:group_name},
-        dataType:'JSON',
-        type:'get',
-        success:function(re){
-            var data=re.info;
-            var isset_data={};
-            $.each(data,function(k,v){
-                v.status='未连接';
-                isset_data[v.id]=v;
-            });
-            device_list.isset_data=isset_data;
-            $.each(data,function(k,v){
-                connect_device(data[k], v.id);
-            });
-        }
-    });
-}
-select_device();
-/*连接指定设备*/
-function connect_device(item,data_id,cb){
-    $.ajax({
-        url:'/api/connect_device',
-        type:'get',
-        dataType:'JSON',
-        data:item,
-        success:function(re){
-            if(re.status == 1){
-                item['status']='已连接';
-            }else{
-                item['status']='未连接';
-            }
-            device_list.isset_data[data_id]['status']=item['status'];
-            if(typeof(cb)=='function') cb(re.info);
-        }
-    });
-}
-/*更新isset_data中指定的数据*/
-function update_isset_data(hostname,keyname,value){
-    $.each(device_list.isset_data,function(k,v){
-        if(v.hostname == hostname){
-            $.each(keyname,function(k1,v1){
-                device_list.isset_data[k][v1]=value[k1];
-            });
-        }
-    });
-}
 /*loading动画*/
 function show_loading(){
     if(!$('.t-loading').length>0){
@@ -236,9 +140,9 @@ $(function(){
 
     function splitData(rawData) {
         var categoryData = [];
-        var values = [];
         var volumes = [];
         var buy_all=[],sell_all=[],re_all=[];
+        var buy_list=[],sell_list=[];
 
         for (var i in rawData) {
             categoryData.push(rawData[i].time);
@@ -246,12 +150,15 @@ $(function(){
             sell_all.push(rawData[i].sell_all);
             re_all.push(rawData[i].buy_all-rawData[i].sell_all);
 
-            values.push([rawData[i].buy,rawData[i].sell,rawData[i].low,rawData[i].high]);
+//            buy_list.push([rawData[i].buy,rawData[i].buy_avg,rawData[i].sell,rawData[i].sell_avg]);
+            buy_list.push(rawData[i].buy);
+            sell_list.push(rawData[i].sell);
         }
 
         return {
             categoryData: categoryData,
-            values: values,
+            buy_list: buy_list,
+            sell_list: sell_list,
             volumes: volumes,
             buy_all:buy_all,
             sell_all:sell_all,
@@ -387,9 +294,9 @@ $(function(){
                         ],
                         series: [
                             {
-                                name: 'Dow-Jones index',
-                                type: 'candlestick',
-                                data: data.values,
+                                name: 'buy',
+                                type: 'line',
+                                data: data.buy_list,
                                 itemStyle: {
                                     normal: {
                                         color: upColor,
@@ -397,17 +304,18 @@ $(function(){
                                         borderColor: null,
                                         borderColor0: null
                                     }
-                                },
-                                tooltip: {
-                                    formatter: function (param) {
-                                        param = param[0];
-                                        return [
-                                            'Date: ' + param.name + '<hr size=1 style="margin: 3px 0">',
-                                            'Open: ' + param.data[0] + '<br/>',
-                                            'Close: ' + param.data[1] + '<br/>',
-                                            'Lowest: ' + param.data[2] + '<br/>',
-                                            'Highest: ' + param.data[3] + '<br/>'
-                                        ].join('');
+                                }
+                            },
+                            {
+                                name: 'sell',
+                                type: 'line',
+                                data: data.sell_list,
+                                itemStyle: {
+                                    normal: {
+                                        color: upColor,
+                                        color0: downColor,
+                                        borderColor: null,
+                                        borderColor0: null
                                     }
                                 }
                             },
