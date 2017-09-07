@@ -421,8 +421,7 @@ $(function(){
             });
         }
     };
-    setInterval(refresh,7500);
-
+    var refresh_timer=0;
     $('.check_tab').click(function(){
         tab_now=$(this);
         var index=tab_now.index();
@@ -435,6 +434,10 @@ $(function(){
             var myChart = echarts.init(tab_content.find('.chart_box').get(0));
             tab_now.data('chart',myChart);
         }
+
+        clearInterval(refresh_timer);
+        refresh();
+        refresh_timer=setInterval(refresh,5000);
     });
 
 });

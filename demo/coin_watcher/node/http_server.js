@@ -121,18 +121,32 @@ var http_serv={
         get_latest_data:function(req,res,$_GET){
             var data={};
             if($_GET.coin){
-                var format_time=ts.format_date(-1,0,1);
-                var year=format_time[0]+'';
-                var month=format_time[1]+'';
-                var day=format_time[2]+'';
-                var hour=format_time[3]+'';
+                var time_now=new Date().getTime();
+                var last_get_file='';
                 var content='';
-                var f=path.join(temp_path,'arrange_data',$_GET.coin,year,month+'_'+day,hour+'.log');
-                if(fs.existsSync(f)){
-                    content=fs.readFileSync(f,'utf-8');
+                function _get_file_content(timestamp){
+                    var format_time=ts.format_date(timestamp,0,1);
+                    var year=format_time[0]+'';
+                    var month=format_time[1]+'';
+                    var day=format_time[2]+'';
+                    var hour=format_time[3]+'';
+                    var f=path.join(temp_path,'arrange_data',$_GET.coin,year,month+'_'+day,hour+'.log');
+                    if(last_get_file!=f){
+                        last_get_file=f;
+                        if(fs.existsSync(f)){
+                            content+=fs.readFileSync(f,'utf-8');
+                        }
+                    }else{
+                    }
                 }
+                _get_file_content(time_now);
+                _get_file_content(time_now-2000*1000);
+                _get_file_content(time_now-4000*1000);
+
                 if(content){
                     content=content.split(';;;');
+                    content=content.slice(-100);
+
                     for(var x in content){
                         var time,tmp_data={};
                         var child_str=content[x];
