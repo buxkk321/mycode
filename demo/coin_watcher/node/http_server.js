@@ -134,7 +134,7 @@ var http_serv={
                     if(last_get_file!=f){
                         last_get_file=f;
                         if(fs.existsSync(f)){
-                            content+=fs.readFileSync(f,'utf-8');
+                            content=fs.readFileSync(f,'utf-8')+content;
                         }
                     }else{
                     }
