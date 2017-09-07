@@ -127,21 +127,19 @@ analyzer.loop=function(coin,delay1,delay2){
                 //re2:获取最近100单交易信息
                 if(re1 && re2){
                     console.log(" \n\r ");
-                    var ana={buy:[],sell:[]};
+                    var collect={buy:[],sell:[]};
                     var c100=analyzer.current_100;
                     var xc_c=0;
                     for(var xc in c100){
-                        xc_c++;
+                        xc_c++;/*计算现有缓存的数量*/
                     }
-
                     if(xc_c>200){
-                        xc_c-=200;
+                        xc_c-=200;/*超出缓存最大个数的数量*/
                         for(var xc in c100){
                             delete c100[xc];
                             xc_c--;
-                            if(xc_c<=200) break;
+                            if(xc_c<=0) break;
                         }
-
                     }
                     for(var x in re2){
                         var one=re2[x];
@@ -150,24 +148,22 @@ analyzer.loop=function(coin,delay1,delay2){
                         c100[date]=one;
 
                         var all=one.amount*one.price;
-                        if(!ana[one.type]){
-                            ana[one.type]=[];
+                        if(!collect[one.type]){
+                            collect[one.type]=[];
                         }
                         one.all=all;
-                        ana[one.type].push(one);
-
-
+                        collect[one.type].push(one);
                     }
-                    ana.buy.sort(function(a,b){
+                    collect.buy.sort(function(a,b){
                         return a.price-b.price;
                     });
-                    ana.sell.sort(function(a,b){
+                    collect.sell.sort(function(a,b){
                         return b.price-a.price;
                     });
                     var sell_all=0;
                     var sell_avg=0;
-                    for(var x in ana.sell){
-                        var one=ana.sell[x];
+                    for(var x in collect.sell){
+                        var one=collect.sell[x];
                         sell_all-=-one.all;
                         sell_avg-=-one.amount;
                     }
@@ -175,50 +171,53 @@ analyzer.loop=function(coin,delay1,delay2){
 
                     var buy_all=0;
                     var buy_avg=0;
-                    for(var x in ana.buy){
-                        var one=ana.buy[x];
+                    for(var x in collect.buy){
+                        var one=collect.buy[x];
                         buy_all-=-one.all;
                         buy_avg-=-one.amount;
                     }
                     buy_avg=buy_avg==0?0:buy_all/buy_avg;
 
-                    dlog(
-                        (xc_c==0?"初始化 --- ":'')+
-                        "in:"+re1.buy+';~~~:'+(re1.buy/2+re1.sell/2).toFixed(5)+'~~~ out:'+re1.sell,
-                        " \n\r",
-                        (buy_all>0?'\x1B[32m':''),' in_all:'+parseInt(buy_all)+', in_avg:'+buy_avg.toFixed(5)+' ; ','\x1B[37m',
-                        (sell_all>0?'\x1B[33m':''),'out_all:'+parseInt(sell_all)+', out_avg:'+sell_avg.toFixed(5),'\x1B[37m'
-                    );
+                    //dlog(
+                    //    (xc_c==0?"初始化 --- ":'')+
+                    //    "in:"+re1.buy+';~~~:'+(re1.buy/2+re1.sell/2).toFixed(5)+'~~~ out:'+re1.sell,
+                    //    " \n\r",
+                    //    (buy_all>0?'\x1B[32m':''),' in_all:'+parseInt(buy_all)+', in_avg:'+buy_avg.toFixed(5)+' ; ','\x1B[37m',
+                    //    (sell_all>0?'\x1B[33m':''),'out_all:'+parseInt(sell_all)+', out_avg:'+sell_avg.toFixed(5),'\x1B[37m'
+                    //);
 
-                    var format_time=ts.format_date(one.date*1000,0,1);
-                    var year=format_time[0]+'';
-                    var month=format_time[1]+'';
-                    var day=format_time[2]+'';
-                    var hour=format_time[3]+'';
+                    if(xc_c>0){
+                        var format_time=ts.format_date(one.date*1000,0,1);
+                        var year=format_time[0]+'';
+                        var month=format_time[1]+'';
+                        var day=format_time[2]+'';
+                        var hour=format_time[3]+'';
 
-                    /*拼接保存的文本*/
-                    format_time=year+'-'+month+'-'+day+' '+format_time[3]+':'+format_time[4]+':'+format_time[5];
-                    var s=(xc_c==0?"初始化 --- \n":'')+";;;--------"+format_time+"--------\n"+
-                        "in:"+re1.buy+';~~~:'+(re1.buy/2+re1.sell/2).toFixed(5)+'~~~ out:'+re1.sell+';'+
-                        "\n"+
-                        'in_all:'+parseInt(buy_all)+'; in_avg:'+buy_avg.toFixed(5)+'; '+
-                        'out_all:'+parseInt(sell_all)+'; out_avg:'+sell_avg.toFixed(5)+';'+
-                        "\n";
-                    /*需要创建的文件路径*/
-                    var f=path.join(temp_path,'arrange_data',coin,year,month+'_'+day,hour+'.log');
-                    ts.mkdir_deep(path.dirname(f));/*创建文件夹*/
-                    (function(nfile_name,save_text){
-                        /*TODO::如果文件过大，则自动进行分段保存*/
-                        fs.appendFile(nfile_name,save_text,'utf8',function(err){
-                            if(err) {
-                                console.log(err);
-                                /*TODO::error log*/
-                            }else{
-                                //console.log('转储到:',nfile_name,'成功');
-                            }
-                            //task2.f(nfile_name);
-                        });
-                    })(f,s);
+                        /*拼接保存的文本*/
+                        format_time=year+'-'+month+'-'+day+' '+format_time[3]+':'+format_time[4]+':'+format_time[5];
+                        var save_text=";;;--------"+format_time+"--------\n"+
+                            "buy:"+re1.buy+';~~~:'+(re1.buy/2+re1.sell/2).toFixed(5)+'~~~ sell:'+re1.sell+';'+
+                            "\n"+
+                            'buy_all:'+parseInt(buy_all)+'; buy_avg:'+buy_avg.toFixed(5)+'; '+
+                            'sell_all:'+parseInt(sell_all)+'; sell_avg:'+sell_avg.toFixed(5)+';'+
+                            "\nhigh:"+re1.high+';low:'+re1.low+';'+
+                            "\n";
+                        /*需要创建的文件路径*/
+                        var nfile_name=path.join(temp_path,'arrange_data',coin,year,month+'_'+day,hour+'.log');
+                        ts.mkdir_deep(path.dirname(nfile_name));/*创建文件夹*/
+                        (function(f,s){
+                            /*TODO::如果文件过大，则自动进行分段保存*/
+                            fs.appendFile(f,s,'utf8',function(err){
+                                if(err) {
+                                    console.log(err);
+                                    /*TODO::error log*/
+                                }else{
+                                    //console.log('转储到:',nfile_name,'成功');
+                                }
+                                //task2.f(nfile_name);
+                            });
+                        })(nfile_name,save_text);
+                    }
                 }else{
                     console.log('http_get error',err1 || err2);
                 }

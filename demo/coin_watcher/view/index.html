@@ -234,28 +234,27 @@ $(function(){
         var categoryData = [];
         var values = [];
         var volumes = [];
-        var in_all=[],out_all=[],re_all=[];
+        var buy_all=[],sell_all=[],re_all=[];
 
         for (var i in rawData) {
             categoryData.push(rawData[i].time);
-            in_all.push(rawData[i].in_all);
-            out_all.push(rawData[i].out_all);
-            re_all.push(rawData[i].in_all-rawData[i].out_all);
+            buy_all.push(rawData[i].buy_all);
+            sell_all.push(rawData[i].sell_all);
+            re_all.push(rawData[i].buy_all-rawData[i].sell_all);
 
-//            values.push(rawData[i]);
-//            volumes.push([i, rawData[i][4], rawData[i][0] > rawData[i][1] ? 1 : -1]);
+            values.push([rawData[i].buy,rawData[i].sell,rawData[i].low,rawData[i].high]);
         }
 
         return {
             categoryData: categoryData,
             values: values,
             volumes: volumes,
-            in_all:in_all,
-            out_all:out_all,
+            buy_all:buy_all,
+            sell_all:sell_all,
             re_all:re_all
         };
     }
-    setInterval(function(){
+    var refresh=function(){
         if(tab_now){
             /*获取组设备*/
             $.ajax({
@@ -272,11 +271,6 @@ $(function(){
                     myChart.setOption({
                         backgroundColor: '#fff',
                         animation: false,
-                        legend: {
-                            bottom: 10,
-                            left: 'center',
-                            data: ['Dow-Jones index']
-                        },
                         tooltip: {
                             trigger: 'axis',
                             axisPointer: {
@@ -302,56 +296,27 @@ $(function(){
                                 backgroundColor: '#777'
                             }
                         },
-                        toolbox: {
-                            feature: {
-                                dataZoom: {
-                                    yAxisIndex: false
-                                },
-                                brush: {
-                                    type: ['lineX', 'clear']
-                                }
-                            }
-                        },
-                        brush: {
-                            xAxisIndex: 'all',
-                            brushLink: 'all',
-                            outOfBrush: {
-                                colorAlpha: 0.1
-                            }
-                        },
-                        visualMap: {
-                            show: false,
-                            seriesIndex: 5,
-                            dimension: 2,
-                            pieces: [{
-                                value: 1,
-                                color: downColor
-                            }, {
-                                value: -1,
-                                color: upColor
-                            }]
-                        },
                         grid: [
                             {
                                 left: '10%',
                                 right: '8%',
-                                height: '50%'
+                                height: '40%'
                             },
                             {
                                 left: '10%',
                                 right: '8%',
-                                top: '63%',
-                                height: '16%'
+                                top: '56%',
+                                height: '36%'
                             }
                         ],
                         xAxis: [
                             {
-                                type: 'category',
+                                type: 'time',
                                 data: data.categoryData,
                                 scale: true,
                                 boundaryGap : false,
                                 axisLine: {onZero: false},
-                                splitLine: {show: false},
+                                splitLine: {show: true},
                                 splitNumber: 20,
                                 min: 'dataMin',
                                 max: 'dataMax',
@@ -364,11 +329,10 @@ $(function(){
                                 gridIndex: 1,
                                 data: data.categoryData,
                                 scale: true,
-                                boundaryGap : false,
-                                axisLine: {onZero: false},
-                                axisTick: {show: false},
-                                splitLine: {show: false},
-                                axisLabel: {show: false},
+                                axisLine: { },
+                                axisTick: { },
+                                splitLine: {show: true},
+                                axisLabel: {show: true},
                                 splitNumber: 20,
                                 min: 'dataMin',
                                 max: 'dataMax',
@@ -397,9 +361,7 @@ $(function(){
                                 scale: true,
                                 gridIndex: 1,
                                 splitNumber: 2,
-                                axisLabel: {show: false},
-                                axisLine: {show: false},
-                                axisTick: {show: false},
+                                axisLine: { },
                                 splitLine: {show: false}
                             }
                         ],
@@ -454,20 +416,13 @@ $(function(){
                             }
                         ]
                     }, true);
-                    myChart.dispatchAction({
-                        type: 'brush',
-                        areas: [
-                            {
-                                brushType: 'lineX',
-                                coordRange: ['2016-06-02', '2016-06-20'],
-                                xAxisIndex: 0
-                            }
-                        ]
-                    });
+
                 }
             });
         }
-    },7500);
+    };
+    setInterval(refresh,7500);
+
     $('.check_tab').click(function(){
         tab_now=$(this);
         var index=tab_now.index();

@@ -41,13 +41,15 @@ function res_error(res,msg){
 }
 var match_data_rule= {
     time:/--------(.+?)--------/i,
-    in:/in\:(.+?)\;/i,
+    buy:/buy\:(.+?)\;/i,
     avg:/~~~\:(.+?)\~~~;/i,
-    out:/out\:(.+?)\;/i,
-    in_all:/in_all\:(.+?)\;/i,
-    in_avg:/in_avg\:(.+?)\;/i,
-    out_all:/out_all\:(.+?)\;/i,
-    out_avg:/out_avg\:(.+?)\;/i
+    sell:/sell\:(.+?)\;/i,
+    buy_all:/buy_all\:(.+?)\;/i,
+    buy_avg:/buy_avg\:(.+?)\;/i,
+    sell_all:/sell_all\:(.+?)\;/i,
+    sell_avg:/sell_avg\:(.+?)\;/i,
+    high:/high\:(.+?)\;/i,
+    low:/low\:(.+?)\;/i
 };
 
 /*http服务器*/
