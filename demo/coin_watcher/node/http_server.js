@@ -51,7 +51,7 @@ var match_data_rule= {
     high:/high\:(.+?)\;/i,
     low:/low\:(.+?)\;/i
 };
-
+var coin_data_cache={};
 /*http服务器*/
 var http_serv={
     PORT:10080,
@@ -119,73 +119,85 @@ var http_serv={
     },
     api:{
         get_latest_data:function(req,res,$_GET){
-            var data={};
-            if($_GET.coin){
+            var data={},coin=$_GET.coin;
+            if(coin){
                 var time_now=new Date().getTime();
                 var last_get_file='';
-                var content='';
+
                 function _get_file_content(timestamp){
+                    var ct_arr='';
                     var format_time=ts.format_date(timestamp,0,1);
                     var year=format_time[0]+'';
                     var month=format_time[1]+'';
                     var day=format_time[2]+'';
                     var hour=format_time[3]+'';
-                    var f=path.join(temp_path,'arrange_data',$_GET.coin,year,month+'_'+day,hour+'.log');
+                    var f=path.join(temp_path,'arrange_data',coin,year,month+'_'+day,hour+'.log');
                   
 					if(last_get_file!=f){
                         last_get_file=f;
 						if(fs.existsSync(f)){
-							//console.log($_GET.coin,'read file:',f);
-                            content=fs.readFileSync(f,'utf-8')+content;
+							//console.log(coin,'read file:',f);
+                            ct_arr=fs.readFileSync(f,'utf-8');
+                            ct_arr=ct_arr?ct_arr.split(';;;'):[];
                         }
                     }else{
 					}
+                    return ct_arr || [];
                 }
-                _get_file_content(time_now);
-                _get_file_content(time_now-3000*1000);
-                _get_file_content(time_now-6000*1000);
-				if(content.length<60000){
-					_get_file_content(time_now-9000*1000);
-				} 
-				
-                if(content){
-                    content=content.split(';;;');
-					var xc=0;
+                var content=_get_file_content(time_now);
+                //console.log(coin,'content 1 length:',content.length);
+                if($_GET.is_init>0){
+                    var content_prev=_get_file_content(time_now-3000*1000);
+                    //console.log(coin,'content_prev 1 length:',content_prev.length);
+                    if(content_prev.length==0){
+                        content_prev=_get_file_content(time_now-6000*1000);
+                        //console.log(coin,'content_prev 2 length:',content_prev.length);
+                    }
+                    content=content_prev.concat(content);
+                    //console.log(coin,'content 2 length:',content.length);
+                    if(content.length<500){
+                        content_prev=_get_file_content(time_now-9000*1000);
+                        content=content_prev.concat(content);
+                        //console.log(coin,'content extra length:',content.length);
+                    }
+                }
+
+                if(content.length>0){
+                    var tmp_list={};
                     for(var x in content){
                         var time,tmp_data={};
                         var child_str=content[x];
-
                         var errf=1;
-                        for(var data_key in match_data_rule){
-                            var kw=match_data_rule[data_key];
-                            var check_data=child_str.match(kw);
+                        for(var rule_name in match_data_rule){
+                            var reg=match_data_rule[rule_name];
+                            var check_data=child_str.match(reg);
                             if(check_data){
-                                tmp_data[data_key]=check_data[1];
-                                if(data_key=='time') time=check_data[1];
+                                if(rule_name=='time'){
+                                    time=check_data[1];
+                                }else{
+                                    tmp_data[rule_name]=check_data[1];
+                                }
                                 errf=0;
                             }
                         }
-                        if(!time || errf) continue;
-                        data[time]=tmp_data;
-						//console.log($_GET.coin,'parse time:',time);
+                        if(!time || errf) continue;/*没有时间或没有匹配内容,则跳过此次循环*/
+                        tmp_list[time]=tmp_data;
+                        //console.log(coin,'parse time:',time);
                     }
-					for(var x in data){
-						xc++;
+                    /*使用缓存*/
+                    if(!coin_data_cache[coin]) coin_data_cache[coin]={};
+                    for(var time in tmp_list){
+                        if(!coin_data_cache[coin][time]){
+                            coin_data_cache[coin][time]=tmp_list[time];
+                            data[time]=tmp_list[time];/*将缓存中还没有的输出*/
+                        }
                     }
-					//console.log($_GET.coin,'parse data count:',xc);
-					if(xc>200){
-						xc-=200;
-						for(var x in data){
-							delete data[x];
-							xc--;
-							if(xc<=0) break; 
-						}
-					}
-					xc=0;
-					for(var x in data){
-						xc++;
+                    coin_data_cache[coin]=ts.slice_obj(coin_data_cache[coin],-144);/*仅缓存144条*/
+                    if($_GET.is_init>0){
+                        data=coin_data_cache[coin];/*初始化时将缓存数据全部返回*/
+                    }else{
+                        console.log('peace data:',data);
                     }
-                    //console.log($_GET.coin,'parse data count:',xc);
                 }
 
             }

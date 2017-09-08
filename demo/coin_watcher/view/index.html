@@ -120,6 +120,36 @@ function _obj_set(obj,save_data){
         obj[k]=save_data[k];
     }
 }
+var slice_obj=function(obj,length){
+    var xc= 0,re={};
+    if(length<0){
+        for(var x in obj) xc++;
+        //console.log('截取列表长度:',xc);
+        xc+=length;
+        if(xc>0){
+            //console.log('截取列表长度 超出:',xc);
+        }
+        for(var x in obj){
+            if(xc>0){
+                xc--;
+            }else{
+                re[x]=obj[x];
+            }
+        }
+    }else{
+        //console.log('取出截取列表 前:',length,' 个');
+        for(var x in obj){
+            if(xc<length){
+                xc++;
+                re[x]=obj[x];
+            }else{
+                break;
+            }
+        }
+    }
+    //xc=0;for(var x in obj){xc++;}console.log('截取后 列表长度:',xc);
+    return re;
+};
 
 /*loading动画*/
 function show_loading(){
@@ -145,7 +175,7 @@ $(function(){
         var buy_list=[],sell_list=[];
 
         for (var i in rawData) {
-            categoryData.push(rawData[i].time);
+            categoryData.push(i);
             buy_all.push(rawData[i].buy_all);
             sell_all.push(rawData[i].sell_all);
             re_all.push(rawData[i].buy_all-rawData[i].sell_all);
@@ -165,58 +195,29 @@ $(function(){
             re_all:re_all
         };
     }
-    var refresh=function(){
+    var refresh=function(is_init){
         if(tab_now){
+            var myChart=tab_now.data('chart');
+            myChart.showLoading();
             /*获取组设备*/
             $.ajax({
                 url:'/api/get_latest_data',
-                data:{coin:tab_now.data('type')},
+                data:{coin:tab_now.data('type'),is_init:is_init?1:0},
                 dataType:'JSON',
                 type:'get',
                 success:function(re){
-                    var data=re.info;
+                    if(re.status!=1) return;
 
-                    data = splitData(data);
+                    var data=tab_now.data('last_data') || {},
+                        re_data=re.info || {};
+                    for(var time in re_data){
+                        data[time]=re_data[time];
+                    }
+                    data=slice_obj(data,-200);
+                    tab_now.data('last_data',data);
+                    data=splitData(data);
 
-                    var myChart=tab_now.data('chart');
-                    myChart.setOption({
-                        backgroundColor: '#fff',
-                        animation: false,
-						legend: {
-							data:[ 'sell','buy']
-						},
-                        tooltip: {
-                            trigger: 'axis',
-                            axisPointer: {
-                                type: 'cross'
-                            },
-                            backgroundColor: 'rgba(245, 245, 245, 0.8)',
-                            borderWidth: 1,
-                            borderColor: '#ccc',
-                            padding: 10,
-                            textStyle: {
-                                color: '#000'
-                            },
-                            position: function (pos, params, el, elRect, size) {
-                                var obj = {top: 10};
-                                obj[['left', 'right'][+(pos[0] < size.viewSize[0] / 2)]] = 30;
-                                return obj;
-                            },
-                            extraCssText: 'width: 170px'
-                        },
-                        grid: [
-                            {
-                                left: '10%',
-                                right: '8%',
-                                height: '40%'
-                            },
-                            {
-                                left: '10%',
-                                right: '8%',
-                                top: '56%',
-                                height: '36%'
-                            }
-                        ],
+                    var option = {
                         xAxis: [
                             {
                                 type: 'category',
@@ -256,37 +257,6 @@ $(function(){
                                         }
                                     }
                                 }
-                            }
-                        ],
-                        yAxis: [
-                            {
-                                scale: true,
-                                splitArea: {
-                                    show: true
-                                }
-                            },
-                            {
-                                scale: true,
-                                gridIndex: 1,
-                                splitNumber: 2,
-                                axisLine: { },
-                                splitLine: {show: false}
-                            }
-                        ],
-                        dataZoom: [
-                            {
-                                type: 'inside',
-                                xAxisIndex: [0, 1],
-                                start: 98,
-                                end: 100
-                            },
-                            {
-                                show: true,
-                                xAxisIndex: [0, 1],
-                                type: 'slider',
-                                top: '85%',
-                                start: 98,
-                                end: 100
                             }
                         ],
                         series: [
@@ -336,8 +306,10 @@ $(function(){
                                 }
                             }
                         ]
-                    }, true);
-
+                    };
+                    // 使用刚指定的配置项和数据显示图表。
+                    myChart.setOption(option);
+                    myChart.hideLoading();
                 }
             });
         }
@@ -353,320 +325,111 @@ $(function(){
 
         if(!tab_now.data('chart')){
             var myChart = echarts.init(tab_content.find('.chart_box').get(0));
+            myChart.setOption({
+                backgroundColor: '#fff',
+                animation: false,
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'cross'
+                    },
+                    backgroundColor: 'rgba(245, 245, 245, 0.8)',
+                    borderWidth: 1,
+                    borderColor: '#ccc',
+                    padding: 10,
+                    textStyle: {
+                        color: '#000'
+                    },
+                    position: function (pos, params, el, elRect, size) {
+                        var obj = {top: 10};
+                        obj[['left', 'right'][+(pos[0] < size.viewSize[0] / 2)]] = 30;
+                        return obj;
+                    },
+                    extraCssText: 'width: 170px'
+                },
+                axisPointer: {
+                    link: {xAxisIndex: 'all'},
+                    label: {
+                        backgroundColor: '#777'
+                    }
+                },
+                grid: [
+                    {
+                        left: '10%',
+                        right: '8%',
+                        height: '40%'
+                    },
+                    {
+                        left: '10%',
+                        right: '8%',
+                        top: '56%',
+                        height: '36%'
+                    }
+                ],
+                xAxis: [
+                    {
+                        type: 'category'
+                    },
+                    {
+                        type: 'category',
+                        gridIndex: 1
+                    }
+                ],
+                yAxis: [
+                    {
+                        scale: true,
+                        splitArea: {
+                            show: true
+                        }
+                    },
+                    {
+                        scale: true,
+                        gridIndex: 1,
+                        splitNumber: 2,
+                        axisLine: { },
+                        splitLine: {show: false}
+                    }
+                ],
+                dataZoom: [
+                    {
+                        type: 'inside',
+                        xAxisIndex: [0, 1],
+                        start: 98,
+                        end: 100
+                    },
+                    {
+                        show: true,
+                        xAxisIndex: [0, 1],
+                        type: 'slider',
+                        top: '85%',
+                        start: 98,
+                        end: 100
+                    }
+                ],
+                series: [
+                    {
+                        name: 'buy',
+                        type: 'line'
+                    },
+                    {
+                        name: 'sell',
+                        type: 'line'
+                    },
+                    {
+                        name: 'Volume',
+                        type: 'bar'
+                    }
+                ]
+            });
             tab_now.data('chart',myChart);
         }
-
         clearInterval(refresh_timer);
-        refresh();
+        refresh(1);
         refresh_timer=setInterval(refresh,5000);
     });
 
 });
 
-/*设置相关*/
-$(function(){
-    var group_id;
-    /*选择分组后切换设备*/
-    $('#group_in_setting').change(function(){
-        group_id=$(this).val();
-        /*获取设备列表*/
-        var device_in_setting=$('.device_in_setting');
-        device_in_setting.html('');
-        /*获取组设备*/
-        $.ajax({
-            url:'/api/get_device',
-            data:{group_id:group_id},
-            dataType:'JSON',
-            type:'get',
-            success:function(re){
-                var data=re.info;
-                var html='';
-                $.each(data,function(k,v){
-                    html+='<input class="device_start_record_ckb" type="checkbox" value="'+ v.id+'"/>'+ v.hostname;
-                });
-                device_in_setting.html(html);
-            }
-        });
-        /*获取原配置*/
-        $.ajax({
-            url:'/api/get_config',
-            data:{id:group_id},
-            dataType:'JSON',
-            type:'get',
-            success:function(re){
-                var data=re.info[0];
-                /*情况原数据*/
-                var setting_box=$('.setting_box');
-                setting_box.find('input').not('#save_setting,.device_start_record_ckb,.save_type,#getFilesList').val('');
-                setting_box.find("input[type='checkbox']").prop('checked',false);
-                if(!$.isEmptyObject(data)){
-//                    /*组名*/
-//                    var group_name=data.group_name;
-                    /*设置数据*/
-                    if(data.value){
-                        var value=JSON.parse(data.value);
-                        /*设备设置数据*/
-                        var device_list=value['device_list'];
-                        var device_checkbox=device_in_setting.find("input[type='checkbox']");
-                        $.each(device_checkbox,function(k,v){
-                            if($.inArray($(v).val(),device_list) != -1){
-                                $(v).prop('checked',true);
-                            }else{
-                                $(v).prop('checked',false);
-                            }
-                        });
-                        /*储存设置数据*/
-                        var storage_data=value['storage_data'];
-                        $('.file_time').val(storage_data.file_time);
-                        $('.save_site').val(storage_data.save_site);
-                        $('.save_size').val(storage_data.save_size);
-                        $.each($('.save_type'),function(k,v){
-                            if($(v).val() == storage_data.save_type){
-                                $(v).prop('checked',true);
-                            }else{
-                                $(v).prop('checked',false);
-                            }
-                        });
-                        /*时间设置数据*/
-                        var time_setting_data=value['time_setting_data'];
-                        var time_setting_checkbox=$('.time_setting_list').find("input[type='checkbox']");
-                        $.each(time_setting_data,function(k,v){
-                            $.each(time_setting_checkbox,function(k1,v1){
-                                if($(v1).data('date') == k){
-                                    $(v1).prop('checked',true);
-                                    $(v1).next().val(v.start_time);
-                                    $(v1).next().next().val(v.end_time);
-                                }else{
-                                    $(v).prop('checked',false);
-                                }
-                            })
-                        });
-                    }
-                }
-            }
-        });
-    });
-    $('#group_in_upload_setting').change(function(){
-        group_id=$(this).val();
-        /*获取设备列表*/
-        var device_in_setting=$('.device_in_upload_setting');
-        device_in_setting.html('');
-
-        /*获取原配置*/
-        $.ajax({
-            url:'/api/get_config',
-            data:{id:group_id},
-            dataType:'JSON',
-            type:'get',
-            success:function(re){
-                var data=re.info[0];
-                /*情况原数据*/
-                var setting_box=$('.upload_setting_box');
-                setting_box.find('input').not('#save_upload_setting,.device_start_upload_ckb').val('');
-                setting_box.find("input[type='checkbox']").prop('checked',false);
-                if(!$.isEmptyObject(data)){
-//                    /*组名*/
-//                    var group_name=data.group_name;
-                    /*设置数据*/
-                    if(data.upload_value){
-                        var value=JSON.parse(data.upload_value);
-                        /*设备设置数据*/
-                        var device_list=value['device_list'];
-                        var device_checkbox=device_in_setting.find("input[type='checkbox']");
-                        $.each(device_checkbox,function(k,v){
-                            if($.inArray($(v).val(),device_list) != -1){
-                                $(v).prop('checked',true);
-                            }else{
-                                $(v).prop('checked',false);
-                            }
-                        });
-                        /*储存设置数据*/
-                        var storage_data=value['storage_data'];
-                        $('.upload_file_time').val(storage_data.upload_file_time);
-                        $('.upload_url').val(storage_data.upload_url);
-
-                        /*时间设置数据*/
-                        var time_setting_data=value['time_setting_data'];
-                        var time_setting_checkbox=$('.time_upload_setting_list').find("input[type='checkbox']");
-                        $.each(time_setting_data,function(k,v){
-                            $.each(time_setting_checkbox,function(k1,v1){
-                                if($(v1).data('date') == k){
-                                    $(v1).prop('checked',true);
-                                    $(v1).next().val(v.start_time);
-                                    $(v1).next().next().val(v.end_time);
-                                }else{
-                                    $(v).prop('checked',false);
-                                }
-
-                            })
-                        });
-                    }
-                }
-            }
-        });
-    });
-    /*保存设置*/
-    $('#save_setting').click(function(){
-        var device_in_setting=$('.device_in_setting').find("input[type='checkbox']");
-        /*设备设置*/
-        var device_list=[];/*设备hostname*/
-        $.each(device_in_setting,function(k,v){
-            var _this=$(this);
-            if(v.checked){
-                device_list.push(_this.val());
-            }
-        });
-        /*储存设置*/
-        var storage_data={};
-        storage_data['save_site']=$('.save_site').val();
-        storage_data['save_size']=$('.save_size').val();
-        storage_data['file_time']=$('.file_time').val();
-        $.each($('.save_type'),function(k,v){
-           if(v.checked){
-               storage_data['save_type']=$(v).val();
-           }
-        });
-        /*时间设置*/
-        var time_setting_data={};
-        var time_setting_list=$('.time_setting_list').find('li');
-        $.each(time_setting_list,function(k,v){
-            var _this=$(v);
-            var checkbox=_this.find("input[type='checkbox']");
-            if(checkbox.is(':checked')){
-                var date=checkbox.data('date');
-                var start_time=_this.find("input[name='start_time']").val();
-                var end_time=_this.find("input[name='end_time']").val();
-                time_setting_data[date]={start_time:start_time,end_time:end_time}
-            }
-        });
-        /*储存数据的处理*/
-        var group_id=$('#group_in_setting').val();
-//        var group_name=$('#group_choose_add option[value="'+group_id+'"]').text();
-        var data={
-            device_list:device_list,
-            storage_data:storage_data,
-            time_setting_data:time_setting_data
-        };
-        var save_data= JSON.stringify(data);
-        $.ajax({
-            url:'/api/update_config',
-            data:{group_id:group_id,data:save_data,field:'value'},
-            dataType:'JSON',
-            type:'get',
-            success:function(re){
-                re=re.info;
-                if(re== 0){
-                    alert('保存成功');
-                }else{
-                    alert('保存失败');
-                }
-            }
-        })
-    });
-    /*保存上传设置*/
-    $('#save_upload_setting').click(function(){
-        var device_in_setting=$('.device_in_upload_setting').find("input[type='checkbox']");
-        /*设备设置*/
-        var device_list=[];/*设备hostname*/
-        $.each(device_in_setting,function(k,v){
-            var _this=$(this);
-            if(v.checked){
-                device_list.push(_this.val());
-            }
-        });
-        /*储存设置*/
-        var storage_data={};
-        storage_data['upload_url']=$('.upload_url').val();
-        storage_data['upload_file_time']=$('.upload_file_time').val();
-
-        /*时间设置*/
-        var time_setting_data={};
-        var time_setting_list=$('.time_upload_setting_list').find('li');
-        $.each(time_setting_list,function(k,v){
-            var _this=$(v);
-            var checkbox=_this.find("input[type='checkbox']");
-            if(checkbox.is(':checked')){
-                var date=checkbox.data('date');
-                var start_time=_this.find("input[name='start_time']").val();
-                var end_time=_this.find("input[name='end_time']").val();
-                time_setting_data[date]={start_time:start_time,end_time:end_time}
-            }
-        });
-        /*储存数据的处理*/
-        var group_id=$('#group_in_upload_setting').val();
-//        var group_name=$('#group_choose_add option[value="'+group_id+'"]').text();
-        var data={
-            device_list:device_list,
-            storage_data:storage_data,
-            time_setting_data:time_setting_data
-        };
-        var save_data= JSON.stringify(data);
-            $.ajax({
-                url:'/api/update_config',
-                data:{group_id:group_id,data:save_data,field:'upload_value'},
-                dataType:'JSON',
-                type:'get',
-                success:function(re){
-                    re=re.info;
-                    if(re== 0){
-                        alert('保存成功');
-                    }else{
-                        alert('保存失败');
-                    }
-                }
-            })
-        });
-
-    /*载入选择文件夹功能*/
-    function reload_choose_dir(dir,cb){
-        $.ajax({
-            url:'/api/getAllFiles',
-            data:{dir:dir},
-            dataType:'JSON',
-            success:function(re){
-                $('#choose_dir_box').show().data('selected_dir',dir);
-                var data=re.info;
-                var html='';
-                for(var k in data){
-                    var v=data[k];
-                    html+="<div class='choose_dir'>"+v+"</div>"
-                }
-                $('#choose_dir_box .dir_list_box').html(html);
-                if(typeof(cb)=='function') cb(re);
-            }
-        });
-    }
-    $(function(){
-        $('#getFilesList').click(function(){
-            reload_choose_dir($('.save_site').val());
-        });
-        $(document).on('click','.choose_dir',function(){
-            $(this).attr('backgroundColor','blue');
-            var val;
-            var selected_dir=$('#choose_dir_box').data('selected_dir') || '';
-            if(selected_dir != ''){
-                val='\\'+$(this).text();
-            }else{
-                val=$(this).text();
-            }
-            selected_dir+=val;
-            reload_choose_dir(selected_dir);
-        }).on('click','.back_choose',function(){
-            var selected_dir=$('#choose_dir_box').data('selected_dir');
-            if(selected_dir){
-                selected_dir=selected_dir.split('\\');
-                selected_dir.pop();
-                if(selected_dir.length<2) selected_dir=[];
-                selected_dir=selected_dir.join('\\');
-            }
-            reload_choose_dir(selected_dir);
-        }).on('click','.choose_file',function(){
-            var selected_dir=$('#choose_dir_box').data('selected_dir');
-            $('.save_site').val(selected_dir);
-            $('#choose_dir_box .cancel_choose').click();
-        });
-    });
-});
 
 </script>
 

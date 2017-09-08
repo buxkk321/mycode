@@ -14,6 +14,37 @@ exports.str_pad=function(input,pad_length,pad_string,pad_type){
     }
     return input;
 };
+/*按顺序截取对象的一部分*/
+exports.slice_obj=function(obj,length){
+    var xc= 0,re={};
+    if(length<0){
+        for(var x in obj) xc++;
+        //console.log('截取列表长度:',xc);
+        xc+=length;
+        if(xc>0){
+            //console.log('截取列表长度 超出:',xc);
+        }
+        for(var x in obj){
+            if(xc>0){
+                xc--;
+            }else{
+                re[x]=obj[x];
+            }
+        }
+    }else{
+        //console.log('取出截取列表 前:',length,' 个');
+        for(var x in obj){
+            if(xc<length){
+                xc++;
+                re[x]=obj[x];
+            }else{
+                break;
+            }
+        }
+    }
+    //xc=0;for(var x in obj){xc++;}console.log('截取后 列表长度:',xc);
+    return re;
+};
 exports.format_date=function(stamp,lv,return_arr){
     var time,re=[];
     if(stamp<0){
