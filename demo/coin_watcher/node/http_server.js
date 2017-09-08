@@ -131,20 +131,26 @@ var http_serv={
                     var day=format_time[2]+'';
                     var hour=format_time[3]+'';
                     var f=path.join(temp_path,'arrange_data',$_GET.coin,year,month+'_'+day,hour+'.log');
-                    if(last_get_file!=f){
+                  
+					if(last_get_file!=f){
                         last_get_file=f;
-                        if(fs.existsSync(f)){
+						if(fs.existsSync(f)){
+							//console.log($_GET.coin,'read file:',f);
                             content=fs.readFileSync(f,'utf-8')+content;
                         }
                     }else{
-                    }
+					}
                 }
                 _get_file_content(time_now);
-                _get_file_content(time_now-2000*1000);
-                _get_file_content(time_now-4000*1000);
-
+                _get_file_content(time_now-3000*1000);
+                _get_file_content(time_now-6000*1000);
+				if(content.length<60000){
+					_get_file_content(time_now-9000*1000);
+				} 
+				
                 if(content){
                     content=content.split(';;;');
+					var xc=0;
                     for(var x in content){
                         var time,tmp_data={};
                         var child_str=content[x];
@@ -161,9 +167,25 @@ var http_serv={
                         }
                         if(!time || errf) continue;
                         data[time]=tmp_data;
+						//console.log($_GET.coin,'parse time:',time);
                     }
-					//data=data.slice(-100);
-                    //console.log('parse data:',data);
+					for(var x in data){
+						xc++;
+                    }
+					//console.log($_GET.coin,'parse data count:',xc);
+					if(xc>200){
+						xc-=200;
+						for(var x in data){
+							delete data[x];
+							xc--;
+							if(xc<=0) break; 
+						}
+					}
+					xc=0;
+					for(var x in data){
+						xc++;
+                    }
+                    //console.log($_GET.coin,'parse data count:',xc);
                 }
 
             }

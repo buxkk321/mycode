@@ -117,7 +117,7 @@ get_orders.query=function(coin,cb){
 };
 
 var analyzer={
-    current_100:{}
+    c200:{}
 };
 analyzer.loop=function(coin,delay1,delay2){
     get_ticker.query(coin,function(re1,err1){
@@ -126,26 +126,30 @@ analyzer.loop=function(coin,delay1,delay2){
             get_orders.query(coin,function(re2,err2){
                 //re2:获取最近100单交易信息
                 if(re1 && re2){
+					var c200=analyzer.c200;
+					if(!c200[coin]) c200[coin]={};
+					 
                     console.log(" \n\r ");
                     var collect={buy:[],sell:[]};
-                    var c100=analyzer.current_100;
+                   
                     var xc_c=0;
-                    for(var xc in c100){
+                    for(var xc in c200[coin]){
                         xc_c++;/*计算现有缓存的数量*/
                     }
+					var is_init=xc_c==0;
                     if(xc_c>200){
                         xc_c-=200;/*超出缓存最大个数的数量*/
-                        for(var xc in c100){
-                            delete c100[xc];
+                        for(var xc in c200[coin]){
+                            delete c200[coin][xc];
                             xc_c--;
                             if(xc_c<=0) break;
                         }
-                    }
+                    } 
                     for(var x in re2){
                         var one=re2[x];
                         var date=one.date;
-                        if(c100[date]) continue;
-                        c100[date]=one;
+                        if(c200[coin][date]) continue;
+                        c200[coin][date]=one;
 
                         var all=one.amount*one.price;
                         if(!collect[one.type]){
@@ -179,14 +183,14 @@ analyzer.loop=function(coin,delay1,delay2){
                     buy_avg=buy_avg==0?0:buy_all/buy_avg;
 
                     dlog(
-                        (xc_c==0?"初始化 --- ":'')+
+                        (is_init?"初始化 --- ":'')+
                         "in:"+re1.buy+';~~~:'+(re1.buy/2+re1.sell/2).toFixed(5)+'~~~ out:'+re1.sell,
                         " \n\r",
                         (buy_all>0?'\x1B[32m':''),' in_all:'+parseInt(buy_all)+', in_avg:'+buy_avg.toFixed(5)+' ; ','\x1B[37m',
                         (sell_all>0?'\x1B[33m':''),'out_all:'+parseInt(sell_all)+', out_avg:'+sell_avg.toFixed(5),'\x1B[37m'
                     );
 
-                    if(xc_c>0){
+                    if(!is_init){
                         var format_time=ts.format_date(one.date*1000,0,1);
                         var year=format_time[0]+'';
                         var month=format_time[1]+'';
