@@ -2,6 +2,7 @@
 var fs=require('fs');
 var path=require("path");
 var http= require('http');
+
 var url= require('url');
 var querystring = require('querystring');
 
@@ -13,6 +14,8 @@ var temp_dir=path.dirname(temp_path);/*程序根目录*/
 var ts=require('./tools.js');
 var dlog=ts.dlog;
 var dclog=ts.dclog;
+
+
 
 function array_select(keys,input){
     if(typeof(keys)=='string') keys=keys.split(',');
@@ -39,6 +42,10 @@ function res_error(res,msg){
         res.write(JSON.stringify({status:0,info:msg}));
     }
 }
+
+
+var watcher=require('./watcher.js');
+
 var match_data_rule= {
     time:/--------(.+?)--------/i,
     buy:/buy\:(.+?)\;/i,
@@ -118,7 +125,7 @@ var http_serv={
         }
     },
     api:{
-        get_latest_data:function(req,res,$_GET){
+        get_latest_data2:function(req,res,$_GET){
             var data={},coin=$_GET.coin;
             if(coin){
                 var time_now=new Date().getTime();
@@ -208,7 +215,66 @@ var http_serv={
             }
             res_success(res,data);
             res.end();
-        }
+        },
+		get_latest_data:function(req,res,$_GET){
+			var data={};
+            var plt=$_GET['plt'];
+			var coin=$_GET['coin'];
+			
+			function cb(msg,err){
+				if(err){
+					res_error(res,err);
+				}else{
+					res_success(res,msg);
+				}
+				res.end();
+			}
+			
+			if(!coin || !plt){
+				cb();
+				return;
+			}
+			
+			
+			var url="";
+			var query_data = {};
+
+			switch(plt){
+				case 'bdb':
+					url="http://api.biduobao.com/api/v1/ticker";
+					query_data = {
+						coin:coin
+					};
+					break;
+				case 'bittrex':
+					url='https://bittrex.com/api/v1.1/public/getticker';
+					query_data = {
+						market:coin
+					};
+					break;
+			}
+			ts.http_get(
+				url,
+				query_data,
+				function(res_data,err){
+					if(!err){
+						try{
+							res_data=JSON.parse(res_data);
+						} catch (x) {
+							err='返回json数据格式错误:';
+						}
+					}
+					if(err){
+						dlog('get_data_m error:',err,res_data,url,query_data);
+						cb(false,err);
+					}else{
+						if(typeof(cb)=='function'){
+							cb(res_data);
+						}
+					}
+				}
+			);
+		}
     }
 };
 

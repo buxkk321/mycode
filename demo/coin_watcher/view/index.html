@@ -92,13 +92,114 @@
     <div class="chart_box">
     </div>
 </div>
+<div>
+	<input type='button' value='开始' id='start_watch_all_price'/>
+	<table>
+		<tr>
+			<td>btc:</td>
+			<td>
+				<span id='bdb_btc_cny_buy'></span>
+			</td>
+			<td>
+				<span id='bdb_btc_cny_sell'></span>
+			</td>
+		</tr>
+		<tr>
+			<td></td>
+			<td>buy</td>
+			<td>sell</td>
+		</tr>
+		
+		
+		
+		<tr>
+			<td>xrp:</td>
+			<td>
+				<span id='bdb_xrp_cny_buy'></span>
+			</td>
+			<td>
+				<span id='bdb_xrp_cny_sell'></span>
+			</td>
+		</tr>
+		<tr>
+			<td>xrp/btc:</td>
+			<td>
+				<span id='bdb_xrp_btc_buy'></span>
+			</td>
+			<td>
+				<span id='bdb_xrp_btc_sell'></span>
+			</td>
+		</tr>
+		
+		
+		<tr>
+			<td>ltc:</td>
+			<td>
+				<span id='bdb_ltc_cny_buy'></span>
+			</td>
+			<td>
+				<span id='bdb_ltc_cny_sell'></span>
+			</td>
+		</tr>
+		<tr>
+			<td>ltc/btc:</td>
+			<td>
+				<span id='bdb_ltc_btc_buy'></span>
+			</td>
+			<td>
+				<span id='bdb_ltc_btc_sell'></span>
+			</td>
+		</tr>
+		
+		
+		<tr>
+			<td>eth:</td>
+			<td>
+				<span id='bdb_eth_cny_buy'></span>
+			</td>
+			<td>
+				<span id='bdb_eth_cny_sell'></span>
+			</td>
+		</tr>
+		<tr>
+			<td>eth/btc:</td>
+			<td>
+				<span id='bdb_eth_btc_buy'></span>
+			</td>
+			<td>
+				<span id='bdb_eth_btc_sell'></span>
+			</td>
+		</tr>
+		
+		
+		<tr>
+			<td>qtum:</td>
+			<td>
+				<span id='bdb_qtum_cny_buy'></span>
+			</td>
+			<td>
+				<span id='bdb_qtum_cny_sell'></span>
+			</td>
+		</tr>
+		<tr>
+			<td>qtum/btc:</td>
+			<td>
+				<span id='bdb_qtum_btc_buy'></span>
+			</td>
+			<td>
+				<span id='bdb_qtum_btc_sell'></span>
+			</td>
+		</tr>
+		
+	</table>
+ 
+</div>
+
 </body>
 <script type="text/javascript" src="/public/js/jquery-1.10.2.min.js"></script>
 <script type="text/javascript" src='/public/js/echarts.min.js'></script>
 
 <script>
-
-
 /*处理postMessage*/
 var wma={
 
@@ -150,7 +251,6 @@ var slice_obj=function(obj,length){
     //xc=0;for(var x in obj){xc++;}console.log('截取后 列表长度:',xc);
     return re;
 };
-
 /*loading动画*/
 function show_loading(){
     if(!$('.t-loading').length>0){
@@ -162,6 +262,79 @@ function hide_loading() {
         $('.t-loading').remove();
     }
 }
+
+$(function(){
+	var watch_status=1;
+	function simple_query_price(coin,opt){ 
+		if(!watch_status) return ;
+		if(typeof(opt)=='function') opt={cb:opt};
+		if(!opt) opt={};
+		if(!opt.delay) opt.delay=3000;
+		if(!opt.plt) opt.plt='bdb'; 
+		/*获取组设备*/
+		$.ajax({
+			url:'/api/get_latest_data',
+			data:{coin:coin,plt:opt.plt},
+			dataType:'JSON',
+			type:'get',
+			success:function(re){
+				if(typeof(opt.cb)=='function') opt.cb(re); 
+				setTimeout(function(){
+					simple_query_price(coin,opt);
+				},opt.delay);
+
+			}
+		});
+	}
+	
+	function set1(coin){
+		simple_query_price(coin,function(re){
+			if(re.status==1){
+				$('#bdb_'+coin+'_cny_buy').text(re.info.buy);
+				$('#bdb_'+coin+'_cny_sell').text(re.info.sell);
+				$('#bdb_'+coin+'_btc_buy').text(
+					re.info.buy/$('#bdb_btc_cny_buy').text()
+				);
+				$('#bdb_'+coin+'_btc_sell').text(
+					re.info.sell/$('#bdb_btc_cny_sell').text()
+				);
+			}
+		});
+	}
+	$('#start_watch_all_price').click(function(){
+		if($(this).hasClass('open')){
+			$(this).removeClass('open');
+			watch_status=0;
+			
+		}else{
+			$(this).addClass('open');
+			watch_status=1;
+			simple_query_price('btc',function(re){
+				if(re.status==1){
+					$('#bdb_btc_cny_buy').text(re.info.buy);
+					$('#bdb_btc_cny_sell').text(re.info.sell);
+				}
+			});
+			
+			set1('xrp');
+			set1('ltc');
+			set1('eth');
+			set1('qtum');
+			 
+			simple_query_price('btc-ltc',{
+				plt:'bittrex',
+				cb:function(re){
+					if(re.status==1 && re.info.success){
+						//$('#bittrex_ltc_btc_buy').text(re.info.buy);
+						//$('#bittrex_ltc_btc_sell').text(re.info.sell);
+					}
+				}
+			});
+		}
+	});
+	
+});
+
 var tab_now='';
 $(function(){
 
@@ -335,6 +508,7 @@ $(function(){
     };
     var refresh_timer=0;
     $('.check_tab').click(function(){
+		return;
         tab_now=$(this);
         var index=tab_now.index();
         var tab_content=$('.tab_control_box').eq(index);

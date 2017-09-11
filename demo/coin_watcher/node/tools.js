@@ -343,6 +343,8 @@ exports.continueTimeout=function(t){
 
 var querystring = require('querystring');
 var http = require('http');
+var https = require('https');
+
 exports.http_get=function(url,send_data,callback,err){
     var res_data='';
     if(!url){
@@ -350,17 +352,29 @@ exports.http_get=function(url,send_data,callback,err){
         return ;
     }
     var fix=url.indexOf('?')<0?'?':'&';
-    var req = http.get(url+(send_data?fix+querystring.stringify(send_data):''),function(res) {
-        res.on('data',function(d){
-            res_data += d;
-        }).on('end', function(a){
-            callback(res_data);
-        });
-    }).on('error', function(e) {
-        //TODO::查询接口出错
-        console.log("http_get error: " + e.message);
-		callback(res_data,e.message);
-    });
+	fix=url+(send_data?fix+querystring.stringify(send_data):'');
+	
+	function parse_data(res){
+		res.on('data',function(d){
+			res_data += d;
+		}).on('end', function(a){
+			callback(res_data);
+		});
+	} 
+	if(url.indexOf('https')==0){
+		var req = https.get(fix,parse_data).on('error', function(e) {
+			//TODO::查询接口出错
+			console.log("https_get error: " + e.message);
+			callback(res_data,e.message);
+		});
+	}else{
+		var req = http.get(fix,parse_data).on('error', function(e) {
+			//TODO::查询接口出错
+			console.log("http_get error: " + e.message);
+			callback(res_data,e.message);
+		});
+	}
+    
     req.end();
 };
 
