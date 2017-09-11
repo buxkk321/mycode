@@ -136,7 +136,7 @@ var http_serv={
 					if(last_get_file!=f){
                         last_get_file=f;
 						if(fs.existsSync(f)){
-							//console.log(coin,'read file:',f);
+							//console.log(coin,'read file:',f,timestamp);
                             ct_arr=fs.readFileSync(f,'utf-8');
                             ct_arr=ct_arr?ct_arr.split(';;;'):[];
                         }
@@ -147,16 +147,16 @@ var http_serv={
                 var content=_get_file_content(time_now);
                 //console.log(coin,'content 1 length:',content.length);
                 if($_GET.is_init>0){
-                    var content_prev=_get_file_content(time_now-3000*1000);
+                    var content_prev=_get_file_content(time_now-1500*1000);
                     //console.log(coin,'content_prev 1 length:',content_prev.length);
                     if(content_prev.length==0){
-                        content_prev=_get_file_content(time_now-6000*1000);
+                        content_prev=_get_file_content(time_now-3000*1000);
                         //console.log(coin,'content_prev 2 length:',content_prev.length);
                     }
                     content=content_prev.concat(content);
                     //console.log(coin,'content 2 length:',content.length);
                     if(content.length<500){
-                        content_prev=_get_file_content(time_now-9000*1000);
+                        content_prev=_get_file_content(time_now-4500*1000);
                         content=content_prev.concat(content);
                         //console.log(coin,'content extra length:',content.length);
                     }
@@ -184,20 +184,25 @@ var http_serv={
                         tmp_list[time]=tmp_data;
                         //console.log(coin,'parse time:',time);
                     }
+					
                     /*使用缓存*/
-                    if(!coin_data_cache[coin]) coin_data_cache[coin]={};
+					var xx=0;
+					//xx=0;for(var x in coin_data_cache) xx++;console.log('之前缓存长度:',xx);
                     for(var time in tmp_list){
-                        if(!coin_data_cache[coin][time]){
-                            coin_data_cache[coin][time]=tmp_list[time];
+                        if(!coin_data_cache[time]){
+                            coin_data_cache[time]=tmp_list[time];
                             data[time]=tmp_list[time];/*将缓存中还没有的输出*/
                         }
                     }
-                    coin_data_cache[coin]=ts.slice_obj(coin_data_cache[coin],-144);/*仅缓存144条*/
+					//xx=0;for(var x in coin_data_cache) xx++;console.log('现在缓存长度:',xx);
+                    coin_data_cache=ts.slice_obj(coin_data_cache,-500);/*仅缓存500条*/
+					//xx=0;for(var x in coin_data_cache) xx++;console.log('剪切后缓存长度:',xx);
                     if($_GET.is_init>0){
-                        data=coin_data_cache[coin];/*初始化时将缓存数据全部返回*/
+                        data=coin_data_cache;/*初始化时将缓存数据全部返回*/
                     }else{
-                        console.log('peace data:',data);
+                        //console.log('peace data:',data);
                     }
+					//xx=0;for(var x in data) xx++;console.log('输出数据长度',xx);
                 }
 
             }

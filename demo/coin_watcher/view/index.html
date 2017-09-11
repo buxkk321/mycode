@@ -175,7 +175,7 @@ $(function(){
         var buy_list=[],sell_list=[];
 
         for (var i in rawData) {
-            categoryData.push(i);
+            categoryData.push(rawData[i].time);
             buy_all.push(rawData[i].buy_all);
             sell_all.push(rawData[i].sell_all);
             re_all.push(rawData[i].buy_all-rawData[i].sell_all);
@@ -208,13 +208,32 @@ $(function(){
                 success:function(re){
                     if(re.status!=1) return;
 
-                    var data=tab_now.data('last_data') || {},
+                    var tmp_data=tab_now.data('last_data') || {},
                         re_data=re.info || {};
                     for(var time in re_data){
-                        data[time]=re_data[time];
+                        tmp_data[time]=re_data[time];
                     }
-                    data=slice_obj(data,-200);
-                    tab_now.data('last_data',data);
+					tmp_data=slice_obj(tmp_data,-200);
+                    tab_now.data('last_data',tmp_data);
+					
+					var data=[];
+					for(var time in tmp_data){
+						var push=tmp_data[time];
+						var timestamp=new Date(time);/*TODO::处理精确到分的节气分界点*/
+						timestamp=timestamp.getTime();
+						push.time=time;
+						push.timestamp=timestamp;
+                        data.push(push);
+                    }
+					data.sort(function(x,y){
+						if (x.timestamp < y.timestamp) {
+							return -1;
+						} else if (x.timestamp > y.timestamp) {
+							return 1;
+						} else {
+							return 0;
+						}
+					});
                     data=splitData(data);
 
                     var option = {
