@@ -69,7 +69,7 @@ function res_error(res,msg){
 
 /*http服务器*/
 var http_serv={
-    PORT:10080,
+    PORT:10081,
     server:'',
     restart:function(){
         var that=this;
