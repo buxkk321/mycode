@@ -126,8 +126,8 @@
             }
             .word_info_cell{
                 text-align: center;
-                width:110px;
-                height:110px;
+                width:90px;
+                height:80px;
             }
             #c_5{
                 height:170px;
@@ -142,148 +142,169 @@
         <div id="description">
             <form id="settingsForm" action="javascript:draw(getColorPicker(), getSamples());">
                 <table>
-                    <tr>
-                        <td>选择时间</td>
-                        <td> 
-							<input type='text' id='input_date' />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>天干:</td>
-                        <td>
-                            <select class="select_stems" name="s1" id="年干">
-                            </select>
-                            <select class="select_stems" name="s2" id="月干">
-                            </select>
-                            <select class="select_stems" name="s3" id="日干">
-                            </select>
-                            <select class="select_stems" name="s4" id="时干">
-                            </select>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>地支:</td>
-                        <td>
-                            <select class="select_branches" name="b1" id="年支">
-                            </select>
-                            <select class="select_branches" name="b2" id="月支">
-                            </select>
-                            <select class="select_branches" name="b3" id="日支">
-                            </select>
-                            <select class="select_branches" name="b4" id="时支">
-                            </select>
-                        </td>
-                    </tr>
-					<tr>
-                        <td>开始大运:</td>
-                        <td>
-							<select class="select_stems" name="s5" id="大运干" data-target="#大运支">
-                            </select>
-                            <select class="select_branches" name="b5" id="大运支">
-                            </select>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="2">&nbsp;</td>
-                    </tr>
-                    <tr>
-                        <td colspan="2">
-                            <input type="button" id="calc_now" value="calc_now" />
-                            &nbsp;
-                            <input type="button" id="reset_today" value="reset today" />
-                            &nbsp;
-                            <input type="reset" id="resetButton" value="reset" />
-                        </td>
+					<thead>
+						 <tr>
+							<th style="width:50px">选择时间</td>
+							<th style="width:90px"> 
+								<input type='text' id='input_date' />
+							</th>
+							<th style="width:50px"> 
+								
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>天干:</td>
+							<td>
+								<select class="select_stems" name="s1" id="年干">
+								</select>
+								<select class="select_stems" name="s2" id="月干">
+								</select>
+								<select class="select_stems" name="s3" id="日干">
+								</select>
+								<select class="select_stems" name="s4" id="时干">
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td>地支:</td>
+							<td>
+								<select class="select_branches" name="b1" id="年支">
+								</select>
+								<select class="select_branches" name="b2" id="月支">
+								</select>
+								<select class="select_branches" name="b3" id="日支">
+								</select>
+								<select class="select_branches" name="b4" id="时支">
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td>开始大运:</td>
+							<td>
+								<select class="select_stems" name="s5" id="大运干" data-target="#大运支">
+								</select>
+								<select class="select_branches" name="b5" id="大运支">
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td colspan="2">&nbsp;</td>
+						</tr>
+						<tr>
+							<td  >
+								<input type="button" id="prev_word" value="上一个" />								
+							</td>
+							<td  > 
+								 
+								<input type="button" id="next_word" value="下一个" />
+							</td>
+						</tr>
+						<tr>
+							<td colspan="2">&nbsp;</td>
+						</tr>
+						<tr>
+							<td >
+								<input type="button" id="calc_now" value="calc_now" />
+							</td>
+							<td>
+								<input type="button" id="reset_today" value="reset_today" />
+							</td>
+							<td>
+								<input type="reset" id="resetButton" value="reset" />
+							</td>
 
-                    </tr>
-                    <tr>
-                        <td colspan="2">&nbsp;</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            评分参数
-                        </td>
-                        <td>
-                            <div>
-                                克:<input class="textInput" size="4" type="text" id="calc_kewo_percent" value="-0.25" />
-                            </div>
-                            <div>
-                                生:<input class="textInput" size="4" type="text" id="calc_shengwo_percent" value="0.2" />
-                            </div>
-                            <div>
-                                泄:<input class="textInput" size="4" type="text" id="calc_wosheng_percent" value="-0.2" />
-                            </div>
+						</tr>
+						
+						
+						<tr>
+							<td>
+								评分参数
+							</td>
+							<td colspan='2'>
+								<div>
+									克:<input class="textInput" size="4" type="text" id="calc_kewo_percent" value="-0.25" />
+								</div>
+								<div>
+									生:<input class="textInput" size="4" type="text" id="calc_shengwo_percent" value="0.2" />
+								</div>
+								<div>
+									泄:<input class="textInput" size="4" type="text" id="calc_wosheng_percent" value="-0.2" />
+								</div>
 
 
-                            <div>
-                                天干相冲:<input class="textInput" size="4" type="text" id="calc_chongtg_percent" value="-0.3" />
-                            </div>
-                            <div>
-                                天干相合:<input class="textInput" size="4" type="text" id="calc_tgh_percent" value="0.2" />
-                            </div>
-                            <div>
-                                本气通根<input class="textInput" size="4" type="text" id="calc_bqtg_percent" value="0.1" />
-                            </div>
+								<div>
+									天干相冲:<input class="textInput" size="4" type="text" id="calc_chongtg_percent" value="-0.3" />
+								</div>
+								<div>
+									天干相合:<input class="textInput" size="4" type="text" id="calc_tgh_percent" value="0.2" />
+								</div>
+								<div>
+									本气通根<input class="textInput" size="4" type="text" id="calc_bqtg_percent" value="0.1" />
+								</div>
 
 
-                            <div>
-                                地支相冲:<input class="textInput" size="4" type="text" id="calc_chongdz_percent" value="-0.45" />
-                            </div>
-                            <div>
-                                刑<input class="textInput" size="4" type="text" id="calc_xing_percent" value="-0.15" />
-                            </div>
-                            <div>
-                                害<input class="textInput" size="4" type="text" id="calc_hai_percent" value="-0.13" />
-                            </div>
-                            <div>
-                                六合<input class="textInput" size="4" type="text" id="calc_lh_percent" value="0.25" />
-                            </div>
-                            <div>
-                                半合<input class="textInput" size="4" type="text" id="calc_banhe_percent" value="0.4" />
-                            </div>
-                            <div>
-                                三合<input class="textInput" size="4" type="text" id="calc_sanhe_percent" value="0.85" />
-                            </div>
-                            <div>
-                                三会<input class="textInput" size="4" type="text" id="calc_sanhui_percent" value="1" />
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            计算时长
-                        </td>
-                        <td>
-                            <input class="textInput" size="4" type="text" id="calc_next_length" value="3" />(天)
-                        </td>
-						<td>
-                            最小时间段
-							<select id="calc_length">
-								<option value='h'>时辰</option>
-								<option value='d'>天</option>
-								<option value='m'>月</option>
-							</select>
-                        </td>
-						 
-					
-                    </tr>
-                    <tr>
+								<div>
+									地支相冲:<input class="textInput" size="4" type="text" id="calc_chongdz_percent" value="-0.45" />
+								</div>
+								<div>
+									刑<input class="textInput" size="4" type="text" id="calc_xing_percent" value="-0.15" />
+								</div>
+								<div>
+									害<input class="textInput" size="4" type="text" id="calc_hai_percent" value="-0.13" />
+								</div>
+								<div>
+									六合<input class="textInput" size="4" type="text" id="calc_lh_percent" value="0.25" />
+								</div>
+								<div>
+									半合<input class="textInput" size="4" type="text" id="calc_banhe_percent" value="0.4" />
+								</div>
+								<div>
+									三合<input class="textInput" size="4" type="text" id="calc_sanhe_percent" value="0.85" />
+								</div>
+								<div>
+									三会<input class="textInput" size="4" type="text" id="calc_sanhui_percent" value="1" />
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								计算时长
+							</td>
+							<td>
+								<input class="textInput" size="4" type="text" id="calc_next_length" value="3" />(天)
+							</td>
+							<td>
+								最小时间段
+								<select id="calc_length">
+									<option value='h'>时辰</option>
+									<option value='d'>天</option>
+									<option value='m'>月</option>
+								</select>
+							</td>
+							 
+						
+						</tr>
+						<tr>
 
-                    </tr>
-                    <tr>
-                        <td>比较开始时间</td>
-                        <td>
-                            <input type='text' id='start_date' />
-                        </td>
-						<td>
-                            <input type="button" id="calc_next" value="calc_next" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="2">
-                            <input type="button" id="compare_next_30day" value="compare_next_30day" />
-                        </td>
-                    </tr>
+						</tr>
+						<tr>
+							<td>比较开始时间</td>
+							<td>
+								<input type='text' id='start_date' />
+							</td>
+							<td>
+								<input type="button" id="calc_next" value="calc_next" />
+							</td>
+						</tr>
+						<tr>
+							<td colspan="2">
+								<input type="button" id="compare_next_30day" value="compare_next_30day" />
+							</td>
+						</tr>
+					</tbody>
+                    
                 </table>
             </form>
 
@@ -306,15 +327,6 @@
                         
                     </td>
                     <td style="width:100px;position: relative">
-                        <div style="position: absolute;top:0">
-                            <div class='prev_word' >
-                                上一个
-                            </div>
-                            <div class='next_word'>
-                                下一个
-                            </div>
-                        </div>
-
                         <div class='next_btn'>
                             >>>
                         </div>
@@ -457,17 +469,19 @@
                 date=sb_calc.get_date_arr(date);
                 $('#input_date').val(date[5]);
                 calc_input_time(date[5]);
-                $('#calc_now').click();
+				setTimeout(function(){
+					$('#calc_now').click();
+				},20);
             }
             $('#reset_today').click(function(){
                 move_date(0);
             });
 
             /*快速查看前后信息*/
-            $('.prev_word').click(function(){
+            $('#prev_word').click(function(){
                 move_date(1);
             });
-            $('.next_word').click(function(){
+            $('#next_word').click(function(){
                 move_date(-1);
             });
 
