@@ -136,6 +136,14 @@
                 position: absolute; left: 0; top: 0; right: 0; bottom: 0;margin:auto;
                 width:50px;height:50px;border:1px solid blue;cursor: pointer
             }
+			.e5label_阴{
+				background-color:#000;
+				color:#fff;
+				border:solid 1px #000;
+			}
+			.e5label_阳{
+				border:solid 1px #000;
+			}
         </style>
     </head>
     <body >
@@ -546,7 +554,8 @@
 			/*八字天干*/
 			$('.c_2_1',winfo_box).html('<div>天干</div><div>本气通根:</div>');
 			function tg_info(part){
-				var re='<div>'+word_info[part+'干']+'('+word_info[part+'干五行']+')</div>';
+				var e5info=word_info[part+'干五行'];
+				var re='<div>'+word_info[part+'干']+'<span class="e5label_'+e5info[0]+'">'+e5info[1]+'</span></div>';
 				var tg=word_info[part+'干强弱'].本气通根;
 				var padh={年:0,月:0,日:0,时:0};
 				$.each(tg,function(k,v){
