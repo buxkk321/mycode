@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <style >
+        *,:before,:after{box-sizing:border-box;-webkit-box-sizing:border-box;}
+        html{width:100%;height: 100%;-webkit-font-smoothing: antialiased;-ms-text-size-adjust: 100%;-webkit-text-size-adjust:100%;font-size:62.5%;/*-webkit-tap-highlight-color:rgba(0, 0, 0, 0);*/}
+        body{width:100%;height: 100%;margin:0;padding:0;color: #333;font-size: 16px;font-family: "Segoe UI","Lucida Grande",Helvetica,Arial,"Microsoft YaHei",FreeSans,Arimo,"Droid Sans","wenquanyi micro hei","Hiragino Sans GB","Hiragino Sans GB W3",sans-serif;background-color: #F9F9F9;}
+        a{position: relative;cursor: pointer;text-decoration: none;color: #333;font-size: 1.3rem;}
+        .row_box{
+            /*display: inline-block;*/
+            width: 44%;
+            margin-left: 3px;
+
+        }
+        .row_box table{
+            border: 1px solid #ccc;
+            font-size: 14px;
+            /*margin-top: 5px;*/
+            min-width: 100%;
+            text-align: center;
+            border-collapse: collapse;
+            border-spacing: 0;
+        }
+        .row_box td,th{
+            border: 1px solid #ccc;
+        }
+        .btn_box{
+            /*display: inline-block;*/
+            /*border: 1px solid #ccc;*/
+            width: 10%;
+            height: 500px;
+        }
+        .float_box{
+            float:left;
+        }
+        .btn{
+            display: block;
+            margin-top: 80%;
+            margin-left: 30%;
+            width: 40%;
+            height: 5%;
+        }
+        .dis_none{
+            display: none;
+        }
+        .chart_box{
+            min-height:600px;
+        }
+		.border_red{
+			border:solid 1px red
+		}
+
+
+        .value_block{
+            height:100%;
+            min-width:1px;
+        }
+
+        .buy_amount,.sell_amount,.buy_total,.sell_total{height:25px;position: relative}
+        .buy_amount .text,
+        .sell_amount .text,
+        .buy_total .text,
+        .sell_total .text{position: absolute;top:0}
+
+
+        .buy_amount{text-align: right}
+        .buy_amount .value_block,.buy_total .value_block{float:right;background-color:#8cb37e;}
+        .buy_amount .text,.buy_total .text{right:0;}
+
+        .sell_amount{text-align: left}
+        .sell_amount .value_block,.sell_total .value_block{background-color:#fb7a7a;}
+        .sell_amount .text,.sell_total .text{left:0;}
+
+
+        .over_price.buy_price{border:1px solid green}
+        .over_price.sell_price{border:1px solid red;}
+
+    </style>
+</head>
+<body >
+<div>
+    usd系列:
+    <label>
+        bitmex
+        <input type="checkbox" class="target_plt" name="bitmex" checked="checked"/>
+    </label>
+    <label>
+        bitfinex
+        <input type="checkbox" class="target_plt" name="bitfinex" checked="checked"/>
+    </label>
+    <label>
+        bittrex
+        <input type="checkbox" class="target_plt" name="bittrex" checked="checked"/>
+    </label>
+    <label>
+        bitstamp
+        <input type="checkbox" class="target_plt" name="bitstamp" checked="checked"/>
+    </label>
+    <label>
+        kraken(usd)
+        <input type="checkbox" class="target_plt" name="kraken_usd" checked="checked"/>
+    </label>
+
+    <label>
+        gdax
+        <input type="checkbox" class="target_plt" name="gdax" checked="checked"/>
+    </label>
+
+
+
+</div>
+<div>
+    jpy系列:
+    <label>
+        coincheck
+        <input type="checkbox" class="target_plt" name="coincheck" checked="checked"/>
+    </label>
+    <label>
+        bitflyer
+        <input type="checkbox" class="target_plt" name="bitflyer" checked="checked"/>
+    </label>
+    <label>
+        zaif
+        <input type="checkbox" class="target_plt" name="zaif" checked="checked"/>
+    </label>
+
+
+    <label>
+        bithumb
+        <input type="checkbox" class="target_plt" name="bithumb" checked="checked"/>
+    </label>
+</div>
+<div>
+    <div>
+        <input type='button' value='开始' id='start_watch'/>
+        最高买价usd:<span id="max_usd_price"></span>
+        最低卖价usd:<span id="min_usd_price"></span>
+        最高买价jpy:<span id="max_jpy_price"></span>
+        最低卖价jpy:<span id="min_jpy_price"></span>
+
+        平均jpy/usd:<span id="avg_jpy_usd"></span>
+    </div>
+	<table>
+        <thead>
+            <tr>
+                <th></th>
+                <th id="buy_total_col_th" style="width:140px">总计</th>
+                <th>价格</th>
+                <th id="buy_amount_col_th" style="width:80px">金额</th>
+                <th style="width:5px"></th>
+                <th id="sell_amount_col_th" style="width:80px">金额</th>
+                <th>价格</th>
+                <th id="sell_total_col_th" style="width:140px">总计</th>
+            </tr>
+        </thead>
+        <tbody id="watch_result">
+
+        </tbody>
+	</table>
+</div>
+
+</body>
+<script type="text/javascript" src="/public/js/jquery-1.10.2.min.js"></script>
+<script type="text/javascript" src='/public/js/echarts.min.js'></script>
+
+<script>
+/*处理postMessage*/
+var wma={
+
+};
+window.addEventListener("message", function(e,a){
+    if(e.data && typeof(wma[e.data.action])=='function'){
+        wma[e.data.action](e.data.data, e.source);
+    }
+},false);
+/*配置文件*/
+/*----------------------------------------------------------------------------------------------------------------------------------------------*/
+function _copy(obj){
+    return  JSON.parse(JSON.stringify(obj));
+}
+function _obj_set(obj,save_data){
+    if(!save_data || !obj) return ;
+
+    for(var k in save_data){
+        obj[k]=save_data[k];
+    }
+}
+var slice_obj=function(obj,length){
+    var xc= 0,re={};
+    if(length<0){
+        for(var x in obj) xc++;
+        //console.log('截取列表长度:',xc);
+        xc+=length;
+        if(xc>0){
+            //console.log('截取列表长度 超出:',xc);
+        }
+        for(var x in obj){
+            if(xc>0){
+                xc--;
+            }else{
+                re[x]=obj[x];
+            }
+        }
+    }else{
+        //console.log('取出截取列表 前:',length,' 个');
+        for(var x in obj){
+            if(xc<length){
+                xc++;
+                re[x]=obj[x];
+            }else{
+                break;
+            }
+        }
+    }
+    //xc=0;for(var x in obj){xc++;}console.log('截取后 列表长度:',xc);
+    return re;
+};
+/*loading动画*/
+function show_loading(){
+    if(!$('.t-loading').length>0){
+        $('body').append("<div class='t-loading'></div>");
+    }
+}
+function hide_loading() {
+    if($('.t-loading').length>0){
+        $('.t-loading').remove();
+    }
+}
+
+$(function(){
+
+
+    var lv=50;
+    for(var i=0;i<lv;i++){
+        $('#watch_result').append(
+            '<tr id="order_lv_'+i+'">' +
+                '<td>order_lv_'+i+'</td>' +
+                '<td class="buy_total">' +
+                    '<div class="text"></div>' +
+                    '<div class="value_block"></div>' +
+                '</td>' +
+                '<td class="buy_price"><span class="text"></span></td>' +
+                '<td class="buy_amount">' +
+                    '<div class="text"></div>' +
+                    '<div class="value_block"></div>' +
+                '</td>' +
+                '<td></td>' +
+                '<td class="sell_amount">' +
+                    '<div class="text"></div>' +
+                    '<div class="value_block"></div>' +
+                '</td>' +
+                '<td class="sell_price"><span class="text"></span></td>' +
+                '<td class="sell_total">' +
+                    '<div class="text"></div>' +
+                    '<div class="value_block"></div>' +
+                '</td>'+
+            '</tr>'
+        );
+    }
+    function common_sum_amount(obj,price,amount){
+        if(!obj[price]) obj[price]=0;
+        obj[price]+=parseFloat(amount);
+    }
+    var sum_by_plt={};
+    var jpy_usd=112.53;
+    function update_order_all(){
+        var sum_all={buy:{},sell:{}};
+        var max_usd_price=0,min_usd_price=0;
+        var max_jpy_price=0,min_jpy_price=0;
+
+        $.each(sum_by_plt,function(plt,order_data){
+            $.each(['buy','sell'],function(k,side){
+                $.each(order_data[side],function(price,amount){
+                    switch (order_data.c){
+                        case 'jpy':
+                            if(side=='buy'){
+                                if(price>max_jpy_price) max_jpy_price=price;
+                            }else{
+                                if(!min_jpy_price) min_jpy_price=price;
+                                if(min_jpy_price && price<min_jpy_price) min_jpy_price=price;
+                            }
+
+                            price=price/jpy_usd;
+
+                            break;
+                        default :
+                            if(side=='buy'){
+                                if(price>max_usd_price) max_usd_price=price;
+                            }else{
+                                if(!min_usd_price) min_usd_price=price;
+                                if(min_jpy_price && price<min_usd_price) min_usd_price=price;
+                            }
+                    }
+
+//                    price=(parseInt(price*10)/10);
+                    price=parseInt(price);
+
+                    if(typeof(sum_all[side][price])=='undefined') sum_all[side][price]=0;
+
+                    sum_all[side][price]+=amount;
+                });
+            });
+        });
+        $('#min_usd_price').text(min_usd_price);
+        $('#max_usd_price').text(max_usd_price);
+        $('#min_jpy_price').text(min_jpy_price);
+        $('#max_jpy_price').text(max_jpy_price);
+
+        jpy_usd=(max_jpy_price-(-min_jpy_price))/(max_usd_price-(-min_usd_price));
+        $('#avg_jpy_usd').text(jpy_usd);
+//        console.log('update_order_all:',sum_all);
+
+        var sum_all_cache={buy:[],sell:[]};
+        $.each(['buy','sell'],function(k,side){
+            $.each(sum_all[side],function(price,amount){
+                sum_all_cache[side].push([price,amount]);
+            });
+        });
+        sum_all_cache.buy.sort(function(a,b){
+            return b[0]-a[0];
+        });
+        sum_all_cache.sell.sort(function(a,b){
+            return a[0]-b[0];
+        });
+
+        var first_buy=sum_all_cache.buy[0][0];
+        var first_sell=sum_all_cache.sell[0][0];
+
+        $.each(['buy','sell'],function(k,side){
+            var side_amount_sum=0;
+            var side_amount_max=0;
+            var side_amount_total=0;
+            $.each(sum_all_cache[side],function(count,v){
+                var text_box=$('#order_lv_'+count);
+                if(text_box.length==0) return false;
+
+                var amount=parseFloat(v[1]);
+                if(amount>side_amount_max) side_amount_max=amount;
+                side_amount_total-=-amount;
+            });
+
+            var th_width_amount=$('#'+side+'_amount_col_th').width();
+            var th_width_total=$('#'+side+'_total_col_th').width();
+            $.each(sum_all_cache[side],function(count,v){
+                var text_box=$('#order_lv_'+count);
+                if(text_box.length==0) return false;
+
+                var price=v[0];
+                var amount=parseFloat(v[1]);
+                side_amount_sum-=-amount;
+                $('.'+side+'_amount .text',text_box).text(amount.toFixed(4));
+                $('.'+side+'_price .text',text_box).text(price);
+                $('.'+side+'_total .text',text_box).text(side_amount_sum.toFixed(3));
+
+                $('.'+side+'_amount .value_block',text_box).width(amount*th_width_amount/side_amount_max);
+                $('.'+side+'_total .value_block',text_box).width(side_amount_sum*th_width_total/side_amount_total);
+
+
+                var td_el=$('.'+side+'_amount,.'+side+'_price',text_box);
+                if(side=='buy'){
+                    if(price>first_sell){
+                        td_el.addClass('over_price');
+                    }else{
+                        td_el.removeClass('over_price');
+                    }
+                }else{
+                    if(price<first_buy){
+                        td_el.addClass('over_price');
+                    }else{
+                        td_el.removeClass('over_price');
+                    }
+                }
+            });
+
+
+        });
+    }
+
+    var watch_status=1;
+    function simple_loop(btn,opt){
+        var stop=0;
+        if(!watch_status) stop=1;
+//        console.log('to start ',btn.is(':checked'));
+        if(!btn.is(':checked')) stop=1;
+
+        var plt=btn.attr('name');
+        if(stop){
+            delete sum_by_plt[plt];
+            clearTimeout(btn.data('timer'));
+            return;
+        }
+        opt=opt || {};
+        if(!opt.delay_all) opt.delay_all=2200;
+
+        var data={coin:opt.coin || '',plt:plt};
+        var delay=opt.delay_all || 2200;
+        var calc_fix=0.15;
+//        console.log('当前查询:',plt,' 延迟:',delay);
+
+        $.ajax({
+            url:'/api/get_order_book',
+            data:data,
+            dataType:'JSON',
+            type:'get',
+            success:function(re){
+                if(typeof(opt.cb)=='function') opt.cb(re);
+                if(re.status==1){
+                    var sum_total={buy:{},sell:{}};
+                    switch(data.plt){
+                        case 'bitmex':
+                            $.each(re.info,function(k,v){
+                                if(v.side=='Buy'){
+                                    common_sum_amount(sum_total.buy,v.price,v.size/v.price);
+                                }else{
+                                    common_sum_amount(sum_total.sell,v.price,v.size/v.price);
+                                }
+                            });
+                            break;
+                        case 'bitfinex':
+                            $.each(re.info.bids,function(k,v){
+                                var price=v.price;
+                                var amount=v.amount;
+                                common_sum_amount(sum_total.buy,price,amount);
+                            });
+                            $.each(re.info.asks,function(k,v){
+                                var price=v.price;
+                                var amount=v.amount;
+                                common_sum_amount(sum_total.sell,price,amount);
+                            });
+                            break;
+                        case 'bittrex':
+                            var first_buy=re.info.result.buy[0].Rate;
+                            $.each(re.info.result.buy,function(k,v){
+                                var price=v.Rate;
+                                var amount=v.Quantity;
+
+                                if(price<first_buy*(1-calc_fix)) return true;
+
+                                common_sum_amount(sum_total.buy,price,amount);
+                            });
+                            var first_sell=re.info.result.sell[0].Rate;
+                            $.each(re.info.result.sell,function(k,v){
+                                var price=v.Rate;
+                                var amount=v.Quantity;
+
+                                if(price>first_sell*(1+calc_fix)) return true;
+
+                                common_sum_amount(sum_total.sell,price,amount);
+                            });
+                            break;
+                        case 'bitstamp':
+                            var first_buy=re.info.bids[0][0];
+                            $.each(re.info.bids,function(k,v){
+                                var price=v[0];
+                                var amount=v[1];
+
+                                if(price<first_buy*(1-calc_fix)) return true;
+
+                                common_sum_amount(sum_total.buy,price,amount);
+                            });
+                            var first_sell=re.info.asks[0][0];
+                            $.each(re.info.asks,function(k,v){
+                                var price=v[0];
+                                var amount=v[1];
+
+                                if(price>first_sell*(1+calc_fix)) return true;
+
+                                common_sum_amount(sum_total.sell,price,amount);
+                            });
+                            break;
+
+                        case 'kraken_usd':
+                            var first_buy=re.info.result.XXBTZUSD.bids[0][0];
+                            $.each(re.info.result.XXBTZUSD.bids,function(k,v){
+                                var price=v[0];
+                                var amount=v[1];
+
+                                if(price<first_buy*(1-calc_fix)) return true;
+
+                                common_sum_amount(sum_total.buy,price,amount);
+                            });
+                            var first_sell=re.info.result.XXBTZUSD.asks[0][0];
+                            $.each(re.info.result.XXBTZUSD.asks,function(k,v){
+                                var price=v[0];
+                                var amount=v[1];
+
+                                if(price>first_sell*(1+calc_fix)) return true;
+
+                                common_sum_amount(sum_total.sell,price,amount);
+                            });
+                            break;
+
+                        case 'gdax':
+
+                            console.log('calc end:',sum_total);
+                            break;
+                        case 'bithumb':
+
+                            break;
+                        case 'coincheck':
+                            var first_buy=re.info.bids[0][0];
+                            $.each(re.info.bids,function(k,v){
+                                var price=v[0];
+                                var amount=v[1];
+
+                                if(price<first_buy*(1-calc_fix)) return true;
+
+                                common_sum_amount(sum_total.buy,price,amount);
+                            });
+                            var first_sell=re.info.asks[0][0];
+                            $.each(re.info.asks,function(k,v){
+                                var price=v[0];
+                                var amount=v[1];
+
+                                if(price>first_sell*(1+calc_fix)) return true;
+
+                                common_sum_amount(sum_total.sell,price,amount);
+                            });
+                            sum_total.c='jpy';
+                            break;
+                        case 'bitflyer':
+                            var first_buy=re.info.bids[0].price;
+                            $.each(re.info.bids,function(k,v){
+                                var price=v.price;
+                                var amount=v.size;
+
+                                if(price<first_buy*(1-calc_fix)) return true;
+
+                                common_sum_amount(sum_total.buy,price,amount);
+                            });
+                            var first_sell=re.info.asks[0].price;
+                            $.each(re.info.asks,function(k,v){
+                                var price=v.price;
+                                var amount=v.size;
+
+                                if(price>first_sell*(1+calc_fix)) return true;
+
+                                common_sum_amount(sum_total.sell,price,amount);
+                            });
+                            sum_total.c='jpy';
+                            break;
+                        case 'zaif':
+                            var first_buy=re.info.bids[0][0];
+                            $.each(re.info.bids,function(k,v){
+                                var price=v[0];
+                                var amount=v[1];
+
+                                if(price<first_buy*(1-calc_fix)) return true;
+
+                                common_sum_amount(sum_total.buy,price,amount);
+                            });
+                            var first_sell=re.info.asks[0][0];
+                            $.each(re.info.asks,function(k,v){
+                                var price=v[0];
+                                var amount=v[1];
+
+                                if(price>first_sell*(1+calc_fix)) return true;
+
+                                common_sum_amount(sum_total.sell,price,amount);
+                            });
+                            sum_total.c='jpy';
+                            break;
+                    }
+                    sum_by_plt[plt]=sum_total;
+                    update_order_all();
+                }
+                clearTimeout(btn.data('timer'));
+                btn.data('timer',setTimeout(function(){
+                    simple_loop(btn,opt);
+                },delay));
+            },
+            error:function(){
+                clearTimeout(btn.data('timer'));
+                btn.data('timer',setTimeout(function(){
+                    simple_loop(btn,opt);
+                },delay));
+            }
+        });
+
+    }
+    $('#start_watch').click(function(){
+		if($(this).hasClass('open')){ /*点这个是停止*/
+			$(this).removeClass('open').val('开始');
+			watch_status=0;
+            $('.target_plt').each(function(){
+                $(this).prop('checked',false).change();
+            });
+		}else{ /*点这个是开始*/
+			$(this).addClass('open').val('停止');
+			watch_status=1;
+            $('.target_plt').each(function(){
+                $(this).prop('checked',true).change();
+            });
+        }
+	});
+    $('.target_plt').on('change',function(){
+        simple_loop($(this));
+    });
+});
+
+var tab_now='';
+$(function(){
+
+    var upColor = '#00da3c';
+    var downColor = '#ec0000';
+
+    function splitData(rawData) {
+        var categoryData = [];
+        var volumes = [];
+        var buy_all=[],sell_all=[],re_all=[];
+        var buy_list=[],sell_list=[];
+
+        for (var i in rawData) {
+            categoryData.push(rawData[i].time);
+            buy_all.push(rawData[i].buy_all);
+            sell_all.push(rawData[i].sell_all);
+            re_all.push(rawData[i].buy_all-rawData[i].sell_all);
+
+//            buy_list.push([rawData[i].buy,rawData[i].buy_avg,rawData[i].sell,rawData[i].sell_avg]);
+            buy_list.push(rawData[i].buy);
+            sell_list.push(rawData[i].sell);
+        }
+
+        return {
+            categoryData: categoryData,
+            buy_list: buy_list,
+            sell_list: sell_list,
+            volumes: volumes,
+            buy_all:buy_all,
+            sell_all:sell_all,
+            re_all:re_all
+        };
+    }
+
+    var refresh=function(is_init){
+        if(tab_now){
+            var myChart=tab_now.data('chart');
+            myChart.showLoading();
+            /*获取组设备*/
+            $.ajax({
+                url:'/api/get_latest_data',
+                data:{coin:tab_now.data('type'),is_init:is_init?1:0},
+                dataType:'JSON',
+                type:'get',
+                success:function(re){
+                    if(re.status!=1) return;
+
+                    var tmp_data=tab_now.data('last_data') || {},
+                        re_data=re.info || {};
+                    for(var time in re_data){
+                        tmp_data[time]=re_data[time];
+                    }
+					tmp_data=slice_obj(tmp_data,-200);
+                    tab_now.data('last_data',tmp_data);
+					
+					var data=[];
+					for(var time in tmp_data){
+						var push=tmp_data[time];
+						var timestamp=new Date(time);/*TODO::处理精确到分的节气分界点*/
+						timestamp=timestamp.getTime();
+						push.time=time;
+						push.timestamp=timestamp;
+                        data.push(push);
+                    }
+					data.sort(function(x,y){
+						if (x.timestamp < y.timestamp) {
+							return -1;
+						} else if (x.timestamp > y.timestamp) {
+							return 1;
+						} else {
+							return 0;
+						}
+					});
+                    data=splitData(data);
+
+                    var option = {
+                        xAxis: [
+                            {
+                                type: 'category',
+                                data: data.categoryData,
+                                scale: true,
+                                boundaryGap : false,
+                                axisLine: {onZero: false},
+                                splitLine: {show: true},
+                                splitNumber: 20,
+                                min: 'dataMin',
+                                max: 'dataMax',
+                                axisPointer: {
+                                    z: 100
+                                }
+                            },
+                            {
+                                type: 'category',
+                                gridIndex: 1,
+                                data: data.categoryData,
+                                scale: true,
+                                axisLine: { },
+                                axisTick: { },
+                                splitLine: {show: true},
+                                axisLabel: {show: true},
+                                splitNumber: 20,
+                                min: 'dataMin',
+                                max: 'dataMax',
+                                axisPointer: {
+                                    label: {
+                                        formatter: function (params) {
+                                            var seriesValue = (params.seriesData[0] || {}).value;
+                                            return params.value
+                                            + (seriesValue != null
+                                                    ? '\n' + echarts.format.addCommas(seriesValue)
+                                                    : ''
+                                            );
+                                        }
+                                    }
+                                }
+                            }
+                        ],
+                        series: [
+                            {
+                                name: 'buy',
+                                type: 'line',
+                                data: data.buy_list,
+                                itemStyle: {
+                                    normal: {
+                                        color: upColor,
+                                        color0: downColor,
+                                        borderColor: null,
+                                        borderColor0: null
+                                    }
+                                }
+                            },
+                            {
+                                name: 'sell',
+                                type: 'line',
+                                data: data.sell_list,
+                                itemStyle: {
+                                    normal: {
+                                        color: downColor,
+                                        color0: upColor,
+                                        borderColor: null,
+                                        borderColor0: null
+                                    }
+                                }
+                            },
+                            {
+                                name: 'Volume',
+                                type: 'bar',
+                                xAxisIndex: 1,
+                                yAxisIndex: 1,
+                                data: data.re_all,
+								itemStyle: {
+                                    normal: {
+                                        color:function(params){
+											var index_color = params.value;
+											if(index_color>=0){
+												return upColor;
+											}else {
+												return downColor;
+											}
+										}
+                                    }
+                                }
+                            }
+                        ]
+                    };
+                    // 使用刚指定的配置项和数据显示图表。
+                    myChart.setOption(option);
+                    myChart.hideLoading();
+                }
+            });
+        }
+    };
+
+});
+
+
+</script>
+
+</html>

@@ -349,6 +349,7 @@ exports.http_get=function(url,send_data,callback,err){
     var res_data='';
     if(!url){
         console.log("http_get error: url is empty");
+        callback(res_data,"http_get error: url is empty");
         return ;
     }
     var fix=url.indexOf('?')<0?'?':'&';
