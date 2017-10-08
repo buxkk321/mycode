@@ -760,9 +760,8 @@ var sb_calc={
             var next_z=t_arr[k+1];/*后一个*/
 
             var 天干=zzz[v+'干'];
-           
             zzz[v+'干五行']=天干五行[天干];
-			var st五行=天干五行[天干][1];
+			
 
             var diff;
             var 天干强弱={生我:[],克我:[],我生:[],我克:[],本气通根:[],冲:[]};
@@ -794,8 +793,9 @@ var sb_calc={
 
 
             var 地支=zzz[v+'支'];
-            var br五行=地支五行[地支][1];
-            zzz[v+'支五行']=br五行;
+			zzz[v+'支五行']=地支五行[地支];
+            
+            
 
             var 地支强弱={生我:[],克我:[],我生:[],我克:[],刑:[],冲:[],害:[]};
             /*和前一个地支比较*/
@@ -833,8 +833,12 @@ var sb_calc={
 
 
 
-
+			
+			
             var 干支关系=[];
+			var st五行=天干五行[天干][1];
+			var br五行=地支五行[地支][1];
+			
             diff=get_5e_relation(st五行,br五行);
             if(diff[0]>0){
                 干支关系.push(diff[1]);
@@ -863,7 +867,7 @@ var sb_calc={
             var cg=地支藏干[地支];
             $.each(['本','中','余'],function(k2,v2) {
                 zzz[v+'支'+v2+'气']=cg[k2] || '';
-                zzz[v+'支'+v2+'气五行']=get_stems_5e(cg[k2]);
+                zzz[v+'支'+v2+'气五行']=天干五行[cg[k2]];
                 var tg=[];
                 $.each(['年','月','日','时'],function(kk,checkv){
                     var 天干=zzz[checkv+'干'];
@@ -948,8 +952,7 @@ var sb_calc={
                     org+=qr.害.length*score.hai;
                     /*TODO::三会的力量大于一切*/
                 }
-                var wx=zzz[v+vv+'五行'];
-			
+                var wx=zzz[v+vv+'五行'][1];
                 hj[wx]+=org;
             });
         });

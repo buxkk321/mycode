@@ -202,11 +202,18 @@
 						</tr>
 						<tr>
 							<td  >
-								<input type="button" id="prev_word" value="上一个" />								
+								<input type="button" id="prev_word_d" value="上一天" />								
 							</td>
 							<td  > 
-								 
-								<input type="button" id="next_word" value="下一个" />
+								<input type="button" id="next_word_d" value="下一天" />
+							</td>
+						</tr>
+						<tr>
+							<td  >
+								<input type="button" id="prev_word_t" value="上一时辰" />								
+							</td>
+							<td  > 
+								<input type="button" id="next_word_t" value="下一时辰" />
 							</td>
 						</tr>
 						<tr>
@@ -486,10 +493,16 @@
             });
 
             /*快速查看前后信息*/
-            $('#prev_word').click(function(){
+			$('#prev_word_d').click(function(){
+                move_date(12);
+            });
+            $('#next_word_d').click(function(){
+                move_date(-12);
+            });
+            $('#prev_word_t').click(function(){
                 move_date(1);
             });
-            $('#next_word').click(function(){
+            $('#next_word_t').click(function(){
                 move_date(-1);
             });
 
@@ -647,14 +660,19 @@
 				}
 				return re;
 			}
+			function br_info(part){
+				var e5info=word_info[part+'支五行'];
+				var re='<div>'+word_info[part+'支']+'(<span class="e5label_'+e5info[0]+'">'+e5info[1]+'</span>)</div>';
+				return re;
+			}
 			$('.c_4_1',winfo_box).html('地支');
-			$('.c_4_2',winfo_box).html(word_info.年支+'('+word_info['年支五行']+')');
+			$('.c_4_2',winfo_box).html(br_info('年'));
 			$('.c_4_3',winfo_box).html(build_br_rela(word_info.年支月支));
-			$('.c_4_4',winfo_box).html(word_info.月支+'('+word_info['月支五行']+')');
+			$('.c_4_4',winfo_box).html(br_info('月'));
 			$('.c_4_5',winfo_box).html(build_br_rela(word_info.月支日支));
-			$('.c_4_6',winfo_box).html(word_info.日支+'('+word_info['日支五行']+')');
+			$('.c_4_6',winfo_box).html(br_info('日'));
 			$('.c_4_7',winfo_box).html(build_br_rela(word_info.日支时支));
-			$('.c_4_8',winfo_box).html(word_info.时支+'('+word_info['时支五行']+')');
+			$('.c_4_8',winfo_box).html(br_info('时'));
 
 			var sanhe='';
 			$.each(word_info.地支三合,function(k,v){
@@ -685,9 +703,13 @@
 //                        if(v2=='本' && tg.length>0) tg='透干:'+tg;
 					tg='';
 					//if(v2=='本')  
+					var e5info=info[part+'支'+v2+'气五行'];
+					if(e5info){
+						tg+='<span class="e5label_'+e5info[0]+'">'+e5info[1]+'</span>'
+					}
 					tg+=':'+info.日主.十神[part+'支'+v2+'气'];
 
-					cg_el+='<div>'+(info[part+'支'+v2+'气'] || '&nbsp;')+' '+tg+'</div>';
+					cg_el+='<div>'+(info[part+'支'+v2+'气'] || '&nbsp;')+tg+'</div>';
 				});
 				return cg_el;
 			}
@@ -824,6 +846,11 @@
                         var series=[
                             {
                                 type:'line',
+                                stack: '总量',
+                                areaStyle: {normal:{
+                                    color:"#B88A00",
+                                    opacity:0.8
+                                }},
                                 name:'土',
                                 smooth:true,
                                 lineStyle:{
@@ -835,6 +862,11 @@
                             },
                             {
                                 type:'line',
+                                stack: '总量',
+                                areaStyle: {normal: {
+                                    color:"#FFFFCC",
+                                    opacity:0.8
+                                }},
                                 name:'金',
                                 smooth:true,
                                 lineStyle:{
@@ -846,6 +878,11 @@
                             },
                             {
                                 type:'line',
+                                stack: '总量',
+                                areaStyle: {normal: {
+                                    color:"#000066",
+                                    opacity:0.8
+                                }},
                                 name:'水',
                                 smooth:true,
                                 lineStyle:{
@@ -857,6 +894,11 @@
                             },
                             {
                                 type:'line',
+                                stack: '总量',
+                                areaStyle: {normal: {
+                                    color:"#00F5C7",
+                                    opacity:0.8
+                                }},
                                 name:'木',
                                 smooth:true,
                                 lineStyle:{
@@ -868,6 +910,11 @@
                             },
                             {
                                 type:'line',
+                                stack: '总量',
+                                areaStyle: {normal: {
+                                    color:"#FF0F0F",
+                                    opacity:0.8
+                                }},
                                 name:'火',
                                 smooth:true,
                                 lineStyle:{
